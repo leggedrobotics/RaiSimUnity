@@ -3,6 +3,7 @@
  */
 
 using System.Collections.Generic;
+using System.Xml;
 using UnityEngine;
 using Quaternion = UnityEngine.Quaternion;
 using Vector3 = UnityEngine.Vector3;
@@ -75,7 +76,7 @@ namespace raisimUnity
 //            plane.GetComponent<Collider>().enabled = false;
             return plane;
         }
-
+        
         public static GameObject CreateTerrain(GameObject root, string name, 
             ulong numSampleX, float sizeX, float centerX, ulong numSampleY, float sizeY, float centerY, 
             float[,] heights, string tag)
@@ -88,59 +89,59 @@ namespace raisimUnity
 
             List<Vector3> vertices = new List<Vector3>();
             List<int> indices = new List<int>();
-            List<Vector2> uv = new List<Vector2>();
-            List<Vector3> normal = new List<Vector3>();
+            List<Vector2> uvs = new List<Vector2>();
+            List<Vector3> normals = new List<Vector3>();
 
             float gridSizeX = sizeX / (numSampleX - 1);
             float gridSizeY = sizeY / (numSampleY - 1);
             float gridStartX = centerX - sizeX * 0.5f;
             float gridStartY = centerY - sizeY * 0.5f;
-
+            
             // vertices
             for (ulong i = 0; i < numSampleY-1; i++)
             {
                 for (ulong j = 0; j < numSampleX-1; j++)
                 {
                     // (x, y) = (j, i)
-                    vertices.Add(new Vector3(
+                    vertices.Add(ConvertRs2Unity(
                         gridStartX + j * gridSizeX,
-                        heights[i, j],
-                        gridStartY + i * gridSizeY  
-                        ));
-                    
-                    // (x, y) = (j+1, i)
-                    vertices.Add(new Vector3(
-                        gridStartX + (j + 1) * gridSizeX,
-                        heights[i, j + 1],
-                        gridStartY + i * gridSizeY
-                        ));
+                        gridStartY + i * gridSizeY,
+                        heights[i, j]
+                    ));
                     
                     // (x, y) = (j+1, i+1)
-                    vertices.Add(new Vector3(
+                    vertices.Add(ConvertRs2Unity(
                         gridStartX + (j + 1) * gridSizeX,
-                        heights[i + 1, j + 1],
-                        gridStartY + (i + 1) * gridSizeY
+                        gridStartY + (i + 1) * gridSizeY,
+                        heights[i + 1, j + 1]
+                    ));
+                    
+                    // (x, y) = (j+1, i)
+                    vertices.Add(ConvertRs2Unity(
+                        gridStartX + (j + 1) * gridSizeX,
+                        gridStartY + i * gridSizeY,
+                        heights[i, j + 1]
                     ));
 
                     // (x, y) = (j, i)
-                    vertices.Add(new Vector3(
+                    vertices.Add(ConvertRs2Unity(
                         gridStartX + j * gridSizeX,
-                        heights[i, j],
-                        gridStartY + i * gridSizeY
-                    ));
-                    
-                    // (x, y) = (j+1, i+1)
-                    vertices.Add(new Vector3(
-                        gridStartX + (j + 1) * gridSizeX,
-                        heights[i + 1, j + 1],
-                        gridStartY + (i + 1) * gridSizeY
+                        gridStartY + i * gridSizeY,
+                        heights[i, j]
                     ));
                     
                     // (x, y) = (j, i+1)
-                    vertices.Add(new Vector3(
+                    vertices.Add(ConvertRs2Unity(
                         gridStartX + j * gridSizeX,
-                        heights[i + 1, j],
-                        gridStartY + (i + 1) * gridSizeY
+                        gridStartY + (i + 1) * gridSizeY,
+                        heights[i + 1, j]
+                    ));
+                    
+                    // (x, y) = (j+1, i+1)
+                    vertices.Add(ConvertRs2Unity(
+                        gridStartX + (j + 1) * gridSizeX,
+                        gridStartY + (i + 1) * gridSizeY,
+                        heights[i + 1, j + 1]
                     ));
                 }
             }
@@ -152,53 +153,54 @@ namespace raisimUnity
             
             // normals
             for (int i = 0; i < vertices.Count; i += 3) {
-                Vector3 point1 = vertices[i];
-                Vector3 point2 = vertices[i+1];
-                Vector3 point3 = vertices[i+2];
+                Vector3 point1 = ConvertUnity2RS(vertices[i].x, vertices[i].y, vertices[i].z);
+                Vector3 point2 = ConvertUnity2RS(vertices[i+1].x, vertices[i+1].y, vertices[i+1].z);
+                Vector3 point3 = ConvertUnity2RS(vertices[i+2].x, vertices[i+2].y, vertices[i+2].z);
                 
                 Vector3 diff1 = point2 - point1;
                 Vector3 diff2 = point3 - point2;
                 Vector3 norm = Vector3.Cross(diff1, diff2);
-                norm = Vector3.Normalize(norm); 
+                norm = Vector3.Normalize(norm);
+                norm = ConvertRs2Unity(norm.x, norm.y, norm.z);
 
-                normal.Add(norm);
-                normal.Add(norm);
-                normal.Add(norm);
+                normals.Add(norm);
+                normals.Add(norm);
+                normals.Add(norm);
             }
             
-            // uv
+            // uvs
             for (ulong i = 0; i < numSampleY-1; i++)
             {
                 for (ulong j = 0; j < numSampleX-1; j++)
                 {
-                    uv.Add(new Vector2(
-                        j / (float)numSampleX,
-                        i / (float)numSampleY
+                    uvs.Add(new Vector2(
+                        - (j / (float)numSampleX),
+                        - (i / (float)numSampleY)
+                    ));
+
+                    uvs.Add(new Vector2(
+                        - ((j + 1) / (float)numSampleX),
+                        - ((i + 1) / (float)numSampleY)
                     ));
                     
-                    uv.Add(new Vector2(
-                        (j + 1) / (float)numSampleX,
-                        i / (float)numSampleY
+                    uvs.Add(new Vector2(
+                        - ((j + 1) / (float)numSampleX),
+                        - (i / (float)numSampleY)
+                    ));
+
+                    uvs.Add(new Vector2(
+                        - (j / (float)numSampleX),
+                        - (i / (float)numSampleY)
+                    ));
+                                      
+                    uvs.Add(new Vector2(
+                        - (j / (float)numSampleX),
+                        - ((i + 1) / (float)numSampleY)
                     ));
                     
-                    uv.Add(new Vector2(
-                        (j + 1) / (float)numSampleX,
-                        (i + 1) / (float)numSampleY
-                    ));
-                    
-                    uv.Add(new Vector2(
-                        j / (float)numSampleX,
-                        i / (float)numSampleY
-                    ));
-                    
-                    uv.Add(new Vector2(
-                        (j + 1) / (float)numSampleX,
-                        (i + 1) / (float)numSampleY
-                    ));
-                    
-                    uv.Add(new Vector2(
-                        j / (float)numSampleX,
-                        (i + 1) / (float)numSampleY
+                    uvs.Add(new Vector2(
+                        - ((j + 1) / (float)numSampleX),
+                        - ((i + 1) / (float)numSampleY)
                     ));
                 }
             }
@@ -206,15 +208,24 @@ namespace raisimUnity
             Mesh mesh = new Mesh();
             mesh.vertices = vertices.ToArray();
             mesh.triangles = indices.ToArray();
-            mesh.uv = uv.ToArray();
-            mesh.normals = normal.ToArray();
+            mesh.uv = uvs.ToArray();
+            mesh.normals = normals.ToArray();
+
+            // this is just temporal object (will be deleted immediately!)
+            var temp = GameObject.CreatePrimitive(PrimitiveType.Plane);
+            temp.active = false;
 
             var terrain = new GameObject("terrain");
             terrain.transform.SetParent(objFrame.transform, true);
             terrain.AddComponent<MeshFilter>();
             terrain.AddComponent<MeshRenderer>();
+
             terrain.GetComponent<MeshFilter>().mesh = mesh;
-            
+            terrain.GetComponent<MeshRenderer>().material =  temp.GetComponent<MeshRenderer>().sharedMaterial;;
+
+            // destroy temp 
+            GameObject.DestroyImmediate(temp);
+
             return objFrame;
         }
 
@@ -244,7 +255,7 @@ namespace raisimUnity
             return objFrame;
         }
 
-        
+       
         public static void SetTransform(GameObject obj, Vector3 rsPos, Quaternion rsQuat)
         {
             // rsPos is position in RaiSim
@@ -261,6 +272,16 @@ namespace raisimUnity
 
             obj.transform.localPosition = new Vector3(-rsPos.x, rsPos.z, -rsPos.y);
             obj.transform.localRotation = q;
+        }
+        
+        private static Vector3 ConvertRs2Unity(float rx, float ry, float rz)
+        {
+            return new Vector3(-rx, rz, -ry);
+        }
+        
+        private static Vector3 ConvertUnity2RS(float ux, float uy, float uz)
+        {
+            return new Vector3(-ux, -uz, uy);
         }
     }
 }

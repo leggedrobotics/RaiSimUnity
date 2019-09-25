@@ -64,7 +64,7 @@ int main() {
   for(size_t i=0; i<N; i++) {
     for(size_t j=0; j<N; j++) {
       anymals.push_back(world.addArticulatedSystem(raisim::loadResource("anymal/anymal.urdf")));
-      anymals.back()->setGeneralizedCoordinate({double(2*i), double(j), 0.54, 1.0, 0.0, 0.0, 0.0, 0.03, 0.4,
+      anymals.back()->setGeneralizedCoordinate({double(2*i), double(j), 2.5, 1.0, 0.0, 0.0, 0.0, 0.03, 0.4,
                                                 -0.8, -0.03, 0.4, -0.8, 0.03, -0.4, 0.8, -0.03, -0.4, 0.8});
       anymals.back()->setGeneralizedForce(Eigen::VectorXd::Zero(anymals.back()->getDOF()));
       anymals.back()->setControlMode(raisim::ControlMode::PD_PLUS_FEEDFORWARD_TORQUE);
