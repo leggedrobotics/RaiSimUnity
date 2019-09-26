@@ -422,7 +422,7 @@ namespace raisimUnity
             ulong configurationNumber = 0;
             offset = BitIO.GetData<ulong>(ref _buffer, ref configurationNumber, offset);
 
-            ulong numObjects = BitConverter.ToUInt64(_buffer, 0);
+            ulong numObjects = 0;
             offset = BitIO.GetData<ulong>(ref _buffer, ref numObjects, offset);
 
             for (ulong i = 0; i < numObjects; i++)
