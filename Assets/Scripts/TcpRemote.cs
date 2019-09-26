@@ -145,7 +145,10 @@ namespace raisimUnity
                 {
                     UpdatePosition();
                 }
-                catch (Exception) {}
+                catch (Exception e)
+                {
+                    print("update failed.");
+                }
             }
             
             // escape
@@ -165,12 +168,7 @@ namespace raisimUnity
         {
             int offset = 0;
             
-            if (!_stream.CanWrite)
-                return -1;
-            
-            Byte[] data = BitConverter.GetBytes((int) ClientMessageType.RequestInitialization);
-            _stream.Write(data, 0, data.Length);
-
+            WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestInitialization));
             if (ReadData() == 0)
                 return -1;
 
@@ -356,19 +354,15 @@ namespace raisimUnity
                 }
             }
             
+            Array.Clear(_buffer, 0, _maxBufferSize);
             return 0;
         }
 
         private int UpdatePosition()
         {
             int offset = 0;
-
-            // request object position
-            Byte[] data = BitConverter.GetBytes((int) ClientMessageType.RequestObjectPosition);
-            _stream.Write(data, 0, data.Length);
-            if (!_stream.DataAvailable)
-                return -1;
             
+            WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestObjectPosition));
             if (ReadData() == 0)
                 return -1;
 
@@ -421,7 +415,8 @@ namespace raisimUnity
                     }
                 }
             }
-
+            
+            Array.Clear(_buffer, 0, _maxBufferSize);
             return 0;
         }
         
@@ -519,6 +514,12 @@ namespace raisimUnity
         
         private int ReadData()
         {
+            while (!_stream.DataAvailable)
+            {
+                // wait until stream data is available
+                // TODO what to do when it is stucked here....
+            }
+            
             int offset = 0;
             Byte footer = Convert.ToByte('c');
             while (footer == Convert.ToByte('c'))
@@ -529,6 +530,18 @@ namespace raisimUnity
                 offset += valread - _footerSize;
             }
             return offset;
+        }
+
+        private int WriteData(Byte[] data)
+        {
+            while (!_stream.CanWrite)
+            {
+                // wait until stream can write
+                // TODO what to do when it is stucked here....
+            }
+            
+            _stream.Write(data, 0, data.Length);
+            return 0;
         }
         
         void OnApplicationQuit()

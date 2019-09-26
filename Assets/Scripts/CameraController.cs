@@ -62,10 +62,20 @@ public class CameraController : MonoBehaviour
             if (Physics.Raycast(ray, out hit))
             {
                 if (_selected != null)
-                    _selected.GetComponentInChildren<Renderer>().material.shader = Shader.Find("Diffuse");
+                {
+                    // former selected object
+                    foreach (var ren in _selected.GetComponentsInChildren<Renderer>())
+                    {
+                        ren.material.shader = Shader.Find("Diffuse");
+                    }
+                }
                 
-                _selected = hit.transform.gameObject;
-                _selected.GetComponentInChildren<Renderer>().material.shader = Shader.Find("Self-Illumin/Outlined Diffuse");
+                _selected = hit.transform.parent.gameObject;
+                
+                foreach (var ren in _selected.GetComponentsInChildren<Renderer>())
+                {
+                    ren.material.shader = Shader.Find("Self-Illumin/Outlined Diffuse");
+                }
             }
         }
         
@@ -73,7 +83,12 @@ public class CameraController : MonoBehaviour
         else if (Input.GetMouseButtonDown(1))
         {
             if (_selected != null)
-                _selected.GetComponentInChildren<Renderer>().material.shader = Shader.Find("Diffuse");
+            {
+                foreach (var ren in _selected.GetComponentsInChildren<Renderer>())
+                {
+                    ren.material.shader = Shader.Find("Diffuse");
+                }
+            }
             
             _selected = null;
         }
