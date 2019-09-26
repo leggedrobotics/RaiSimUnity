@@ -16,7 +16,7 @@ namespace raisimUnity
         /// <typeparam name="T">type of data</typeparam>
         /// <returns>buffer offset after data</returns>
         /// <exception cref="NotImplementedException"></exception>
-        public static int GetData<T>(ref byte[] buffer, ref T data, int offset = 0)
+        public static T GetData<T>(ref byte[] buffer, ref int offset)
         {
             var type = typeof(T);
             
@@ -26,71 +26,81 @@ namespace raisimUnity
             
             if (type == typeof(sbyte))
             {
-                data = ((sbyte)buffer[offset]).As<T>();
-                return offset + sizeof(sbyte);
+                var data = ((sbyte)buffer[offset]).As<T>();
+                offset = offset + sizeof(sbyte);
+                return data;
             }
 
             if (type == typeof(byte))
             {
-                data = buffer[offset].As<T>();
-                return offset + sizeof(byte);
+                var data = buffer[offset].As<T>();
+                offset = offset + sizeof(byte);
+                return data;
             }
 
             if (type == typeof(short))
             {
-                data = BitConverter.ToInt16(buffer, offset).As<T>();
-                return offset + sizeof(short);
+                var data = BitConverter.ToInt16(buffer, offset).As<T>();
+                offset = offset + sizeof(short);
+                return data;
             }
 
             if (type == typeof(ushort))
             {
-                data = BitConverter.ToUInt16(buffer, offset).As<T>();
-                return offset + sizeof(ushort);
+                var data = BitConverter.ToUInt16(buffer, offset).As<T>();
+                offset = offset + sizeof(ushort);
+                return data;
             }
 
             if (type == typeof(int))
             {
-                data = BitConverter.ToInt32(buffer, offset).As<T>();
-                return offset + sizeof(int);
+                var data = BitConverter.ToInt32(buffer, offset).As<T>();
+                offset = offset + sizeof(int);
+                return data;
             }
 
             if (type == typeof(uint))
             {
-                data = BitConverter.ToUInt32(buffer, offset).As<T>();
-                return offset + sizeof(uint);
+                var data = BitConverter.ToUInt32(buffer, offset).As<T>();
+                offset = offset + sizeof(uint);
+                return data;
             }
 
             if (type == typeof(long))
             {
-                data = BitConverter.ToInt64(buffer, offset).As<T>();
-                return offset + sizeof(long);
+                var data = BitConverter.ToInt64(buffer, offset).As<T>();
+                offset = offset + sizeof(long);
+                return data;
             }
 
             if (type == typeof(ulong))
             {
-                data = BitConverter.ToUInt64(buffer, offset).As<T>();
-                return offset + sizeof(ulong);
+                var data = BitConverter.ToUInt64(buffer, offset).As<T>();
+                offset = offset + sizeof(ulong);
+                return data;
             }
             
             if (type == typeof(float))
             {
-                data = BitConverter.ToSingle(buffer, offset).As<T>();
-                return offset + sizeof(float);
+                var data = BitConverter.ToSingle(buffer, offset).As<T>();
+                offset = offset + sizeof(float);
+                return data;
             }
             
             if (type == typeof(double))
             {
-                data = BitConverter.ToDouble(buffer, offset).As<T>();
-                return offset + sizeof(double);
+                var data = BitConverter.ToDouble(buffer, offset).As<T>();
+                offset = offset + sizeof(double);
+                return data;
             }
             
             // string 
             if (type == typeof(string))
             {
-                ulong size = 0;
-                offset = GetData<ulong>(ref buffer, ref size, offset);
-                data = Encoding.UTF8.GetString(buffer, offset, (int)size).As<T>();
-                return offset + (int)size;
+                ulong size = GetData<ulong>(ref buffer, ref offset);
+                var data = Encoding.UTF8.GetString(buffer, offset, (int)size).As<T>();
+                offset = offset + (int)size;
+                return data;
             }
             
             throw new NotImplementedException();

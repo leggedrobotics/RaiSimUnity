@@ -174,72 +174,57 @@ namespace raisimUnity
             if (ReadData() == 0)
                 return -1;
 
-            ServerStatus state = 0;
-            offset = BitIO.GetData<ServerStatus>(ref _buffer, ref state, offset);
+            ServerStatus state = BitIO.GetData<ServerStatus>(ref _buffer, ref offset);
             
             if (state == ServerStatus.StatusTerminating)
                 return 0;
 
-            ServerMessageType messageType = 0;
-            offset = BitIO.GetData<ServerMessageType>(ref _buffer, ref messageType, offset);
+            ServerMessageType messageType = BitIO.GetData<ServerMessageType>(ref _buffer, ref offset);
 
-            ulong configurationNumber = 0;
-            offset = BitIO.GetData<ulong>(ref _buffer, ref configurationNumber, offset);
+            ulong configurationNumber = BitIO.GetData<ulong>(ref _buffer, ref offset);
 
-            ulong numObjects = 0;
-            offset = BitIO.GetData<ulong>(ref _buffer, ref numObjects, offset);
+            ulong numObjects = BitIO.GetData<ulong>(ref _buffer, ref offset);
 
             for (ulong i = 0; i < numObjects; i++)
             {
-                ulong objectIndex = 0;
-                offset = BitIO.GetData<ulong>(ref _buffer, ref objectIndex, offset);
+                ulong objectIndex = BitIO.GetData<ulong>(ref _buffer, ref offset);
                 
-                RsObejctType objectType = 0;
-                offset = BitIO.GetData<RsObejctType>(ref _buffer, ref objectType, offset);
+                RsObejctType objectType = BitIO.GetData<RsObejctType>(ref _buffer, ref offset);
                 
                 switch (objectType) 
                 {
                     case RsObejctType.RsSphereObject :
                     {
-                        float radius = 0;
-                        offset = BitIO.GetData<float>(ref _buffer, ref radius, offset);
+                        float radius = BitIO.GetData<float>(ref _buffer, ref offset);
                         ObjectController.CreateSphere(gameObject, objectIndex.ToString(), radius, VisualTag.VisualAndCollision);
                     }
                         break;
 
                     case RsObejctType.RsBoxObject :
                     {
-                        float sx = 0;
-                        offset = BitIO.GetData<float>(ref _buffer, ref sx, offset);
-                        float sy = 0;
-                        offset = BitIO.GetData<float>(ref _buffer, ref sy, offset);
-                        float sz = 0;
-                        offset = BitIO.GetData<float>(ref _buffer, ref sz, offset);
+                        float sx = BitIO.GetData<float>(ref _buffer, ref offset);
+                        float sy = BitIO.GetData<float>(ref _buffer, ref offset);
+                        float sz = BitIO.GetData<float>(ref _buffer, ref offset);
                         ObjectController.CreateBox(gameObject, objectIndex.ToString(), sx, sy, sz, VisualTag.VisualAndCollision);
                     }
                         break;
                     case RsObejctType.RsCylinderObject:
                     {
-                        float radius = 0;
-                        offset = BitIO.GetData<float>(ref _buffer, ref radius, offset);
-                        float height = 0;
-                        offset = BitIO.GetData<float>(ref _buffer, ref height, offset);
+                        float radius = BitIO.GetData<float>(ref _buffer, ref offset);
+                        float height = BitIO.GetData<float>(ref _buffer, ref offset);
                         ObjectController.CreateCylinder(gameObject, objectIndex.ToString(), radius, height, VisualTag.VisualAndCollision);
                     }
                         break;
                     case RsObejctType.RsCapsuleObject:
                     {
-                        float radius = 0;
-                        offset = BitIO.GetData<float>(ref _buffer, ref radius, offset);
-                        float height = 0;
-                        offset = BitIO.GetData<float>(ref _buffer, ref height, offset);
+                        float radius = BitIO.GetData<float>(ref _buffer, ref offset);
+                        float height = BitIO.GetData<float>(ref _buffer, ref offset);
                         ObjectController.CreateCapsule(gameObject, objectIndex.ToString(), radius, height, VisualTag.VisualAndCollision);
                     }
                         break;
                     case RsObejctType.RsMeshObject:
                     {
-                        string meshFile = "";
-                        offset = BitIO.GetData<string>(ref _buffer, ref meshFile, offset);
+                        string meshFile = BitIO.GetData<string>(ref _buffer, ref offset);
                         string meshFileName = Path.GetFileNameWithoutExtension(meshFile);
                         string directoryName = Path.GetFileName(Path.GetDirectoryName(meshFile));
                         ObjectController.CreateMesh(gameObject, objectIndex.ToString(), Path.Combine(directoryName, meshFileName), 1.0f, 1.0f, 1.0f, VisualTag.VisualAndCollision);
@@ -247,30 +232,22 @@ namespace raisimUnity
                         break;
                     case RsObejctType.RsHalfSpaceObject:
                     {
-                        float height = 0;
-                        offset = BitIO.GetData<float>(ref _buffer, ref height, offset);
+                        float height = BitIO.GetData<float>(ref _buffer, ref offset);
                         ObjectController.CreateHalfSpace(gameObject, objectIndex.ToString(), height, VisualTag.VisualAndCollision);
                     }
                         break;
                     case RsObejctType.RsHeightMapObject:
                     {
                         // center
-                        float centerX = 0;
-                        offset = BitIO.GetData<float>(ref _buffer, ref centerX, offset);
-                        float centerY = 0;
-                        offset = BitIO.GetData<float>(ref _buffer, ref centerY, offset);
+                        float centerX = BitIO.GetData<float>(ref _buffer, ref offset);
+                        float centerY = BitIO.GetData<float>(ref _buffer, ref offset);
                         // size
-                        float sizeX = 0;
-                        offset = BitIO.GetData<float>(ref _buffer, ref sizeX, offset);
-                        float sizeY = 0;
-                        offset = BitIO.GetData<float>(ref _buffer, ref sizeY, offset);
+                        float sizeX = BitIO.GetData<float>(ref _buffer, ref offset);
+                        float sizeY = BitIO.GetData<float>(ref _buffer, ref offset);
                         // num samples
-                        ulong numSampleX = 0;
-                        offset = BitIO.GetData<ulong>(ref _buffer, ref numSampleX, offset);
-                        ulong numSampleY = 0;
-                        offset = BitIO.GetData<ulong>(ref _buffer, ref numSampleY, offset);
-                        ulong numSample = 0;
-                        offset = BitIO.GetData<ulong>(ref _buffer, ref numSample, offset);
+                        ulong numSampleX = BitIO.GetData<ulong>(ref _buffer, ref offset);
+                        ulong numSampleY = BitIO.GetData<ulong>(ref _buffer, ref offset);
+                        ulong numSample = BitIO.GetData<ulong>(ref _buffer, ref offset);
                         
                         // height values 
                         float[,] heights = new float[numSampleY, numSampleX];
@@ -278,8 +255,7 @@ namespace raisimUnity
                         {
                             for (ulong k = 0; k < numSampleX; k++)
                             {
-                                float height = 0;
-                                offset = BitIO.GetData<float>(ref _buffer, ref height, offset);
+                                float height = BitIO.GetData<float>(ref _buffer, ref offset);
                                 heights[j, k] = height;
                             }
                         }
@@ -289,8 +265,7 @@ namespace raisimUnity
                         break;
                     case RsObejctType.RsArticulatedSystemObject:
                     {
-                        string urdfDirPathInServer = "";
-                        offset = BitIO.GetData<string>(ref _buffer, ref urdfDirPathInServer, offset); 
+                        string urdfDirPathInServer = BitIO.GetData<string>(ref _buffer, ref offset); 
                         string urdfDirName = Path.GetFileName(urdfDirPathInServer);
                         string urdfDirPathInClient = Path.Combine(Path.GetFullPath(_resDirPath), urdfDirName);
                         if (!Directory.Exists(urdfDirPathInClient))
@@ -303,16 +278,13 @@ namespace raisimUnity
                         // visItem = 1 (collisions)
                         for (int visItem = 0; visItem < 2; visItem++)
                         {
-                            ulong numberOfVisObjects = 0;
-                            offset = BitIO.GetData<ulong>(ref _buffer, ref numberOfVisObjects, offset);
+                            ulong numberOfVisObjects = BitIO.GetData<ulong>(ref _buffer, ref offset);
 
                             for (ulong j = 0; j < numberOfVisObjects; j++)
                             {
-                                RsShapeType shapeType = 0;
-                                offset = BitIO.GetData<RsShapeType>(ref _buffer, ref shapeType, offset);
+                                RsShapeType shapeType = BitIO.GetData<RsShapeType>(ref _buffer, ref offset);
                                 
-                                ulong group = 0;
-                                offset = BitIO.GetData<ulong>(ref _buffer, ref group, offset);
+                                ulong group = BitIO.GetData<ulong>(ref _buffer, ref offset);
 
                                 string subName = Path.Combine(objectIndex.ToString(), visItem.ToString(), j.ToString());
                                 string tag = VisualTag.VisualAndCollision;
@@ -324,30 +296,24 @@ namespace raisimUnity
 
                                 if (shapeType == RsShapeType.RsMeshShape)
                                 {
-                                    string meshFile = "";
-                                    offset = BitIO.GetData<string>(ref _buffer, ref meshFile, offset);
+                                    string meshFile = BitIO.GetData<string>(ref _buffer, ref offset);
                                     string meshFileName = Path.GetFileName(meshFile);
 
-                                    double sx = 0;
-                                    offset = BitIO.GetData<double>(ref _buffer, ref sx, offset);
-                                    double sy = 0;
-                                    offset = BitIO.GetData<double>(ref _buffer, ref sy, offset);
-                                    double sz = 0;
-                                    offset = BitIO.GetData<double>(ref _buffer, ref sz, offset);
+                                    double sx = BitIO.GetData<double>(ref _buffer, ref offset);
+                                    double sy = BitIO.GetData<double>(ref _buffer, ref offset);
+                                    double sz = BitIO.GetData<double>(ref _buffer, ref offset);
 
                                     string meshFilePathInResources = Path.Combine(urdfDirName, Path.GetFileNameWithoutExtension(meshFileName));
                                     ObjectController.CreateMesh(gameObject, subName, meshFilePathInResources, (float)sx, (float)sy, (float)sz, tag);
                                 }
                                 else
                                 {
-                                    ulong size = 0;
-                                    offset = BitIO.GetData<ulong>(ref _buffer, ref size, offset);
+                                    ulong size = BitIO.GetData<ulong>(ref _buffer, ref offset);
                                     
                                     var visParam = new List<double>();
                                     for (ulong k = 0; k < size; k++)
                                     {
-                                        double visSize = 0;
-                                        offset = BitIO.GetData<double>(ref _buffer, ref visSize, offset);
+                                        double visSize = BitIO.GetData<double>(ref _buffer, ref offset);
                                         visParam.Add(visSize);
                                     }
                                     switch (shapeType)
@@ -406,50 +372,37 @@ namespace raisimUnity
             if (ReadData() == 0)
                 return -1;
 
-            ServerStatus state = 0;
-            offset = BitIO.GetData<ServerStatus>(ref _buffer, ref state, offset);
+            ServerStatus state = BitIO.GetData<ServerStatus>(ref _buffer, ref offset);
             
             if (state == ServerStatus.StatusTerminating)
                 return 0;
 
-            ServerMessageType messageType = 0;
-            offset = BitIO.GetData<ServerMessageType>(ref _buffer, ref messageType, offset);
+            ServerMessageType messageType = BitIO.GetData<ServerMessageType>(ref _buffer, ref offset);
             if (messageType == ServerMessageType.NoMessage)
             {
                 return -1;
             }
             
-            ulong configurationNumber = 0;
-            offset = BitIO.GetData<ulong>(ref _buffer, ref configurationNumber, offset);
+            ulong configurationNumber = BitIO.GetData<ulong>(ref _buffer, ref offset);
 
-            ulong numObjects = 0;
-            offset = BitIO.GetData<ulong>(ref _buffer, ref numObjects, offset);
+            ulong numObjects = BitIO.GetData<ulong>(ref _buffer, ref offset);
 
             for (ulong i = 0; i < numObjects; i++)
             {
-                ulong localIndexSize = BitConverter.ToUInt64(_buffer, 0);
-                offset = BitIO.GetData<ulong>(ref _buffer, ref localIndexSize, offset);
+                ulong localIndexSize = BitIO.GetData<ulong>(ref _buffer, ref offset);
 
                 for (ulong j = 0; j < localIndexSize; j++)
                 {
-                    string objectName = "";
-                    offset = BitIO.GetData<string>(ref _buffer, ref objectName, offset);
+                    string objectName = BitIO.GetData<string>(ref _buffer, ref offset);
                     
-                    double posX = 0;
-                    offset = BitIO.GetData<double>(ref _buffer, ref posX, offset);
-                    double posY = 0;
-                    offset = BitIO.GetData<double>(ref _buffer, ref posY, offset);
-                    double posZ = 0;
-                    offset = BitIO.GetData<double>(ref _buffer, ref posZ, offset);
+                    double posX = BitIO.GetData<double>(ref _buffer, ref offset);
+                    double posY = BitIO.GetData<double>(ref _buffer, ref offset);
+                    double posZ = BitIO.GetData<double>(ref _buffer, ref offset);
                     
-                    double quatW = 0;
-                    offset = BitIO.GetData<double>(ref _buffer, ref quatW, offset);
-                    double quatX = 0;
-                    offset = BitIO.GetData<double>(ref _buffer, ref quatX, offset);
-                    double quatY = 0;
-                    offset = BitIO.GetData<double>(ref _buffer, ref quatY, offset);
-                    double quatZ = 0;
-                    offset = BitIO.GetData<double>(ref _buffer, ref quatZ, offset);
+                    double quatW = BitIO.GetData<double>(ref _buffer, ref offset);
+                    double quatX = BitIO.GetData<double>(ref _buffer, ref offset);
+                    double quatY = BitIO.GetData<double>(ref _buffer, ref offset);
+                    double quatZ = BitIO.GetData<double>(ref _buffer, ref offset);
 
                     GameObject localObject = GameObject.Find(objectName);
 
