@@ -221,7 +221,9 @@ namespace raisimUnity
             terrain.AddComponent<MeshRenderer>();
 
             terrain.GetComponent<MeshFilter>().mesh = mesh;
-            terrain.GetComponent<MeshRenderer>().material =  temp.GetComponent<MeshRenderer>().sharedMaterial;;
+            terrain.GetComponent<MeshRenderer>().material =  temp.GetComponent<MeshRenderer>().sharedMaterial;
+
+            terrain.AddComponent<MeshCollider>();
 
             // destroy temp 
             GameObject.DestroyImmediate(temp);
