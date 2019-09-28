@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Planks20
+  m_Name: Bricks23
   m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
   m_ShaderKeywords: _METALLICGLOSSMAP _NORMALMAP _PARALLAXMAP
   m_LightmapFlags: 4
@@ -20,7 +20,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _BumpMap:
-        m_Texture: {fileID: 2800000, guid: 508cce3aac360ff0e8fc9699baec34a8, type: 3}
+        m_Texture: {fileID: 2800000, guid: 1154ee49cd03b9a9cb74bab10db2191c, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _DetailAlbedoMap:
@@ -40,19 +40,19 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: 0e1327dcc558be84cbbf6a5d3341a9cb, type: 3}
+        m_Texture: {fileID: 2800000, guid: b3dfc0bc16a032aaca55d1958bbd21bd, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
-        m_Texture: {fileID: 2800000, guid: 682a576441fe01779b6751e7b1526b63, type: 3}
+        m_Texture: {fileID: 2800000, guid: 0e9bfcfaa1bffe292b0108fd0994ccfe, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _OcclusionMap:
-        m_Texture: {fileID: 2800000, guid: 0b9110723a9a1580a977a6ecb987192e, type: 3}
+        m_Texture: {fileID: 2800000, guid: a3fc3709b987a823e87f17c7fb0f805c, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _ParallaxMap:
-        m_Texture: {fileID: 2800000, guid: 17fcb30ef477ee4f5b90776140cb02a7, type: 3}
+        m_Texture: {fileID: 2800000, guid: 4c00b577c4c7995c6a5ee96769f3c1b3, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
