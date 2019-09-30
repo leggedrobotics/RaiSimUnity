@@ -163,7 +163,7 @@ namespace raisimUnity
                 }
                 catch (Exception e)
                 {
-                    print("update failed.");
+                    print("update failed." + e);
                 }
             }
             
@@ -478,8 +478,14 @@ namespace raisimUnity
                 double posX = BitIO.GetData<double>(ref _buffer, ref offset);
                 double posY = BitIO.GetData<double>(ref _buffer, ref offset);
                 double posZ = BitIO.GetData<double>(ref _buffer, ref offset);
-
                 ObjectController.CreateContactMarker(_contactsRoot, (int)i, new Vector3((float)posX, (float)posY, (float)posZ));
+                
+                double forceX = BitIO.GetData<double>(ref _buffer, ref offset);
+                double forceY = BitIO.GetData<double>(ref _buffer, ref offset);
+                double forceZ = BitIO.GetData<double>(ref _buffer, ref offset);
+                ObjectController.CreateContactForceMarker(_contactsRoot, (int)i, 
+                    new Vector3((float)posX, (float)posY, (float)posZ), 
+                    new Vector3((float)forceX, (float)forceY, (float)forceZ));
             }
 
             return 0;
