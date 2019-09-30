@@ -32,7 +32,7 @@ int main() {
   /// create raisim world
   raisim::World world;
   world.setTimeStep(0.003);
-  world.setERP(world.getTimeStep(), world.getTimeStep());
+//  world.setERP(world.getTimeStep(), world.getTimeStep());
 
 
   /// create objects
@@ -44,7 +44,7 @@ int main() {
   std::vector<raisim::Cylinder*> cylinders;
 
 
-  static const int N=2;
+  static const int N=3;
 
   for(size_t i=0; i<N; i++) {
     for(size_t j=0; j<N; j++) {

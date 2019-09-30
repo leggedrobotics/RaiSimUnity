@@ -118,6 +118,7 @@ namespace raisimUnity
         private bool _tcpTryConnect = false;
         private bool _showVisualBody = true;
         private bool _showCollisionBody = false;
+        private bool _showContact = false;
         
         // root objects
         private GameObject _objectsRoot;
@@ -157,7 +158,8 @@ namespace raisimUnity
                     UpdatePosition();
 
                     // update contacts
-                    UpdateContacts();
+                    if( _showContact)
+                        UpdateContacts();
                 }
                 catch (Exception e)
                 {
@@ -616,6 +618,7 @@ namespace raisimUnity
         
         public void ShowOrHideObject()
         {
+            // visual body
             foreach (var obj in GameObject.FindGameObjectsWithTag(VisualTag.Visual))
             {
                 foreach (var collider in obj.GetComponentsInChildren<Collider>())
@@ -624,6 +627,7 @@ namespace raisimUnity
                     renderer.enabled = _showVisualBody;
             }
 
+            // collision body
             foreach (var obj in GameObject.FindGameObjectsWithTag(VisualTag.Collision))
             {
                 foreach (var collider in obj.GetComponentsInChildren<Collider>())
@@ -632,12 +636,19 @@ namespace raisimUnity
                     renderer.enabled = _showCollisionBody;                
             }
 
+            // visual and collision body (single body objects)
             foreach (var obj in GameObject.FindGameObjectsWithTag(VisualTag.VisualAndCollision))
             {
                 foreach (var collider in obj.GetComponentsInChildren<Collider>())
                     collider.enabled = _showVisualBody || _showCollisionBody;
                 foreach (var renderer in obj.GetComponentsInChildren<Renderer>())
                     renderer.enabled = _showVisualBody || _showCollisionBody;
+            }
+            
+            // contacts
+            foreach (Transform contact in _contactsRoot.transform)
+            {
+                contact.gameObject.GetComponent<Renderer>().enabled = _showContact;
             }
         }
         
@@ -652,6 +663,12 @@ namespace raisimUnity
         {
             get => _showCollisionBody;
             set => _showCollisionBody = value;
+        }
+
+        public bool ShowContact
+        {
+            get => _showContact;
+            set => _showContact = value;
         }
 
         public string TcpAddress

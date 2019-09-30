@@ -27,16 +27,22 @@ namespace raisimUnity
             
             // visualize section
             {
-                var toggleVisual = GameObject.Find("Toggle Visual Bodies").GetComponent<Toggle>();
+                var toggleVisual = GameObject.Find("ToggleVisualBodies").GetComponent<Toggle>();
                 toggleVisual.onValueChanged.AddListener((isSelected) =>
                 {
                     _rsu.ShowVisualBody = isSelected;
                     _rsu.ShowOrHideObject();
                 });
-                var toggleCollision = GameObject.Find("Toggle Collision Bodies").GetComponent<Toggle>();
+                var toggleCollision = GameObject.Find("ToggleCollisionBodies").GetComponent<Toggle>();
                 toggleCollision.onValueChanged.AddListener((isSelected) =>
                 {
                     _rsu.ShowCollisionBody = isSelected;
+                    _rsu.ShowOrHideObject();
+                });
+                var toggleContact = GameObject.Find("ToggleContacts").GetComponent<Toggle>();
+                toggleContact.onValueChanged.AddListener((isSelected) =>
+                {
+                    _rsu.ShowContact = isSelected;
                     _rsu.ShowOrHideObject();
                 });
             }
