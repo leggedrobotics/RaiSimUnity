@@ -22,6 +22,7 @@ namespace raisimUnity
         ObjectPositionUpdate,
         Status,
         NoMessage,
+        ContactInfoUpdate,
     }
 
     enum ClientMessageType : int
@@ -33,6 +34,7 @@ namespace raisimUnity
         RequestContactSolverDetails,
         RequestPause,
         RequestResume,
+        RequestContactInfos,
     }
 
     enum ServerStatus : int
@@ -116,6 +118,10 @@ namespace raisimUnity
         private bool _tcpTryConnect = false;
         private bool _showVisualBody = true;
         private bool _showCollisionBody = false;
+        
+        // root objects
+        private GameObject _objectsRoot;
+        private GameObject _contactsRoot;
 
         void Start()
         {
@@ -124,6 +130,10 @@ namespace raisimUnity
             
             // TODO no hard coding!
             _resDirPath = Path.Combine(Application.dataPath, "Resources");
+            
+            // object roots
+            _objectsRoot = GameObject.Find("Objects");
+            _contactsRoot = GameObject.Find("Contacts");
         }
 
         void Update()
@@ -143,7 +153,11 @@ namespace raisimUnity
             {
                 try
                 {
+                    // update object position
                     UpdatePosition();
+
+                    // update contacts
+                    UpdateContacts();
                 }
                 catch (Exception e)
                 {
@@ -158,7 +172,14 @@ namespace raisimUnity
 
         private void ClearScene()
         {
-            foreach (Transform objT in gameObject.transform)
+            // objects
+            foreach (Transform objT in _objectsRoot.transform)
+            {
+                Destroy(objT.gameObject);
+            }
+            
+            // contacts
+            foreach (Transform objT in _contactsRoot.transform)
             {
                 Destroy(objT.gameObject);
             }
@@ -194,7 +215,7 @@ namespace raisimUnity
                     case RsObejctType.RsSphereObject :
                     {
                         float radius = BitIO.GetData<float>(ref _buffer, ref offset);
-                        ObjectController.CreateSphere(gameObject, objectIndex.ToString(), radius, VisualTag.VisualAndCollision);
+                        ObjectController.CreateSphere(_objectsRoot, objectIndex.ToString(), radius, VisualTag.VisualAndCollision);
                     }
                         break;
 
@@ -203,21 +224,21 @@ namespace raisimUnity
                         float sx = BitIO.GetData<float>(ref _buffer, ref offset);
                         float sy = BitIO.GetData<float>(ref _buffer, ref offset);
                         float sz = BitIO.GetData<float>(ref _buffer, ref offset);
-                        ObjectController.CreateBox(gameObject, objectIndex.ToString(), sx, sy, sz, VisualTag.VisualAndCollision);
+                        ObjectController.CreateBox(_objectsRoot, objectIndex.ToString(), sx, sy, sz, VisualTag.VisualAndCollision);
                     }
                         break;
                     case RsObejctType.RsCylinderObject:
                     {
                         float radius = BitIO.GetData<float>(ref _buffer, ref offset);
                         float height = BitIO.GetData<float>(ref _buffer, ref offset);
-                        ObjectController.CreateCylinder(gameObject, objectIndex.ToString(), radius, height, VisualTag.VisualAndCollision);
+                        ObjectController.CreateCylinder(_objectsRoot, objectIndex.ToString(), radius, height, VisualTag.VisualAndCollision);
                     }
                         break;
                     case RsObejctType.RsCapsuleObject:
                     {
                         float radius = BitIO.GetData<float>(ref _buffer, ref offset);
                         float height = BitIO.GetData<float>(ref _buffer, ref offset);
-                        ObjectController.CreateCapsule(gameObject, objectIndex.ToString(), radius, height, VisualTag.VisualAndCollision);
+                        ObjectController.CreateCapsule(_objectsRoot, objectIndex.ToString(), radius, height, VisualTag.VisualAndCollision);
                     }
                         break;
                     case RsObejctType.RsMeshObject:
@@ -225,13 +246,13 @@ namespace raisimUnity
                         string meshFile = BitIO.GetData<string>(ref _buffer, ref offset);
                         string meshFileName = Path.GetFileNameWithoutExtension(meshFile);
                         string directoryName = Path.GetFileName(Path.GetDirectoryName(meshFile));
-                        ObjectController.CreateMesh(gameObject, objectIndex.ToString(), Path.Combine(directoryName, meshFileName), 1.0f, 1.0f, 1.0f, VisualTag.VisualAndCollision);
+                        ObjectController.CreateMesh(_objectsRoot, objectIndex.ToString(), Path.Combine(directoryName, meshFileName), 1.0f, 1.0f, 1.0f, VisualTag.VisualAndCollision);
                     }
                         break;
                     case RsObejctType.RsHalfSpaceObject:
                     {
                         float height = BitIO.GetData<float>(ref _buffer, ref offset);
-                        ObjectController.CreateHalfSpace(gameObject, objectIndex.ToString(), height, VisualTag.VisualAndCollision);
+                        ObjectController.CreateHalfSpace(_objectsRoot, objectIndex.ToString(), height, VisualTag.VisualAndCollision);
                     }
                         break;
                     case RsObejctType.RsHeightMapObject:
@@ -258,7 +279,7 @@ namespace raisimUnity
                             }
                         }
 
-                        ObjectController.CreateTerrain(gameObject, objectIndex.ToString(), numSampleX, sizeX, centerX, numSampleY, sizeY, centerY, heights, tag);
+                        ObjectController.CreateTerrain(_objectsRoot, objectIndex.ToString(), numSampleX, sizeX, centerX, numSampleY, sizeY, centerY, heights, tag);
                     }
                         break;
                     case RsObejctType.RsArticulatedSystemObject:
@@ -302,7 +323,7 @@ namespace raisimUnity
                                     double sz = BitIO.GetData<double>(ref _buffer, ref offset);
 
                                     string meshFilePathInResources = Path.Combine(urdfDirName, Path.GetFileNameWithoutExtension(meshFileName));
-                                    ObjectController.CreateMesh(gameObject, subName, meshFilePathInResources, (float)sx, (float)sy, (float)sz, tag);
+                                    ObjectController.CreateMesh(_objectsRoot, subName, meshFilePathInResources, (float)sx, (float)sy, (float)sz, tag);
                                 }
                                 else
                                 {
@@ -319,13 +340,13 @@ namespace raisimUnity
                                         case RsShapeType.RsBoxShape:
                                         {
                                             if (visParam.Count != 3) throw new Exception("Box Mesh error");
-                                            ObjectController.CreateBox(gameObject, subName, (float) visParam[0], (float) visParam[1], (float) visParam[2], tag);
+                                            ObjectController.CreateBox(_objectsRoot, subName, (float) visParam[0], (float) visParam[1], (float) visParam[2], tag);
                                         }
                                             break;
                                         case RsShapeType.RsCapsuleShape:
                                         {
                                             if (visParam.Count != 2) throw new Exception("Capsule Mesh error");
-                                            ObjectController.CreateCapsule(gameObject, subName, (float)visParam[0], (float)visParam[1], tag);
+                                            ObjectController.CreateCapsule(_objectsRoot, subName, (float)visParam[0], (float)visParam[1], tag);
                                         }
                                             break;
                                         case RsShapeType.RsConeShape:
@@ -336,13 +357,13 @@ namespace raisimUnity
                                         case RsShapeType.RsCylinderShape:
                                         {
                                             if (visParam.Count != 2) throw new Exception("Cylinder Mesh error");
-                                            ObjectController.CreateCylinder(gameObject, subName, (float)visParam[0], (float)visParam[1], tag);
+                                            ObjectController.CreateCylinder(_objectsRoot, subName, (float)visParam[0], (float)visParam[1], tag);
                                         }
                                             break;
                                         case RsShapeType.RsSphereShape:
                                         {
                                             if (visParam.Count != 1) throw new Exception("Sphere Mesh error");
-                                            ObjectController.CreateSphere(gameObject, subName, (float)visParam[0], tag);
+                                            ObjectController.CreateSphere(_objectsRoot, subName, (float)visParam[0], tag);
                                         }
                                             break;
                                     }
@@ -417,6 +438,48 @@ namespace raisimUnity
             }
             
             Array.Clear(_buffer, 0, _maxBufferSize);
+            return 0;
+        }
+
+        private int UpdateContacts()
+        {
+            int offset = 0;
+            
+            WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestContactInfos));
+            if (ReadData() == 0)
+                return -1;
+            
+            ServerStatus state = BitIO.GetData<ServerStatus>(ref _buffer, ref offset);
+            
+            if (state == ServerStatus.StatusTerminating)
+                return 0;
+
+            ServerMessageType messageType = BitIO.GetData<ServerMessageType>(ref _buffer, ref offset);
+            if (messageType != ServerMessageType.ContactInfoUpdate)
+            {
+                return -1;
+            }
+            
+            ulong configurationNumber = BitIO.GetData<ulong>(ref _buffer, ref offset);
+
+            ulong numContacts = BitIO.GetData<ulong>(ref _buffer, ref offset);
+
+            // clear contacts 
+            foreach (Transform child in _contactsRoot.transform)
+            {
+                Destroy(child.gameObject);
+            }
+
+            // create contact marker
+            for (ulong i = 0; i < numContacts; i++)
+            {
+                double posX = BitIO.GetData<double>(ref _buffer, ref offset);
+                double posY = BitIO.GetData<double>(ref _buffer, ref offset);
+                double posZ = BitIO.GetData<double>(ref _buffer, ref offset);
+
+                ObjectController.CreateContactMarker(_contactsRoot, (int)i, new Vector3((float)posX, (float)posY, (float)posZ));
+            }
+
             return 0;
         }
         
