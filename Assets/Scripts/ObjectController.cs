@@ -2,6 +2,7 @@
  * Author: Dongho Kang (kangd@ethz.ch)
  */
 
+using System;
 using System.Collections.Generic;
 using System.Xml;
 using UnityEngine;
@@ -173,34 +174,40 @@ namespace raisimUnity
             {
                 for (ulong j = 0; j < numSampleX-1; j++)
                 {
+                    // (x, y) = (j, i)
                     uvs.Add(new Vector2(
-                        - (j / (float)numSampleX),
-                        - (i / (float)numSampleY)
+                        (j / (float)numSampleX),
+                        (i / (float)numSampleY)
                     ));
 
+                    // (x, y) = (j+1, i+1)
                     uvs.Add(new Vector2(
-                        - ((j + 1) / (float)numSampleX),
-                        - ((i + 1) / (float)numSampleY)
+                        ((j + 1) / (float)numSampleX),
+                        ((i + 1) / (float)numSampleY)
                     ));
                     
+                    // (x, y) = (j+1, i)
                     uvs.Add(new Vector2(
-                        - ((j + 1) / (float)numSampleX),
-                        - (i / (float)numSampleY)
+                        ((j + 1) / (float)numSampleX),
+                        (i / (float)numSampleY)
                     ));
 
+                    // (x, y) = (j, i)
                     uvs.Add(new Vector2(
-                        - (j / (float)numSampleX),
-                        - (i / (float)numSampleY)
+                        (j / (float)numSampleX),
+                        (i / (float)numSampleY)
                     ));
                                       
+                    // (x, y) = (j, i+1)
                     uvs.Add(new Vector2(
-                        - (j / (float)numSampleX),
-                        - ((i + 1) / (float)numSampleY)
+                        (j / (float)numSampleX),
+                        ((i + 1) / (float)numSampleY)
                     ));
                     
+                    // (x, y) = (j+1, i+1)
                     uvs.Add(new Vector2(
-                        - ((j + 1) / (float)numSampleX),
-                        - ((i + 1) / (float)numSampleY)
+                        ((j + 1) / (float)numSampleX),
+                        ((i + 1) / (float)numSampleY)
                     ));
                 }
             }
@@ -257,7 +264,21 @@ namespace raisimUnity
             return objFrame;
         }
 
-       
+        public static GameObject CreateContactMarker(GameObject root, int index, Vector3 rsPos)
+        {
+            var marker = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            marker.transform.SetParent(root.transform, true);
+            marker.transform.localScale = new Vector3(0.06f, 0.06f, 0.06f);
+            marker.GetComponent<Collider>().enabled = false;
+
+            marker.tag = "contact";
+            marker.name = "contact" + index.ToString();
+            marker.transform.localPosition = new Vector3(-rsPos.x, rsPos.z, -rsPos.y);
+            marker.GetComponent<Renderer>().material.SetColor("_Color", Color.red);
+            
+            return marker;
+        }
+        
         public static void SetTransform(GameObject obj, Vector3 rsPos, Quaternion rsQuat)
         {
             // rsPos is position in RaiSim
