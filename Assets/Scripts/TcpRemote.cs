@@ -118,11 +118,13 @@ namespace raisimUnity
         private bool _tcpTryConnect = false;
         private bool _showVisualBody = true;
         private bool _showCollisionBody = false;
-        private bool _showContact = false;
+        private bool _showContactPoints = false;
+        private bool _showContactForces = false;
         
         // root objects
         private GameObject _objectsRoot;
-        private GameObject _contactsRoot;
+        private GameObject _contactPointsRoot;
+        private GameObject _contactForcesRoot;
 
         void Start()
         {
@@ -134,7 +136,8 @@ namespace raisimUnity
             
             // object roots
             _objectsRoot = GameObject.Find("Objects");
-            _contactsRoot = GameObject.Find("Contacts");
+            _contactPointsRoot = GameObject.Find("ContactPoints");
+            _contactForcesRoot = GameObject.Find("ContactForces");
         }
 
         void Update()
@@ -158,7 +161,7 @@ namespace raisimUnity
                     UpdatePosition();
 
                     // update contacts
-                    if( _showContact)
+                    if( _showContactPoints || _showContactForces)
                         UpdateContacts();
                 }
                 catch (Exception e)
@@ -174,16 +177,38 @@ namespace raisimUnity
 
         private void ClearScene()
         {
+            // TODO maybe we can just clear RSUnity children?
             // objects
             foreach (Transform objT in _objectsRoot.transform)
             {
                 Destroy(objT.gameObject);
             }
             
-            // contacts
-            foreach (Transform objT in _contactsRoot.transform)
+            // contact points
+            foreach (Transform objT in _contactPointsRoot.transform)
             {
                 Destroy(objT.gameObject);
+            }
+            
+            // contact forces
+            foreach (Transform child in _contactForcesRoot.transform)
+            {
+                Destroy(child.gameObject);
+            }
+        }
+
+        private void ClearContacts()
+        {
+            // contact points
+            foreach (Transform objT in _contactPointsRoot.transform)
+            {
+                Destroy(objT.gameObject);
+            }
+            
+            // contact forces
+            foreach (Transform child in _contactForcesRoot.transform)
+            {
+                Destroy(child.gameObject);
             }
         }
 
@@ -467,10 +492,7 @@ namespace raisimUnity
             ulong numContacts = BitIO.GetData<ulong>(ref _buffer, ref offset);
 
             // clear contacts 
-            foreach (Transform child in _contactsRoot.transform)
-            {
-                Destroy(child.gameObject);
-            }
+            ClearContacts();
 
             // create contact marker
             for (ulong i = 0; i < numContacts; i++)
@@ -478,12 +500,12 @@ namespace raisimUnity
                 double posX = BitIO.GetData<double>(ref _buffer, ref offset);
                 double posY = BitIO.GetData<double>(ref _buffer, ref offset);
                 double posZ = BitIO.GetData<double>(ref _buffer, ref offset);
-                ObjectController.CreateContactMarker(_contactsRoot, (int)i, new Vector3((float)posX, (float)posY, (float)posZ));
+                ObjectController.CreateContactMarker(_contactPointsRoot, (int)i, new Vector3((float)posX, (float)posY, (float)posZ));
                 
                 double forceX = BitIO.GetData<double>(ref _buffer, ref offset);
                 double forceY = BitIO.GetData<double>(ref _buffer, ref offset);
                 double forceZ = BitIO.GetData<double>(ref _buffer, ref offset);
-                ObjectController.CreateContactForceMarker(_contactsRoot, (int)i, 
+                ObjectController.CreateContactForceMarker(_contactForcesRoot, (int)i, 
                     new Vector3((float)posX, (float)posY, (float)posZ), 
                     new Vector3((float)forceX, (float)forceY, (float)forceZ));
             }
@@ -651,10 +673,16 @@ namespace raisimUnity
                     renderer.enabled = _showVisualBody || _showCollisionBody;
             }
             
-            // contacts
-            foreach (Transform contact in _contactsRoot.transform)
+            // contact points
+            foreach (Transform contact in _contactPointsRoot.transform)
             {
-                contact.gameObject.GetComponent<Renderer>().enabled = _showContact;
+                contact.gameObject.GetComponent<Renderer>().enabled = _showContactPoints;
+            }
+            
+            // contact forces
+            foreach (Transform contact in _contactForcesRoot.transform)
+            {
+                contact.gameObject.GetComponentInChildren<Renderer>().enabled = _showContactForces;
             }
         }
         
@@ -671,10 +699,16 @@ namespace raisimUnity
             set => _showCollisionBody = value;
         }
 
-        public bool ShowContact
+        public bool ShowContactPoints
         {
-            get => _showContact;
-            set => _showContact = value;
+            get => _showContactPoints;
+            set => _showContactPoints = value;
+        }
+
+        public bool ShowContactForces
+        {
+            get => _showContactForces;
+            set => _showContactForces = value;
         }
 
         public string TcpAddress

@@ -10,12 +10,12 @@ namespace raisimUnity
 {
     public class UIController : MonoBehaviour
     {
-        private TcpRemote _rsu = null;
+        private TcpRemote _remote = null;
         static GUIStyle _style = null;
         
         private void Awake()
         {
-            _rsu = GameObject.Find("RaiSimUnity").GetComponent<TcpRemote>();
+            _remote = GameObject.Find("RaiSimUnity").GetComponent<TcpRemote>();
             
             // modal view
             {
@@ -30,41 +30,47 @@ namespace raisimUnity
                 var toggleVisual = GameObject.Find("ToggleVisualBodies").GetComponent<Toggle>();
                 toggleVisual.onValueChanged.AddListener((isSelected) =>
                 {
-                    _rsu.ShowVisualBody = isSelected;
-                    _rsu.ShowOrHideObject();
+                    _remote.ShowVisualBody = isSelected;
+                    _remote.ShowOrHideObject();
                 });
                 var toggleCollision = GameObject.Find("ToggleCollisionBodies").GetComponent<Toggle>();
                 toggleCollision.onValueChanged.AddListener((isSelected) =>
                 {
-                    _rsu.ShowCollisionBody = isSelected;
-                    _rsu.ShowOrHideObject();
+                    _remote.ShowCollisionBody = isSelected;
+                    _remote.ShowOrHideObject();
                 });
-                var toggleContact = GameObject.Find("ToggleContacts").GetComponent<Toggle>();
-                toggleContact.onValueChanged.AddListener((isSelected) =>
+                var toggleContactPoints = GameObject.Find("ToggleContactPoints").GetComponent<Toggle>();
+                toggleContactPoints.onValueChanged.AddListener((isSelected) =>
                 {
-                    _rsu.ShowContact = isSelected;
-                    _rsu.ShowOrHideObject();
+                    _remote.ShowContactPoints = isSelected;
+                    _remote.ShowOrHideObject();
+                });
+                var toggleContactForces = GameObject.Find("ToggleContactForces").GetComponent<Toggle>();
+                toggleContactForces.onValueChanged.AddListener((isSelected) =>
+                {
+                    _remote.ShowContactForces = isSelected;
+                    _remote.ShowOrHideObject();
                 });
             }
             
             // connection section
             {
                 var ipInputField = GameObject.Find("TCP IP Inputfield").GetComponent<InputField>();
-                ipInputField.text = _rsu.TcpAddress;
+                ipInputField.text = _remote.TcpAddress;
                 var portInputField = GameObject.Find("TCP Port Inputfield").GetComponent<InputField>();
-                portInputField.text = _rsu.TcpPort.ToString();
+                portInputField.text = _remote.TcpPort.ToString();
                 var connectButton = GameObject.Find("Connect Button").GetComponent<Button>();
                 connectButton.onClick.AddListener(() =>
                 {
-                    _rsu.TcpAddress = ipInputField.text;
-                    _rsu.TcpPort = Int32.Parse(portInputField.text);
+                    _remote.TcpAddress = ipInputField.text;
+                    _remote.TcpPort = Int32.Parse(portInputField.text);
                 
                     // connect / disconnect
-                    if (!_rsu.TcpConnected)
+                    if (!_remote.TcpConnected)
                     {
                         try
                         {
-                            _rsu.EstablishConnection();
+                            _remote.EstablishConnection();
                         }
                         catch (Exception)
                         {
@@ -76,7 +82,7 @@ namespace raisimUnity
                     {
                         try
                         {
-                            _rsu.CloseConnection();
+                            _remote.CloseConnection();
                         }
                         catch (Exception)
                         {
@@ -118,7 +124,7 @@ namespace raisimUnity
             // show connected status
             var connectButton = GameObject.Find("Connect Button").GetComponent<Button>();
 
-            if (_rsu.TcpConnected)
+            if (_remote.TcpConnected)
             {
                 GUILayout.Label("Connected", _style);
                 connectButton.GetComponentInChildren<Text>().text = "Disconnect";

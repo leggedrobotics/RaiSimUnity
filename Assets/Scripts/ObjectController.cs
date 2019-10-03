@@ -279,6 +279,29 @@ namespace raisimUnity
             return marker;
         }
         
+        public static GameObject CreateContactForceMarker(GameObject root, int index, Vector3 rsPos, Vector3 force)
+        {
+            var meshRes = Resources.Load("others/arrow") as GameObject;
+            var marker = GameObject.Instantiate(meshRes);
+            marker.transform.SetParent(root.transform, true);
+            marker.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
+
+            marker.tag = "contact";
+            marker.name = "contactForce" + index.ToString();
+
+            Vector3 view = new Vector3(-force.x, force.z, -force.y);
+            
+            Quaternion q = new Quaternion(0, 0, 0, 1);
+            q.SetLookRotation(view);
+            
+            marker.transform.localPosition = new Vector3(-rsPos.x, rsPos.z, -rsPos.y);
+            marker.transform.localRotation = q;
+            marker.transform.localScale = new Vector3(0.5f, 0.5f, 1.0f);
+            marker.GetComponentInChildren<Renderer>().material.SetColor("_Color", Color.blue);
+            
+            return marker;
+        }
+        
         public static void SetTransform(GameObject obj, Vector3 rsPos, Quaternion rsQuat)
         {
             // rsPos is position in RaiSim
