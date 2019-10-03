@@ -296,7 +296,7 @@ namespace raisimUnity
             
             marker.transform.localPosition = new Vector3(-rsPos.x, rsPos.z, -rsPos.y);
             marker.transform.localRotation = q;
-            marker.transform.localScale = new Vector3(0.5f, 0.5f, 1.0f);
+            marker.transform.localScale = new Vector3(0.3f, 0.3f, 1.0f);
             marker.GetComponentInChildren<Renderer>().material.SetColor("_Color", Color.blue);
             
             return marker;

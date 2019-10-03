@@ -2,7 +2,6 @@
  * Author: Dongho Kang (kangd@ethz.ch)
  */
 
-using UnityEditor;
 using UnityEngine;
  
 public class CameraController : MonoBehaviour
