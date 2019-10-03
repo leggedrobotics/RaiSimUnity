@@ -31,25 +31,21 @@ namespace raisimUnity
                 toggleVisual.onValueChanged.AddListener((isSelected) =>
                 {
                     _remote.ShowVisualBody = isSelected;
-                    _remote.ShowOrHideObject();
                 });
                 var toggleCollision = GameObject.Find("ToggleCollisionBodies").GetComponent<Toggle>();
                 toggleCollision.onValueChanged.AddListener((isSelected) =>
                 {
                     _remote.ShowCollisionBody = isSelected;
-                    _remote.ShowOrHideObject();
                 });
                 var toggleContactPoints = GameObject.Find("ToggleContactPoints").GetComponent<Toggle>();
                 toggleContactPoints.onValueChanged.AddListener((isSelected) =>
                 {
                     _remote.ShowContactPoints = isSelected;
-                    _remote.ShowOrHideObject();
                 });
                 var toggleContactForces = GameObject.Find("ToggleContactForces").GetComponent<Toggle>();
                 toggleContactForces.onValueChanged.AddListener((isSelected) =>
                 {
                     _remote.ShowContactForces = isSelected;
-                    _remote.ShowOrHideObject();
                 });
             }
             

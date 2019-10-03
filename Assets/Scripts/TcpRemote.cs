@@ -163,6 +163,9 @@ namespace raisimUnity
                     // update contacts
                     if( _showContactPoints || _showContactForces)
                         UpdateContacts();
+                    
+                    // show / hide objects
+                    ShowOrHideObject();
                 }
                 catch (Exception e)
                 {
@@ -536,9 +539,6 @@ namespace raisimUnity
                 if (_client != null && _client.Connected && _stream != null)
                 {
                     InitializeScene();
-                    
-                    // show / hide objects
-                    ShowOrHideObject();
 
                     // disable other cameras than main camera
                     foreach (var cam in Camera.allCameras)
@@ -661,7 +661,7 @@ namespace raisimUnity
                 foreach (var collider in obj.GetComponentsInChildren<Collider>())
                     collider.enabled = _showCollisionBody;
                 foreach (var renderer in obj.GetComponentsInChildren<Renderer>())
-                    renderer.enabled = _showCollisionBody;                
+                    renderer.enabled = _showCollisionBody;
             }
 
             // visual and collision body (single body objects)
