@@ -3774,6 +3774,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a34b5593d26a4b98ad53cee939a5cc62, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  maxFrames: 150
+  frameRate: 30
 --- !u!1 &1851105698
 GameObject:
   m_ObjectHideFlags: 0

@@ -117,18 +117,18 @@ namespace raisimUnity
                     ScreenCapture.CaptureScreenshot(filename);
                 });
                 
-                var recordButton = GameObject.Find(_ButtonRecordName).GetComponent<Button>();
-                recordButton.onClick.AddListener(() =>
-                {
-                    if (_recorder.IsRecording)
-                    {
-                        _recorder.FinishRecording();
-                    }
-                    else
-                    {
-                        _recorder.StartRecording();
-                    }
-                });
+//                var recordButton = GameObject.Find(_ButtonRecordName).GetComponent<Button>();
+//                recordButton.onClick.AddListener(() =>
+//                {
+//                    if (_recorder.IsRecording)
+//                    {
+//                        _recorder.FinishRecording();
+//                    }
+//                    else
+//                    {
+//                        _recorder.StartRecording();
+//                    }
+//                });
             }
         }
         
@@ -167,14 +167,14 @@ namespace raisimUnity
             // show recording status
             var recordButton = GameObject.Find(_ButtonRecordName);
             
-            if (_recorder.IsRecording)
-            {
-                recordButton.GetComponentInChildren<Text>().text = "Stop Recording";
-            }
-            else
-            {
-                recordButton.GetComponentInChildren<Text>().text = "Record Video";
-            }
+//            if (_recorder.IsRecording)
+//            {
+//                recordButton.GetComponentInChildren<Text>().text = "Stop Recording";
+//            }
+//            else
+//            {
+//                recordButton.GetComponentInChildren<Text>().text = "Record Video";
+//            }
         }
     }
 }
