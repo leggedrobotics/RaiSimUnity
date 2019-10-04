@@ -2,8 +2,10 @@
  * Author: Dongho Kang (kangd@ethz.ch)
  */
 
+using System;
 using UnityEngine;
- 
+using YamlDotNet.Core.Tokens;
+
 public class CameraController : MonoBehaviour
 {
     private float speed = 0.5f;
@@ -12,14 +14,16 @@ public class CameraController : MonoBehaviour
     private Camera cam;
     private Vector3 anchorPoint;
     private Quaternion anchorRot;
+
+    private RenderTexture rt;        // for video recording
     
     private GameObject _selected;    // selected object by clicking
- 
+
     private void Awake()
     {
         cam = GetComponent<Camera>();
     }
-   
+
     void FixedUpdate()
     {
         // move by keyboard

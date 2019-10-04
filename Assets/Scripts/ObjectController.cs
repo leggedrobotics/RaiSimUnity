@@ -220,7 +220,7 @@ namespace raisimUnity
 
             // this is just temporal object (will be deleted immediately!)
             var temp = GameObject.CreatePrimitive(PrimitiveType.Plane);
-            temp.active = false;
+            temp.SetActive(false);
 
             var terrain = new GameObject("terrain");
             terrain.transform.SetParent(objFrame.transform, true);

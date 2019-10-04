@@ -4,6 +4,7 @@
 
 using System;
 using UnityEngine;
+using UnityEngine.Profiling;
 using UnityEngine.UI;
 
 namespace raisimUnity
@@ -11,12 +12,31 @@ namespace raisimUnity
     public class UIController : MonoBehaviour
     {
         private TcpRemote _remote = null;
+        private RecorderController _recorder = null;
+        
         static GUIStyle _style = null;
+        
+        // UI element names
+        // Buttons
+        private const string _ButtonConnectName = "ButtonConnect";
+        private const string _ButtonScreenshotName = "ButtonScreenshot";
+        private const string _ButtonRecordName = "ButtonRecord";
         
         private void Awake()
         {
             _remote = GameObject.Find("RaiSimUnity").GetComponent<TcpRemote>();
-            
+            _recorder = GameObject.Find("Recorder").GetComponent<RecorderController>();
+
+            if (_remote == null)
+            {
+                // TODO exception
+            }
+
+            if (_recorder == null)
+            {
+                // TODO exception
+            }
+
             // modal view
             {
                 var modal = GameObject.Find("ErrorModalView").GetComponent<Canvas>();
@@ -55,7 +75,7 @@ namespace raisimUnity
                 ipInputField.text = _remote.TcpAddress;
                 var portInputField = GameObject.Find("TCP Port Inputfield").GetComponent<InputField>();
                 portInputField.text = _remote.TcpPort.ToString();
-                var connectButton = GameObject.Find("Connect Button").GetComponent<Button>();
+                var connectButton = GameObject.Find(_ButtonConnectName).GetComponent<Button>();
                 connectButton.onClick.AddListener(() =>
                 {
                     _remote.TcpAddress = ipInputField.text;
@@ -90,11 +110,24 @@ namespace raisimUnity
             
             // recording section 
             {
-                var connectButton = GameObject.Find("Screenshot Button").GetComponent<Button>();
-                connectButton.onClick.AddListener(() =>
+                var screenshotButton = GameObject.Find(_ButtonScreenshotName).GetComponent<Button>();
+                screenshotButton.onClick.AddListener(() =>
                 {
                     var filename = "Screenshot " + DateTime.Now.ToString("yyyy-MM-d hh-mm-ss") + ".png";
                     ScreenCapture.CaptureScreenshot(filename);
+                });
+                
+                var recordButton = GameObject.Find(_ButtonRecordName).GetComponent<Button>();
+                recordButton.onClick.AddListener(() =>
+                {
+                    if (_recorder.IsRecording)
+                    {
+                        _recorder.FinishRecording();
+                    }
+                    else
+                    {
+                        _recorder.StartRecording();
+                    }
                 });
             }
         }
@@ -118,7 +151,7 @@ namespace raisimUnity
             }
         
             // show connected status
-            var connectButton = GameObject.Find("Connect Button").GetComponent<Button>();
+            var connectButton = GameObject.Find(_ButtonConnectName).GetComponent<Button>();
 
             if (_remote.TcpConnected)
             {
@@ -129,6 +162,18 @@ namespace raisimUnity
             {
                 GUILayout.Label("Waiting", _style);
                 connectButton.GetComponentInChildren<Text>().text = "Connect";
+            }
+            
+            // show recording status
+            var recordButton = GameObject.Find(_ButtonRecordName);
+            
+            if (_recorder.IsRecording)
+            {
+                recordButton.GetComponentInChildren<Text>().text = "Stop Recording";
+            }
+            else
+            {
+                recordButton.GetComponentInChildren<Text>().text = "Record Video";
             }
         }
     }
