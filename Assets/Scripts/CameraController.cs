@@ -24,7 +24,7 @@ public class CameraController : MonoBehaviour
     
     private GameObject _selected;    // selected object by clicking
 
-    private bool _isRecording;
+    private bool _isRecording = false;
     public bool IsRecording
     {
         get => _isRecording;
@@ -38,8 +38,8 @@ public class CameraController : MonoBehaviour
     private Thread _saverThread;
 
     // Texture Readback Objects
-    private RenderTexture tempRenderTexture;
-    private Texture2D tempTexture2D;
+    private RenderTexture _tempRenderTexture;
+    private Texture2D _tempTexture2D;
 
     // Timing Data
     private float captureFrameTime;
@@ -48,11 +48,15 @@ public class CameraController : MonoBehaviour
 
     // Encoder Thread Shared Resources
     private Queue<byte[]> frameQueue;
-    private string persistentDataPath;
     private int screenWidth;
     private int screenHeight;
-    private bool threadIsProcessing;
     private bool terminateThreadWhenDone;
+    private bool threadIsProcessing;
+    
+    public bool ThreadIsProcessing
+    {
+        get => threadIsProcessing;
+    }
 
     private void Awake()
     {
@@ -68,8 +72,8 @@ public class CameraController : MonoBehaviour
         screenWidth = cam.pixelWidth;
         screenHeight = cam.pixelHeight;
 		
-        tempRenderTexture = new RenderTexture(screenWidth, screenHeight, 0);
-        tempTexture2D = new Texture2D(screenWidth, screenHeight, TextureFormat.RGB24, false);
+        _tempRenderTexture = new RenderTexture(screenWidth, screenHeight, 0);
+        _tempTexture2D = new Texture2D(screenWidth, screenHeight, TextureFormat.RGB24, false);
         frameQueue = new Queue<byte[]> ();
 
         frameNumber = 0;
@@ -177,67 +181,66 @@ public class CameraController : MonoBehaviour
 
     void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
+        // Check if render target size has changed, if so, terminate
+        if(source.width != screenWidth || source.height != screenHeight)
+        {
+            threadIsProcessing = false;
+            this.enabled = false;
+            throw new UnityException("ScreenRecorder render target size has changed!");
+        }
+
+        // Calculate number of video frames to produce from this game frame
+        // Generate 'padding' frames if desired framerate is higher than actual framerate
+        float thisFrameTime = Time.time;
+        int framesToCapture = ((int)(thisFrameTime / captureFrameTime)) - ((int)(lastFrameTime / captureFrameTime));
+
         if (_isRecording)
         {
-            if (frameNumber <= maxFrames)
+            // Capture the frame
+            if (framesToCapture > 0)
             {
-                // Check if render target size has changed, if so, terminate
-                if(source.width != screenWidth || source.height != screenHeight)
-                {
-                    threadIsProcessing = false;
-                    this.enabled = false;
-                    throw new UnityException("ScreenRecorder render target size has changed!");
-                }
+                Graphics.Blit(source, _tempRenderTexture);
 
-                // Calculate number of video frames to produce from this game frame
-                // Generate 'padding' frames if desired framerate is higher than actual framerate
-                float thisFrameTime = Time.time;
-                int framesToCapture = ((int)(thisFrameTime / captureFrameTime)) - ((int)(lastFrameTime / captureFrameTime));
-
-                // Capture the frame
-                if(framesToCapture > 0)
-                {
-                    Graphics.Blit (source, tempRenderTexture);
-				
-                    RenderTexture.active = tempRenderTexture;
-                    tempTexture2D.ReadPixels(new Rect(0, 0, Screen.width, Screen.height),0,0);
-                    RenderTexture.active = null;
-                }
-
-                // Add the required number of copies to the queue
-                for(int i = 0; i < framesToCapture && frameNumber <= maxFrames; ++i)
-                {
-                    frameQueue.Enqueue(tempTexture2D.GetRawTextureData());
-                    frameNumber ++;
-                }
-			
-                lastFrameTime = thisFrameTime;
-
-            }
-            else //keep making screenshots until it reaches the max frame amount
-            {
-                // Inform thread to terminate when finished processing frames
-                terminateThreadWhenDone = true;
+                RenderTexture.active = _tempRenderTexture;
+                _tempTexture2D.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0);
+                RenderTexture.active = null;
             }
 
-            // Passthrough
-            Graphics.Blit (source, destination);
+            // Add the required number of copies to the queue
+            for (int i = 0; i < framesToCapture; ++i)
+            {
+                frameQueue.Enqueue(_tempTexture2D.GetRawTextureData());
+                frameNumber++;
+            }
+
+            lastFrameTime = thisFrameTime;
         }
+
+        // Passthrough
+        Graphics.Blit (source, destination);
     }
 
     public void StartRecording()
     {
-        _isRecording = true;
+        if (threadIsProcessing)
+        {
+            // TODO exception
+        }
+        else
+        {
+            _isRecording = true;
         
-        // Start a new encoder thread
-        threadIsProcessing = true;
-        _saverThread = new Thread (SaveVideo);
-        _saverThread.Start ();
+            // Start a new encoder thread
+            threadIsProcessing = true;
+            _saverThread = new Thread(SaveVideo);
+            _saverThread.Start();
+        }
     }
 
     public void FinishRecording()
     {
         _isRecording = false;
+        terminateThreadWhenDone = true;
     }
 	
     private void SaveVideo()
@@ -299,12 +302,13 @@ public class CameraController : MonoBehaviour
                 Thread.Sleep(1);
             }
         }
-
+        
         terminateThreadWhenDone = false;
         threadIsProcessing = false;
         
         ffmpegProc.StandardInput.BaseStream.Close();
         ffmpegProc.WaitForExit();
+        ffmpegProc.Close();
 
         print ("SCREENRECORDER IO THREAD FINISHED");
     }

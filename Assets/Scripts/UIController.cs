@@ -25,7 +25,7 @@ namespace raisimUnity
         private void Awake()
         {
             _remote = GameObject.Find("RaiSimUnity").GetComponent<TcpRemote>();
-            _camera = GameObject.Find("Recorder").GetComponent<CameraController>();
+            _camera = GameObject.Find("Main Camera").GetComponent<CameraController>();
 
             if (_remote == null)
             {
@@ -122,7 +122,7 @@ namespace raisimUnity
                 {
                     if (_camera.IsRecording)
                     {
-                        _recorder.FinishRecording();
+                        _camera.FinishRecording();
                     }
                     else
                     {
@@ -174,6 +174,15 @@ namespace raisimUnity
             else
             {
                 recordButton.GetComponentInChildren<Text>().text = "Record Video";
+            }
+
+            if (!_camera.IsRecording && _camera.ThreadIsProcessing)
+            {
+                recordButton.GetComponent<Button>().interactable = false;
+            }
+            else
+            {
+                recordButton.GetComponent<Button>().interactable = true;
             }
         }
     }
