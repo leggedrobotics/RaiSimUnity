@@ -53,6 +53,10 @@ public class CameraController : MonoBehaviour
     private bool terminateThreadWhenDone;
     private bool threadIsProcessing;
     
+    // Video name
+    private string outputName = "out";
+    private int outputIdx = 1;
+    
     public bool ThreadIsProcessing
     {
         get => threadIsProcessing;
@@ -80,6 +84,9 @@ public class CameraController : MonoBehaviour
 
         captureFrameTime = 1.0f / (float)frameRate;
         lastFrameTime = Time.time;
+        
+        // Check if FFMPEG available
+        // TODO
 
         // Kill the encoder thread if running from a previous execution
         if (_saverThread != null && (threadIsProcessing || _saverThread.IsAlive)) {
@@ -238,9 +245,15 @@ public class CameraController : MonoBehaviour
 
     public void StartRecording()
     {
+        // Kill thread if it's still alive
+        if (_saverThread != null && (threadIsProcessing || _saverThread.IsAlive)) {
+            threadIsProcessing = false;
+            _saverThread.Join();
+        }
+        
         if (threadIsProcessing)
         {
-            // TODO exception
+            // TODO exception... something wrong...
             print("oops...");
         }
         else
@@ -252,22 +265,18 @@ public class CameraController : MonoBehaviour
             threadIsProcessing = true;
             _saverThread = new Thread(SaveVideo);
             _saverThread.Start();
+
+            outputIdx++;
         }
     }
 
     public void FinishRecording()
     {
-        // done recording
+        // Done queueing
         _isRecording = false;
         
-        // done saving after finishing
+        // Terminate thread after it saves
         terminateThreadWhenDone = true;
-        
-        // kill thread
-        if (_saverThread != null && (threadIsProcessing || _saverThread.IsAlive)) {
-            threadIsProcessing = false;
-            _saverThread.Join();
-        }
     }
 	
     private void SaveVideo()
@@ -275,66 +284,82 @@ public class CameraController : MonoBehaviour
         print ("SCREENRECORDER IO THREAD STARTED");
 
         // Generate file path
-        string path = "output.mp4";
-		
-        var ffmpegProc = new Process();
-        ffmpegProc.StartInfo.FileName = "/bin/sh";
-        ffmpegProc.StartInfo.UseShellExecute = false;
-        ffmpegProc.StartInfo.CreateNoWindow = true;
-        ffmpegProc.StartInfo.RedirectStandardInput = true;
-        ffmpegProc.StartInfo.RedirectStandardOutput = true;
-        ffmpegProc.StartInfo.RedirectStandardError = true;
-        ffmpegProc.StartInfo.Arguments = 
-            "-c \"" +
-            "ffmpeg -r " + frameRate.ToString() + " -f rawvideo -pix_fmt rgb24 -s " + screenWidth.ToString() + "x" + screenHeight.ToString() +
-            " -i - -threads 0 -preset fast -y " + 
-            "-crf 21 " + path + "\"";
-		
-        // this is for debugging
-        ffmpegProc.OutputDataReceived += new DataReceivedEventHandler((s, e) => 
-        { 
-            // TODO 
-            print(e.Data); 
-        });
-        ffmpegProc.ErrorDataReceived += new DataReceivedEventHandler((s, e) =>
-        {
-            // TODO
-            print(e.Data); 
-        });
+        string path = outputName + outputIdx.ToString() + ".mp4";
 
-        ffmpegProc.Start();
-        
-        // this is for debugging
-        ffmpegProc.BeginErrorReadLine();
-        ffmpegProc.BeginOutputReadLine();
-
-        while (threadIsProcessing) 
+        using (var ffmpegProc = new Process())
         {
-            // Dequeue the frame, encode it as a bitmap, and write it to the file
-            if(frameQueue.Count > 0)
+            if (Application.platform == RuntimePlatform.LinuxEditor ||
+                Application.platform == RuntimePlatform.LinuxPlayer)
             {
-                var ffmpegStream = ffmpegProc.StandardInput.BaseStream;
-                
-                byte[] data = frameQueue.Dequeue(); 
-                ffmpegStream.Write(data, 0, data.Length);
-                ffmpegStream.Flush();
+                // Linux
+                ffmpegProc.StartInfo.FileName = "/bin/sh";
+            }
+            else if (Application.platform == RuntimePlatform.OSXEditor || 
+                     Application.platform == RuntimePlatform.OSXPlayer)
+            {
+                // Mac
+                throw new NotImplementedException();
             }
             else
             {
-                if(terminateThreadWhenDone)
-                {
-                    break;
-                }
-
-                Thread.Sleep(1);
+                // Else...
+                throw new NotImplementedException();
             }
+            
+            ffmpegProc.StartInfo.UseShellExecute = false;
+            ffmpegProc.StartInfo.CreateNoWindow = true;
+            ffmpegProc.StartInfo.RedirectStandardInput = true;
+            ffmpegProc.StartInfo.RedirectStandardOutput = true;
+            ffmpegProc.StartInfo.RedirectStandardError = true;
+            ffmpegProc.StartInfo.Arguments =
+                "-c \"" +
+                "ffmpeg -r " + frameRate.ToString() + " -f rawvideo -pix_fmt rgb24 -s " + screenWidth.ToString() + "x" +
+                screenHeight.ToString() +
+                " -i - -threads 0 -preset fast -y " +
+                "-crf 21 " + path + "\"";
+        
+            ffmpegProc.OutputDataReceived += new DataReceivedEventHandler((s, e) => 
+            { 
+//                print(e.Data);    // this is for debugging 
+            });
+            ffmpegProc.ErrorDataReceived += new DataReceivedEventHandler((s, e) =>
+            {
+//                print(e.Data);     // this is for debugging
+            });
+
+            // Start ffmpeg
+            ffmpegProc.Start();
+            ffmpegProc.BeginErrorReadLine();
+            ffmpegProc.BeginOutputReadLine();
+
+            while (threadIsProcessing) 
+            {
+                // Dequeue the frame, encode it as a bitmap, and write it to the file
+                if(frameQueue.Count > 0)
+                {
+                    var ffmpegStream = ffmpegProc.StandardInput.BaseStream;
+                
+                    byte[] data = frameQueue.Dequeue(); 
+                    ffmpegStream.Write(data, 0, data.Length);
+                    ffmpegStream.Flush();
+                }
+                else
+                {
+                    if(terminateThreadWhenDone)
+                    {
+                        break;
+                    }
+
+                    Thread.Sleep(1);
+                }
+            }
+        
+            // close ffmpeg
+            ffmpegProc.StandardInput.BaseStream.Flush();
+            ffmpegProc.StandardInput.BaseStream.Close();
+            ffmpegProc.WaitForExit();
         }
         
-        // close ffmpeg
-        ffmpegProc.StandardInput.BaseStream.Flush();
-        ffmpegProc.StandardInput.BaseStream.Close();
-        ffmpegProc.WaitForExit();
-
         terminateThreadWhenDone = false;
         threadIsProcessing = false;
         
