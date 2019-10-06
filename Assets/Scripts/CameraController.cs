@@ -203,6 +203,7 @@ public class CameraController : MonoBehaviour
 
                 RenderTexture.active = _tempRenderTexture;
                 _tempTexture2D.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0);
+                FlipTextureVertically(_tempTexture2D);
                 RenderTexture.active = null;
             }
 
@@ -219,12 +220,36 @@ public class CameraController : MonoBehaviour
         // Passthrough
         Graphics.Blit (source, destination);
     }
+    
+    private static void FlipTextureVertically(Texture2D original)
+    {
+        // on some platforms texture is flipped by unity
+        
+        var originalPixels = original.GetPixels();
+
+        Color[] newPixels = new Color[originalPixels.Length];
+
+        int width = original.width;
+        int rows = original.height;
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < rows; y++)
+            {
+                newPixels[x + y * width] = originalPixels[x + (rows - y -1) * width];
+            }
+        }
+
+        original.SetPixels(newPixels);
+        original.Apply();
+    }
 
     public void StartRecording()
     {
         if (threadIsProcessing)
         {
             // TODO exception
+            print("oops...");
         }
         else
         {
@@ -261,8 +286,6 @@ public class CameraController : MonoBehaviour
             "-c \"" +
             "ffmpeg -r " + frameRate.ToString() + " -f rawvideo -pix_fmt rgb24 -s " + screenWidth.ToString() + "x" + screenHeight.ToString() +
             " -i - -threads 0 -preset fast -y " + 
-            // TODO this line makes problem
-            //            "-pix_fmt yuv420p" + 
             "-crf 21 -loglevel debug " + path + "\"";
 		
 //        // this is for debugging
