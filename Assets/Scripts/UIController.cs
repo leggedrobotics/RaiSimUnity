@@ -12,7 +12,7 @@ namespace raisimUnity
     public class UIController : MonoBehaviour
     {
         private TcpRemote _remote = null;
-        private RecorderController _recorder = null;
+        private CameraController _camera = null;
         
         static GUIStyle _style = null;
         
@@ -25,14 +25,14 @@ namespace raisimUnity
         private void Awake()
         {
             _remote = GameObject.Find("RaiSimUnity").GetComponent<TcpRemote>();
-            _recorder = GameObject.Find("Recorder").GetComponent<RecorderController>();
+            _camera = GameObject.Find("Recorder").GetComponent<CameraController>();
 
             if (_remote == null)
             {
                 // TODO exception
             }
 
-            if (_recorder == null)
+            if (_camera == null)
             {
                 // TODO exception
             }
@@ -117,18 +117,18 @@ namespace raisimUnity
                     ScreenCapture.CaptureScreenshot(filename);
                 });
                 
-//                var recordButton = GameObject.Find(_ButtonRecordName).GetComponent<Button>();
-//                recordButton.onClick.AddListener(() =>
-//                {
-//                    if (_recorder.IsRecording)
-//                    {
-//                        _recorder.FinishRecording();
-//                    }
-//                    else
-//                    {
-//                        _recorder.StartRecording();
-//                    }
-//                });
+                var recordButton = GameObject.Find(_ButtonRecordName).GetComponent<Button>();
+                recordButton.onClick.AddListener(() =>
+                {
+                    if (_camera.IsRecording)
+                    {
+                        _recorder.FinishRecording();
+                    }
+                    else
+                    {
+                        _camera.StartRecording();
+                    }
+                });
             }
         }
         
@@ -167,14 +167,14 @@ namespace raisimUnity
             // show recording status
             var recordButton = GameObject.Find(_ButtonRecordName);
             
-//            if (_recorder.IsRecording)
-//            {
-//                recordButton.GetComponentInChildren<Text>().text = "Stop Recording";
-//            }
-//            else
-//            {
-//                recordButton.GetComponentInChildren<Text>().text = "Record Video";
-//            }
+            if (_camera.IsRecording)
+            {
+                recordButton.GetComponentInChildren<Text>().text = "Stop Recording";
+            }
+            else
+            {
+                recordButton.GetComponentInChildren<Text>().text = "Record Video";
+            }
         }
     }
 }
