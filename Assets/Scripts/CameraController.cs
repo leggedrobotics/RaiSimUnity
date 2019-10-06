@@ -129,7 +129,8 @@ public class CameraController : MonoBehaviour
                 
                 foreach (var ren in _selected.GetComponentsInChildren<Renderer>())
                 {
-                    ren.material.shader = Shader.Find("Self-Illumin/Outlined Diffuse");
+                    ren.material.shader = Shader.Find("Outlined/UltimateOutline");
+                    ren.material = Resources.Load<Material>("material/Transparent");
                 }
             }
         }
@@ -170,15 +171,6 @@ public class CameraController : MonoBehaviour
         }
     }
     
-    void OnDisable() 
-    {
-        // Reset target frame rate
-        Application.targetFrameRate = -1;
-
-        // Inform thread to terminate when finished processing frames
-        terminateThreadWhenDone = true;
-    }
-
     void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
         // Check if render target size has changed, if so, terminate
@@ -254,6 +246,7 @@ public class CameraController : MonoBehaviour
         else
         {
             _isRecording = true;
+            frameNumber = 0;
         
             // Start a new encoder thread
             threadIsProcessing = true;
@@ -264,8 +257,17 @@ public class CameraController : MonoBehaviour
 
     public void FinishRecording()
     {
+        // done recording
         _isRecording = false;
+        
+        // done saving after finishing
         terminateThreadWhenDone = true;
+        
+        // kill thread
+        if (_saverThread != null && (threadIsProcessing || _saverThread.IsAlive)) {
+            threadIsProcessing = false;
+            _saverThread.Join();
+        }
     }
 	
     private void SaveVideo()
@@ -286,23 +288,25 @@ public class CameraController : MonoBehaviour
             "-c \"" +
             "ffmpeg -r " + frameRate.ToString() + " -f rawvideo -pix_fmt rgb24 -s " + screenWidth.ToString() + "x" + screenHeight.ToString() +
             " -i - -threads 0 -preset fast -y " + 
-            "-crf 21 -loglevel debug " + path + "\"";
+            "-crf 21 " + path + "\"";
 		
-//        // this is for debugging
-//        ffmpegProc.OutputDataReceived += new DataReceivedEventHandler((s, e) => 
-//        { 
-//            print(e.Data); 
-//        });
-//        ffmpegProc.ErrorDataReceived += new DataReceivedEventHandler((s, e) =>
-//        {
-//            print(e.Data);
-//        });
+        // this is for debugging
+        ffmpegProc.OutputDataReceived += new DataReceivedEventHandler((s, e) => 
+        { 
+            // TODO 
+            print(e.Data); 
+        });
+        ffmpegProc.ErrorDataReceived += new DataReceivedEventHandler((s, e) =>
+        {
+            // TODO
+            print(e.Data); 
+        });
 
         ffmpegProc.Start();
         
-//        // this is for debugging
-//        ffmpegProc.BeginErrorReadLine();
-//        ffmpegProc.BeginOutputReadLine();
+        // this is for debugging
+        ffmpegProc.BeginErrorReadLine();
+        ffmpegProc.BeginOutputReadLine();
 
         while (threadIsProcessing) 
         {
@@ -326,13 +330,14 @@ public class CameraController : MonoBehaviour
             }
         }
         
+        // close ffmpeg
+        ffmpegProc.StandardInput.BaseStream.Flush();
+        ffmpegProc.StandardInput.BaseStream.Close();
+        ffmpegProc.WaitForExit();
+
         terminateThreadWhenDone = false;
         threadIsProcessing = false;
         
-        ffmpegProc.StandardInput.BaseStream.Close();
-        ffmpegProc.WaitForExit();
-        ffmpegProc.Close();
-
         print ("SCREENRECORDER IO THREAD FINISHED");
     }
 }

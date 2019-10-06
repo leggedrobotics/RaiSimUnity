@@ -179,6 +179,7 @@ namespace raisimUnity
             if (!_camera.IsRecording && _camera.ThreadIsProcessing)
             {
                 recordButton.GetComponent<Button>().interactable = false;
+                recordButton.GetComponentInChildren<Text>().text = "Saving Video...";
             }
             else
             {
