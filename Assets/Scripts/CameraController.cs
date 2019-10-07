@@ -13,6 +13,7 @@ using UnityEngine;
 [RequireComponent(typeof(Camera))]
 public class CameraController : MonoBehaviour
 {
+    // camera pose control
     private float speed = 0.5f;
     private float sensitivity = 0.5f;
  
@@ -20,10 +21,10 @@ public class CameraController : MonoBehaviour
     private Vector3 anchorPoint;
     private Quaternion anchorRot;
 
-    private RenderTexture rt;        // for video recording
-    
-    private GameObject _selected;    // selected object by clicking
+    // object selection
+    private GameObject _selected; 
 
+    // video recording
     private bool _isRecording = false;
     public bool IsRecording
     {
@@ -47,7 +48,7 @@ public class CameraController : MonoBehaviour
     private int frameNumber;
 
     // Encoder Thread Shared Resources
-    private Queue<byte[]> frameQueue;
+    private Queue<byte[]> _frameQueue;
     private int screenWidth;
     private int screenHeight;
     private bool terminateThreadWhenDone;
@@ -78,7 +79,7 @@ public class CameraController : MonoBehaviour
 		
         _tempRenderTexture = new RenderTexture(screenWidth, screenHeight, 0);
         _tempTexture2D = new Texture2D(screenWidth, screenHeight, TextureFormat.RGB24, false);
-        frameQueue = new Queue<byte[]> ();
+        _frameQueue = new Queue<byte[]> ();
 
         frameNumber = 0;
 
@@ -209,7 +210,7 @@ public class CameraController : MonoBehaviour
             // Add the required number of copies to the queue
             for (int i = 0; i < framesToCapture; ++i)
             {
-                frameQueue.Enqueue(_tempTexture2D.GetRawTextureData());
+                _frameQueue.Enqueue(_tempTexture2D.GetRawTextureData());
                 frameNumber++;
             }
 
@@ -335,11 +336,11 @@ public class CameraController : MonoBehaviour
             while (threadIsProcessing) 
             {
                 // Dequeue the frame, encode it as a bitmap, and write it to the file
-                if(frameQueue.Count > 0)
+                if(_frameQueue.Count > 0)
                 {
                     var ffmpegStream = ffmpegProc.StandardInput.BaseStream;
                 
-                    byte[] data = frameQueue.Dequeue(); 
+                    byte[] data = _frameQueue.Dequeue(); 
                     ffmpegStream.Write(data, 0, data.Length);
                     ffmpegStream.Flush();
                 }
@@ -354,7 +355,7 @@ public class CameraController : MonoBehaviour
                 }
             }
         
-            // close ffmpeg
+            // Close ffmpeg
             ffmpegProc.StandardInput.BaseStream.Flush();
             ffmpegProc.StandardInput.BaseStream.Close();
             ffmpegProc.WaitForExit();
