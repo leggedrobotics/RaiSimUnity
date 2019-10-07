@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 using UnityEngine;
+using UnityEngine.Rendering;
 using Quaternion = UnityEngine.Quaternion;
 using Vector3 = UnityEngine.Vector3;
 
@@ -71,6 +72,7 @@ namespace raisimUnity
             var plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
             plane.transform.SetParent(objFrame.transform, true);
             plane.transform.localPosition = new Vector3(0, height, 0);
+            plane.GetComponent<Renderer>().material = Resources.Load<Material>("material/Tiles56");
             return plane;
         }
         
@@ -149,21 +151,21 @@ namespace raisimUnity
             }
             
             // normals
-            for (int i = 0; i < vertices.Count; i += 3) {
-                Vector3 point1 = ConvertUnity2RS(vertices[i].x, vertices[i].y, vertices[i].z);
-                Vector3 point2 = ConvertUnity2RS(vertices[i+1].x, vertices[i+1].y, vertices[i+1].z);
-                Vector3 point3 = ConvertUnity2RS(vertices[i+2].x, vertices[i+2].y, vertices[i+2].z);
-                
-                Vector3 diff1 = point2 - point1;
-                Vector3 diff2 = point3 - point2;
-                Vector3 norm = Vector3.Cross(diff1, diff2);
-                norm = Vector3.Normalize(norm);
-                norm = ConvertRs2Unity(norm.x, norm.y, norm.z);
-
-                normals.Add(norm);
-                normals.Add(norm);
-                normals.Add(norm);
-            }
+//            for (int i = 0; i < vertices.Count; i += 3) {
+//                Vector3 point1 = ConvertUnity2RS(vertices[i].x, vertices[i].y, vertices[i].z);
+//                Vector3 point2 = ConvertUnity2RS(vertices[i+1].x, vertices[i+1].y, vertices[i+1].z);
+//                Vector3 point3 = ConvertUnity2RS(vertices[i+2].x, vertices[i+2].y, vertices[i+2].z);
+//                
+//                Vector3 diff1 = point2 - point1;
+//                Vector3 diff2 = point3 - point2;
+//                Vector3 norm = Vector3.Cross(diff1, diff2);
+//                norm = Vector3.Normalize(norm);
+//                norm = ConvertRs2Unity(norm.x, norm.y, norm.z);
+//
+//                normals.Add(norm);
+//                normals.Add(norm);
+//                normals.Add(norm);
+//            }
             
             // uvs
             for (ulong i = 0; i < numSampleY-1; i++)
@@ -212,11 +214,12 @@ namespace raisimUnity
             mesh.vertices = vertices.ToArray();
             mesh.triangles = indices.ToArray();
             mesh.uv = uvs.ToArray();
-            mesh.normals = normals.ToArray();
+//            mesh.normals = normals.ToArray();
+            mesh.RecalculateNormals();
 
             // this is just temporal object (will be deleted immediately!)
-            var temp = GameObject.CreatePrimitive(PrimitiveType.Plane);
-            temp.SetActive(false);
+//            var temp = GameObject.CreatePrimitive(PrimitiveType.Plane);
+//            temp.SetActive(false);
 
             var terrain = new GameObject("terrain");
             terrain.transform.SetParent(objFrame.transform, true);
@@ -224,12 +227,13 @@ namespace raisimUnity
             terrain.AddComponent<MeshRenderer>();
 
             terrain.GetComponent<MeshFilter>().mesh = mesh;
-            terrain.GetComponent<MeshRenderer>().material =  temp.GetComponent<MeshRenderer>().sharedMaterial;
+//            terrain.GetComponent<MeshRenderer>().material =  temp.GetComponent<MeshRenderer>().sharedMaterial;
+            terrain.GetComponent<MeshRenderer>().material = Resources.Load<Material>("material/Tiles56");
 
             terrain.AddComponent<MeshCollider>();
 
             // destroy temp 
-            GameObject.DestroyImmediate(temp);
+//            GameObject.DestroyImmediate(temp);
 
             return objFrame;
         }
@@ -270,8 +274,8 @@ namespace raisimUnity
             marker.tag = "contact";
             marker.name = "contact" + index.ToString();
             marker.transform.localPosition = new Vector3(-rsPos.x, rsPos.z, -rsPos.y);
+            marker.GetComponent<Renderer>().shadowCastingMode = ShadowCastingMode.Off;
             marker.GetComponent<Renderer>().material.SetColor("_Color", Color.red);
-            
             return marker;
         }
         
@@ -279,9 +283,8 @@ namespace raisimUnity
         {
             var meshRes = Resources.Load("others/arrow") as GameObject;
             var marker = GameObject.Instantiate(meshRes);
+            marker.GetComponentInChildren<Renderer>().shadowCastingMode = ShadowCastingMode.Off;
             marker.transform.SetParent(root.transform, true);
-            marker.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
-
             marker.tag = "contact";
             marker.name = "contactForce" + index.ToString();
 
@@ -294,7 +297,6 @@ namespace raisimUnity
             marker.transform.localRotation = q;
             marker.transform.localScale = new Vector3(0.3f, 0.3f, 1.0f);
             marker.GetComponentInChildren<Renderer>().material.SetColor("_Color", Color.blue);
-            
             return marker;
         }
         
