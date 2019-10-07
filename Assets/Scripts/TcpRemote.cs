@@ -127,6 +127,14 @@ namespace raisimUnity
         private GameObject _contactPointsRoot;
         private GameObject _contactForcesRoot;
 
+        // shaders
+        private Shader _transparentShader;
+        private Shader _standardShader;
+        
+        // default materials
+        private Material _groundMaterial;
+        private Material _primitiveMaterial;
+
         void Start()
         {
             // set buffer size
@@ -139,6 +147,14 @@ namespace raisimUnity
             _objectsRoot = GameObject.Find("Objects");
             _contactPointsRoot = GameObject.Find("ContactPoints");
             _contactForcesRoot = GameObject.Find("ContactForces");
+            
+            // shaders
+            _standardShader = Shader.Find("Standard");
+            _transparentShader = Shader.Find("RaiSim/Transparent");
+            
+            // materials
+            _groundMaterial = Resources.Load<Material>("material/Tiles56");
+            _primitiveMaterial = Resources.Load<Material>("material/PavingStones45");
         }
 
         void Update()
@@ -242,7 +258,8 @@ namespace raisimUnity
                     case RsObejctType.RsSphereObject :
                     {
                         float radius = BitIO.GetData<float>(ref _buffer, ref offset);
-                        ObjectController.CreateSphere(_objectsRoot, objectIndex.ToString(), radius, VisualTag.VisualAndCollision);
+                        var sphereRoot =  ObjectController.CreateSphere(_objectsRoot, objectIndex.ToString(), radius, VisualTag.VisualAndCollision);
+                        sphereRoot.GetComponentInChildren<Renderer>().material = _primitiveMaterial;
                     }
                         break;
 
@@ -251,21 +268,24 @@ namespace raisimUnity
                         float sx = BitIO.GetData<float>(ref _buffer, ref offset);
                         float sy = BitIO.GetData<float>(ref _buffer, ref offset);
                         float sz = BitIO.GetData<float>(ref _buffer, ref offset);
-                        ObjectController.CreateBox(_objectsRoot, objectIndex.ToString(), sx, sy, sz, VisualTag.VisualAndCollision);
+                        var boxRoot = ObjectController.CreateBox(_objectsRoot, objectIndex.ToString(), sx, sy, sz, VisualTag.VisualAndCollision);
+                        boxRoot.GetComponentInChildren<Renderer>().material = _primitiveMaterial;
                     }
                         break;
                     case RsObejctType.RsCylinderObject:
                     {
                         float radius = BitIO.GetData<float>(ref _buffer, ref offset);
                         float height = BitIO.GetData<float>(ref _buffer, ref offset);
-                        ObjectController.CreateCylinder(_objectsRoot, objectIndex.ToString(), radius, height, VisualTag.VisualAndCollision);
+                        var cylinderRoot = ObjectController.CreateCylinder(_objectsRoot, objectIndex.ToString(), radius, height, VisualTag.VisualAndCollision);
+                        cylinderRoot.GetComponentInChildren<Renderer>().material = _primitiveMaterial;
                     }
                         break;
                     case RsObejctType.RsCapsuleObject:
                     {
                         float radius = BitIO.GetData<float>(ref _buffer, ref offset);
                         float height = BitIO.GetData<float>(ref _buffer, ref offset);
-                        ObjectController.CreateCapsule(_objectsRoot, objectIndex.ToString(), radius, height, VisualTag.VisualAndCollision);
+                        var capsuleRoot = ObjectController.CreateCapsule(_objectsRoot, objectIndex.ToString(), radius, height, VisualTag.VisualAndCollision);
+                        capsuleRoot.GetComponentInChildren<Renderer>().material = _primitiveMaterial;
                     }
                         break;
                     case RsObejctType.RsMeshObject:
@@ -273,13 +293,15 @@ namespace raisimUnity
                         string meshFile = BitIO.GetData<string>(ref _buffer, ref offset);
                         string meshFileName = Path.GetFileNameWithoutExtension(meshFile);
                         string directoryName = Path.GetFileName(Path.GetDirectoryName(meshFile));
-                        ObjectController.CreateMesh(_objectsRoot, objectIndex.ToString(), Path.Combine(directoryName, meshFileName), 1.0f, 1.0f, 1.0f, VisualTag.VisualAndCollision);
+                        var meshRoot = ObjectController.CreateMesh(_objectsRoot, objectIndex.ToString(), Path.Combine(directoryName, meshFileName), 1.0f, 1.0f, 1.0f, VisualTag.VisualAndCollision);
+                        meshRoot.GetComponentInChildren<Renderer>().material = _primitiveMaterial;
                     }
                         break;
                     case RsObejctType.RsHalfSpaceObject:
                     {
                         float height = BitIO.GetData<float>(ref _buffer, ref offset);
-                        ObjectController.CreateHalfSpace(_objectsRoot, objectIndex.ToString(), height, VisualTag.VisualAndCollision);
+                        var planeRoot = ObjectController.CreateHalfSpace(_objectsRoot, objectIndex.ToString(), height, VisualTag.VisualAndCollision);
+                        planeRoot.GetComponentInChildren<Renderer>().material = _groundMaterial;
                     }
                         break;
                     case RsObejctType.RsHeightMapObject:
@@ -306,7 +328,8 @@ namespace raisimUnity
                             }
                         }
 
-                        ObjectController.CreateTerrain(_objectsRoot, objectIndex.ToString(), numSampleX, sizeX, centerX, numSampleY, sizeY, centerY, heights, tag);
+                        var terrainRoot = ObjectController.CreateTerrain(_objectsRoot, objectIndex.ToString(), numSampleX, sizeX, centerX, numSampleY, sizeY, centerY, heights, tag);
+                        terrainRoot.GetComponentInChildren<Renderer>().material = _groundMaterial;
                     }
                         break;
                     case RsObejctType.RsArticulatedSystemObject:
@@ -661,12 +684,12 @@ namespace raisimUnity
                     Color temp = renderer.material.color;
                     if (_showContactForces || _showContactPoints)
                     {
-                        renderer.material.shader = Shader.Find("RaiSim/Transparent");
+                        renderer.material.shader = _transparentShader;
                         renderer.material.color = new Color(temp.r, temp.g, temp.b, 0.8f);
                     }
                     else
                     {
-                        renderer.material.shader = Shader.Find("Standard");
+                        renderer.material.shader = _standardShader;
                         renderer.material.color = new Color(temp.r, temp.g, temp.b, 1.0f);
                     }
                 }
@@ -683,12 +706,12 @@ namespace raisimUnity
                     Color temp = renderer.material.color;
                     if (_showContactForces || _showContactPoints)
                     {
-                        renderer.material.shader = Shader.Find("RaiSim/Transparent");
+                        renderer.material.shader = _transparentShader;
                         renderer.material.color = new Color(temp.r, temp.g, temp.b, 0.5f);
                     }
                     else
                     {
-                        renderer.material.shader = Shader.Find("Standard");
+                        renderer.material.shader = _standardShader;
                         renderer.material.color = new Color(temp.r, temp.g, temp.b, 1.0f);
                     }
                 }
@@ -705,12 +728,12 @@ namespace raisimUnity
                     Color temp = renderer.material.color;
                     if (_showContactForces || _showContactPoints)
                     {
-                        renderer.material.shader = Shader.Find("RaiSim/Transparent");
+                        renderer.material.shader = _transparentShader;
                         renderer.material.color = new Color(temp.r, temp.g, temp.b, 0.2f);
                     }
                     else
                     {
-                        renderer.material.shader = Shader.Find("Standard");
+                        renderer.material.shader = _standardShader;
                         renderer.material.color = new Color(temp.r, temp.g, temp.b, 1.0f);
                     }
                 }

@@ -72,7 +72,6 @@ namespace raisimUnity
             var plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
             plane.transform.SetParent(objFrame.transform, true);
             plane.transform.localPosition = new Vector3(0, height, 0);
-            plane.GetComponent<Renderer>().material = Resources.Load<Material>("material/Tiles56");
             return plane;
         }
         
@@ -218,8 +217,8 @@ namespace raisimUnity
             mesh.RecalculateNormals();
 
             // this is just temporal object (will be deleted immediately!)
-//            var temp = GameObject.CreatePrimitive(PrimitiveType.Plane);
-//            temp.SetActive(false);
+            var temp = GameObject.CreatePrimitive(PrimitiveType.Plane);
+            temp.SetActive(false);
 
             var terrain = new GameObject("terrain");
             terrain.transform.SetParent(objFrame.transform, true);
@@ -227,13 +226,11 @@ namespace raisimUnity
             terrain.AddComponent<MeshRenderer>();
 
             terrain.GetComponent<MeshFilter>().mesh = mesh;
-//            terrain.GetComponent<MeshRenderer>().material =  temp.GetComponent<MeshRenderer>().sharedMaterial;
-            terrain.GetComponent<MeshRenderer>().material = Resources.Load<Material>("material/Tiles56");
-
+            terrain.GetComponent<MeshRenderer>().material =  temp.GetComponent<MeshRenderer>().sharedMaterial;
             terrain.AddComponent<MeshCollider>();
 
             // destroy temp 
-//            GameObject.DestroyImmediate(temp);
+            GameObject.DestroyImmediate(temp);
 
             return objFrame;
         }
