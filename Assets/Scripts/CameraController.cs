@@ -129,7 +129,7 @@ public class CameraController : MonoBehaviour
                     // former selected object
                     foreach (var ren in _selected.GetComponentsInChildren<Renderer>())
                     {
-                        ren.material.shader = Shader.Find("Diffuse");
+                        ren.material.shader = Shader.Find("Standard");
                     }
                 }
                 
@@ -138,7 +138,6 @@ public class CameraController : MonoBehaviour
                 foreach (var ren in _selected.GetComponentsInChildren<Renderer>())
                 {
                     ren.material.shader = Shader.Find("Outlined/UltimateOutline");
-                    ren.material = Resources.Load<Material>("material/Transparent");
                 }
             }
         }
@@ -154,7 +153,7 @@ public class CameraController : MonoBehaviour
             {
                 foreach (var ren in _selected.GetComponentsInChildren<Renderer>())
                 {
-                    ren.material.shader = Shader.Find("Diffuse");
+                    ren.material.shader = Shader.Find("Standard");
                 }
             }
             

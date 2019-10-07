@@ -5,6 +5,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
@@ -161,11 +162,7 @@ namespace raisimUnity
                     UpdatePosition();
 
                     // update contacts
-                    if( _showContactPoints || _showContactForces)
-                        UpdateContacts();
-                    
-                    // show / hide objects
-                    ShowOrHideObject();
+                    UpdateContacts();
                 }
                 catch (Exception e)
                 {
@@ -503,14 +500,18 @@ namespace raisimUnity
                 double posX = BitIO.GetData<double>(ref _buffer, ref offset);
                 double posY = BitIO.GetData<double>(ref _buffer, ref offset);
                 double posZ = BitIO.GetData<double>(ref _buffer, ref offset);
-                ObjectController.CreateContactMarker(_contactPointsRoot, (int)i, new Vector3((float)posX, (float)posY, (float)posZ));
+                
+                if(_showContactPoints)
+                    ObjectController.CreateContactMarker(_contactPointsRoot, (int)i, new Vector3((float)posX, (float)posY, (float)posZ));
                 
                 double forceX = BitIO.GetData<double>(ref _buffer, ref offset);
                 double forceY = BitIO.GetData<double>(ref _buffer, ref offset);
                 double forceZ = BitIO.GetData<double>(ref _buffer, ref offset);
-                ObjectController.CreateContactForceMarker(_contactForcesRoot, (int)i, 
-                    new Vector3((float)posX, (float)posY, (float)posZ), 
-                    new Vector3((float)forceX, (float)forceY, (float)forceZ));
+                
+                if(_showContactForces)
+                    ObjectController.CreateContactForceMarker(_contactForcesRoot, (int)i, 
+                        new Vector3((float)posX, (float)posY, (float)posZ), 
+                        new Vector3((float)forceX, (float)forceY, (float)forceZ));
             }
 
             return 0;
@@ -546,6 +547,9 @@ namespace raisimUnity
                         if (cam == Camera.main) continue;
                         cam.enabled = false;
                     }
+                    
+                    // show / hide objects
+                    ShowOrHideObjects();
                 }
             }
             catch (Exception e)
@@ -643,8 +647,8 @@ namespace raisimUnity
             if (_stream != null) _stream.Close();
             if (_client != null) _client.Close();
         }
-        
-        public void ShowOrHideObject()
+
+        public void ShowOrHideObjects()
         {
             // visual body
             foreach (var obj in GameObject.FindGameObjectsWithTag(VisualTag.Visual))
@@ -652,7 +656,20 @@ namespace raisimUnity
                 foreach (var collider in obj.GetComponentsInChildren<Collider>())
                     collider.enabled = _showVisualBody;
                 foreach (var renderer in obj.GetComponentsInChildren<Renderer>())
+                {
                     renderer.enabled = _showVisualBody;
+                    Color temp = renderer.material.color;
+                    if (_showContactForces || _showContactPoints)
+                    {
+                        renderer.material.shader = Shader.Find("RaiSim/Transparent");
+                        renderer.material.color = new Color(temp.r, temp.g, temp.b, 0.8f);
+                    }
+                    else
+                    {
+                        renderer.material.shader = Shader.Find("Standard");
+                        renderer.material.color = new Color(temp.r, temp.g, temp.b, 1.0f);
+                    }
+                }
             }
 
             // collision body
@@ -661,7 +678,20 @@ namespace raisimUnity
                 foreach (var collider in obj.GetComponentsInChildren<Collider>())
                     collider.enabled = _showCollisionBody;
                 foreach (var renderer in obj.GetComponentsInChildren<Renderer>())
+                {
                     renderer.enabled = _showCollisionBody;
+                    Color temp = renderer.material.color;
+                    if (_showContactForces || _showContactPoints)
+                    {
+                        renderer.material.shader = Shader.Find("RaiSim/Transparent");
+                        renderer.material.color = new Color(temp.r, temp.g, temp.b, 0.5f);
+                    }
+                    else
+                    {
+                        renderer.material.shader = Shader.Find("Standard");
+                        renderer.material.color = new Color(temp.r, temp.g, temp.b, 1.0f);
+                    }
+                }
             }
 
             // visual and collision body (single body objects)
@@ -670,7 +700,20 @@ namespace raisimUnity
                 foreach (var collider in obj.GetComponentsInChildren<Collider>())
                     collider.enabled = _showVisualBody || _showCollisionBody;
                 foreach (var renderer in obj.GetComponentsInChildren<Renderer>())
+                {
                     renderer.enabled = _showVisualBody || _showCollisionBody;
+                    Color temp = renderer.material.color;
+                    if (_showContactForces || _showContactPoints)
+                    {
+                        renderer.material.shader = Shader.Find("RaiSim/Transparent");
+                        renderer.material.color = new Color(temp.r, temp.g, temp.b, 0.2f);
+                    }
+                    else
+                    {
+                        renderer.material.shader = Shader.Find("Standard");
+                        renderer.material.color = new Color(temp.r, temp.g, temp.b, 1.0f);
+                    }
+                }
             }
             
             // contact points
@@ -685,7 +728,7 @@ namespace raisimUnity
                 contact.gameObject.GetComponentInChildren<Renderer>().enabled = _showContactForces;
             }
         }
-        
+
         // getters and setters
         public bool ShowVisualBody
         {

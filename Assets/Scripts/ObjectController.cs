@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Xml;
 using UnityEngine;
 using Quaternion = UnityEngine.Quaternion;
@@ -21,7 +22,6 @@ namespace raisimUnity
             var viz = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             viz.transform.SetParent(objFrame.transform, true);
             viz.transform.localScale = new Vector3(radius*2.0f, radius*2.0f, radius*2.0f);
-//            viz.GetComponent<Collider>().enabled = false;
             return objFrame;
         }
 
@@ -33,7 +33,6 @@ namespace raisimUnity
             var viz = GameObject.CreatePrimitive(PrimitiveType.Cube);
             viz.transform.SetParent(objFrame.transform, true);
             viz.transform.localScale = new Vector3(sx, sy, sz);
-//            viz.GetComponent<Collider>().enabled = false;
             return objFrame;
         }
 
@@ -45,7 +44,6 @@ namespace raisimUnity
             var viz = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             viz.transform.SetParent(objFrame.transform, true);
             viz.transform.localScale = new Vector3(radius*2f, height*0.5f, radius*2f);
-//            viz.GetComponent<Collider>().enabled = false;
             return objFrame;
         }
 
@@ -62,7 +60,6 @@ namespace raisimUnity
             var capsule = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             capsule.transform.SetParent(objFrame.transform, true);
             capsule.transform.localScale = new Vector3(radius*2f, height*0.5f+radius, radius*2f);
-//            capsule.GetComponent<Collider>().enabled = false;
             return capsule;
         }
 
@@ -74,7 +71,6 @@ namespace raisimUnity
             var plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
             plane.transform.SetParent(objFrame.transform, true);
             plane.transform.localPosition = new Vector3(0, height, 0);
-//            plane.GetComponent<Collider>().enabled = false;
             return plane;
         }
         
