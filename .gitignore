@@ -1,6 +1,16 @@
-# idea
-.idea
+
+# Created by https://www.gitignore.io/api/unity
+# Edit at https://www.gitignore.io/?templates=unity
+
+# Jetbrain Rider Cache
+.idea/
+Assets/Plugins/Editor/JetBrains*
+
+# VS Code Cache
 .vscode
+
+# Visual Studio cache directory
+.vs/
 
 # cmake
 cmake-*/
