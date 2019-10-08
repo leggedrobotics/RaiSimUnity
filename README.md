@@ -1,4 +1,4 @@
-# raisimUnity
+# RaisimUnity
  
 raisimUnity is a visualizer for raisim based on [Unity](https://unity.com/). 
 The visualizer get the simulation data from raisim server application via TCP/IP.
