@@ -111,9 +111,6 @@ namespace raisimUnity
         
         private byte[] _buffer;
         
-        // path 
-        private string _resDirPath;
-
         // status
         private bool _tcpTryConnect = false;
         private bool _showVisualBody = true;
@@ -139,9 +136,6 @@ namespace raisimUnity
             // set buffer size
             _buffer = new byte[_maxBufferSize];
             
-            // TODO no hard coding!
-            _resDirPath = Path.Combine(Application.dataPath, "Resources");
-            
             // object roots
             _objectsRoot = GameObject.Find("Objects");
             _contactPointsRoot = GameObject.Find("ContactPoints");
@@ -152,8 +146,8 @@ namespace raisimUnity
             _transparentShader = Shader.Find("RaiSim/Transparent");
             
             // materials
-            _groundMaterial = Resources.Load<Material>("material/Tiles56");
-            _primitiveMaterial = Resources.Load<Material>("material/PavingStones45");
+            _groundMaterial = Resources.Load<Material>("materials/Tiles56");
+            _primitiveMaterial = Resources.Load<Material>("materials/PavingStones45");
         }
 
         void Update()
@@ -335,12 +329,6 @@ namespace raisimUnity
                     {
                         string urdfDirPathInServer = BitIO.GetData<string>(ref _buffer, ref offset); 
                         string urdfDirName = Path.GetFileName(urdfDirPathInServer);
-                        string urdfDirPathInClient = Path.Combine(Path.GetFullPath(_resDirPath), urdfDirName);
-                        if (!Directory.Exists(urdfDirPathInClient))
-                        {
-                            // TODO error
-                            print("no urdf dir");
-                        }
 
                         // visItem = 0 (visuals)
                         // visItem = 1 (collisions)
