@@ -1,7 +1,7 @@
 # RaisimUnity
  
 raisimUnity is a visualizer for raisim based on [Unity](https://unity.com/). 
-The visualizer get the simulation data from raisim server application via TCP/IP.
+The visualizer gets the simulation data from raisim server application via TCP/IP.
 
 The project was tested on Ubuntu 18.04 LST.
 
@@ -10,7 +10,7 @@ The project was tested on Ubuntu 18.04 LST.
 ### Prerequisites
 
 - [RaiSimLib](https://github.com/leggedrobotics/raisimLib)
-- (optional for developement) Unity Editor (linux version is available on [here](https://forum.unity.com/threads/unity-hub-v-1-6-0-is-now-available.640792/))
+- (optional for developement) Unity Editor >= 2019.2.9f1 (linux version is available on [here](https://forum.unity.com/threads/unity-hub-v-1-6-0-is-now-available.640792/))
 
 ### Quick start
 
@@ -30,4 +30,4 @@ You should see texture JPEG files properly from ```Assets/Resources/texture/cc0/
 
 ### Development
 
-We strongly recommend to use JetBrain's Rider IDE for development. See [Wiki doc](https://github.com/eastskykang/raisimUnity/wiki/Unity-with-Rider) for more details.
+We strongly recommend to use JetBrain's Rider IDE and Unity Rider Editor package >= 1.1.2 for development. See [Wiki doc](https://github.com/eastskykang/raisimUnity/wiki/Unity-with-Rider) for more details.
