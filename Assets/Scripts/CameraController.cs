@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 [RequireComponent(typeof(Camera))]
 public class CameraController : MonoBehaviour
@@ -117,54 +118,58 @@ public class CameraController : MonoBehaviour
             transform.Translate(move);
         }
         
-        // select object by left click
-        if (Input.GetMouseButtonDown(0))
-        {
-            Ray ray = cam.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
-            if (Physics.Raycast(ray, out hit))
+        if (!EventSystem.current.IsPointerOverGameObject ()) {
+            // only do this if mouse pointer is not on the GUI
+            
+            // select object by left click
+            if (Input.GetMouseButtonDown(0))
             {
+                Ray ray = cam.ScreenPointToRay(Input.mousePosition);
+                RaycastHit hit;
+                if (Physics.Raycast(ray, out hit))
+                {
+                    if (_selected != null)
+                    {
+                        // former selected object
+                        foreach (var ren in _selected.GetComponentsInChildren<Renderer>())
+                        {
+                            ren.material.shader = Shader.Find("Standard");
+                        }
+                    }
+                
+                    _selected = hit.transform.parent.gameObject;
+                
+                    foreach (var ren in _selected.GetComponentsInChildren<Renderer>())
+                    {
+                        ren.material.shader = Shader.Find("Outlined/UltimateOutline");
+                    }
+                }
+            }
+
+            // change camera orientation by right drag 
+            if (Input.GetMouseButtonDown(1))
+            {
+                anchorPoint = new Vector3(Input.mousePosition.y, -Input.mousePosition.x);
+                anchorRot = transform.rotation;
+
+                // deselect object by right click
                 if (_selected != null)
                 {
-                    // former selected object
                     foreach (var ren in _selected.GetComponentsInChildren<Renderer>())
                     {
                         ren.material.shader = Shader.Find("Standard");
                     }
                 }
-                
-                _selected = hit.transform.parent.gameObject;
-                
-                foreach (var ren in _selected.GetComponentsInChildren<Renderer>())
-                {
-                    ren.material.shader = Shader.Find("Outlined/UltimateOutline");
-                }
-            }
-        }
-
-        // change camera orientation by right drag 
-        if (Input.GetMouseButtonDown(1))
-        {
-            anchorPoint = new Vector3(Input.mousePosition.y, -Input.mousePosition.x);
-            anchorRot = transform.rotation;
-
-            // deselect object by right click
-            if (_selected != null)
-            {
-                foreach (var ren in _selected.GetComponentsInChildren<Renderer>())
-                {
-                    ren.material.shader = Shader.Find("Standard");
-                }
-            }
             
-            _selected = null;
-        }
-        if (Input.GetMouseButton(1))
-        {
-            Quaternion rot = anchorRot;
-            Vector3 dif = anchorPoint - new Vector3(Input.mousePosition.y, -Input.mousePosition.x);
-            rot.eulerAngles += dif * sensitivity;
-            transform.rotation = rot;
+                _selected = null;
+            }
+            if (Input.GetMouseButton(1))
+            {
+                Quaternion rot = anchorRot;
+                Vector3 dif = anchorPoint - new Vector3(Input.mousePosition.y, -Input.mousePosition.x);
+                rot.eulerAngles += dif * sensitivity;
+                transform.rotation = rot;
+            }   
         }
     }
     
