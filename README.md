@@ -28,6 +28,12 @@ $ git lfs pull origin
 
 You should see texture JPEG files properly from ```Assets/Resources/texture/cc0/```.
 
+### Default objects
+
+- Stanford Bunny mesh object (.obj)
+- Monkey mesh object (.obj)
+- [ANYmal B](https://rsl.ethz.ch/robots-media/anymal.html) URDF and mesh files (.urdf and .dae)
+
 ### Development
 
 We strongly recommend to use JetBrain's Rider IDE and Unity Rider Editor package >= 1.1.2 for development. 
