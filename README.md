@@ -30,4 +30,8 @@ You should see texture JPEG files properly from ```Assets/Resources/texture/cc0/
 
 ### Development
 
-We strongly recommend to use JetBrain's Rider IDE and Unity Rider Editor package >= 1.1.2 for development. See [Wiki doc](https://github.com/eastskykang/raisimUnity/wiki/Unity-with-Rider) for more details.
+We strongly recommend to use JetBrain's Rider IDE and Unity Rider Editor package >= 1.1.2 for development. 
+
+- See [Wiki doc](https://github.com/eastskykang/raisimUnity/wiki/Unity-with-Rider) for more details.
+- See [Wiki doc](https://github.com/eastskykang/raisimUnity/wiki/Creating-a-material-from-texture-files) to create new material from texture files.
+
