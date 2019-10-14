@@ -110,7 +110,6 @@ namespace raisimUnity
         private const int _footerSize = sizeof(Byte);
         
         private byte[] _buffer;
-        private float lastcheck = 0;
         
         // path 
         private string _resDirPath;
