@@ -235,7 +235,7 @@ namespace raisimUnity
             return objFrame;
         }
 
-        public static GameObject CreateMesh(GameObject root, string name, string meshFile, float sx, float sy, float sz, string tag)
+        public static GameObject CreateMesh(GameObject root, string name, string meshFile, float sx, float sy, float sz, string tag, bool flipYz=false)
         {
             // meshFile is file name without file extension related to Resources directory
             // sx, sy, sz is scale 
@@ -251,6 +251,8 @@ namespace raisimUnity
             var mesh = GameObject.Instantiate(meshRes);
             mesh.transform.SetParent(objFrame.transform, true);
             mesh.transform.localScale = new Vector3((float)sx, (float)sy, (float)sz);
+            if(flipYz)
+                mesh.transform.localRotation = new Quaternion(-0.7071f, 0, 0, 0.7071f);
             
             // add collider to children
             foreach (Transform children in mesh.transform)
@@ -319,7 +321,7 @@ namespace raisimUnity
         {
             return new Vector3(-rx, rz, -ry);
         }
-        
+
         private static Vector3 ConvertUnity2RS(float ux, float uy, float uz)
         {
             return new Vector3(-ux, -uz, uy);

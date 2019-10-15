@@ -284,9 +284,13 @@ namespace raisimUnity
                     case RsObejctType.RsMeshObject:
                     {
                         string meshFile = BitIO.GetData<string>(ref _buffer, ref offset);
+                        float scale = BitIO.GetData<float>(ref _buffer, ref offset);
                         string meshFileName = Path.GetFileNameWithoutExtension(meshFile);
+                        string meshFileExtension = Path.GetExtension(meshFile);
                         string directoryName = Path.GetFileName(Path.GetDirectoryName(meshFile));
-                        var meshRoot = ObjectController.CreateMesh(_objectsRoot, objectIndex.ToString(), Path.Combine(directoryName, meshFileName), 1.0f, 1.0f, 1.0f, VisualTag.VisualAndCollision);
+                        var meshRoot = ObjectController.CreateMesh(_objectsRoot, objectIndex.ToString(), 
+                            Path.Combine(directoryName, meshFileName), scale, scale, scale, 
+                            VisualTag.VisualAndCollision, meshFileExtension != ".dae");
                         meshRoot.GetComponentInChildren<Renderer>().material = _primitiveMaterial;
                     }
                         break;
@@ -354,13 +358,14 @@ namespace raisimUnity
                                 {
                                     string meshFile = BitIO.GetData<string>(ref _buffer, ref offset);
                                     string meshFileName = Path.GetFileName(meshFile);
+                                    string meshFileExtension = Path.GetExtension(meshFile);
 
                                     double sx = BitIO.GetData<double>(ref _buffer, ref offset);
                                     double sy = BitIO.GetData<double>(ref _buffer, ref offset);
                                     double sz = BitIO.GetData<double>(ref _buffer, ref offset);
 
                                     string meshFilePathInResources = Path.Combine(urdfDirName, Path.GetFileNameWithoutExtension(meshFileName));
-                                    ObjectController.CreateMesh(_objectsRoot, subName, meshFilePathInResources, (float)sx, (float)sy, (float)sz, tag);
+                                    ObjectController.CreateMesh(_objectsRoot, subName, meshFilePathInResources, (float)sx, (float)sy, (float)sz, tag, meshFileExtension != ".dae");
                                 }
                                 else
                                 {
