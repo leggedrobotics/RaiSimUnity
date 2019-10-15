@@ -9,6 +9,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
+using System.Xml;
 using UnityEditor;
 using UnityEngine;
 using Quaternion = UnityEngine.Quaternion;
@@ -24,6 +25,7 @@ namespace raisimUnity
         Status,
         NoMessage,
         ContactInfoUpdate,
+        ConfigXml,
     }
 
     enum ClientMessageType : int
@@ -36,6 +38,7 @@ namespace raisimUnity
         RequestPause,
         RequestResume,
         RequestContactInfos,
+        RequestConfigXML,
     }
 
     enum ServerStatus : int
@@ -130,7 +133,10 @@ namespace raisimUnity
         // default materials
         private Material _groundMaterial;
         private Material _primitiveMaterial;
-
+        
+        // xml document
+        XmlDocument _doc;
+        
         void Start()
         {
             // set buffer size
@@ -245,6 +251,8 @@ namespace raisimUnity
                 ulong objectIndex = BitIO.GetData<ulong>(ref _buffer, ref offset);
                 
                 RsObejctType objectType = BitIO.GetData<RsObejctType>(ref _buffer, ref offset);
+
+                string name = BitIO.GetData<string>(ref _buffer, ref offset);
                 
                 switch (objectType) 
                 {
@@ -554,8 +562,12 @@ namespace raisimUnity
                 // initialize scene when connection available
                 if (_client != null && _client.Connected && _stream != null)
                 {
+                    // Read XML string
+                    ReadXMLString();
+                    
+                    // initialize scene from data 
                     InitializeScene();
-
+                    
                     // disable other cameras than main camera
                     foreach (var cam in Camera.allCameras)
                     {
@@ -572,6 +584,37 @@ namespace raisimUnity
                 // connection cannot be established
                 throw new RsuInitException(e.Message);
             }
+        }
+
+        private int ReadXMLString()
+        {
+            int offset = 0;
+            
+            WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestConfigXML));
+            if (ReadData() == 0)
+                return -1;
+            
+            ServerStatus state = BitIO.GetData<ServerStatus>(ref _buffer, ref offset);
+            
+            if (state == ServerStatus.StatusTerminating)
+                return 0;
+
+            ServerMessageType messageType = BitIO.GetData<ServerMessageType>(ref _buffer, ref offset);
+            if (messageType == ServerMessageType.NoMessage)
+            {
+                return 0;
+            }
+            else if (messageType != ServerMessageType.ConfigXml)
+            {
+                return -1;
+            }
+
+            string xmlString = BitIO.GetData<string>(ref _buffer, ref offset);
+
+            _doc = new XmlDocument();
+            _doc.LoadXml(xmlString);
+
+            return 0;
         }
 
         public void CloseConnection()
