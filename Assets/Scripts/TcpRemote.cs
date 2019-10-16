@@ -132,10 +132,12 @@ namespace raisimUnity
         
         // default materials
         private Material _groundMaterial;
-        private Material _primitiveMaterial;
+        private Material _defaultMaterialR;
+        private Material _defaultMaterialG;
+        private Material _defaultMaterialB;
         
         // xml document
-        XmlDocument _doc;
+        XmlDocument _xmlDoc;
         
         void Start()
         {
@@ -152,8 +154,10 @@ namespace raisimUnity
             _transparentShader = Shader.Find("RaiSim/Transparent");
             
             // materials
-            _groundMaterial = Resources.Load<Material>("materials/Tiles56");
-            _primitiveMaterial = Resources.Load<Material>("materials/PavingStones45");
+            _groundMaterial = Resources.Load<Material>("materials/Tiles1");
+            _defaultMaterialR = Resources.Load<Material>("materials/Plastic1");
+            _defaultMaterialG = Resources.Load<Material>("materials/Plastic2");
+            _defaultMaterialB = Resources.Load<Material>("materials/Plastic3");
         }
 
         void Update()
@@ -249,18 +253,35 @@ namespace raisimUnity
             for (ulong i = 0; i < numObjects; i++)
             {
                 ulong objectIndex = BitIO.GetData<ulong>(ref _buffer, ref offset);
+
+                Material material;
+                switch (i % 3)
+                {
+                    case 0:
+                        material = _defaultMaterialR;
+                        break;
+                    case 1:
+                        material = _defaultMaterialG;
+                        break;
+                    case 2:
+                        material = _defaultMaterialB;
+                        break;
+                    default:
+                        material = _defaultMaterialR;
+                        break;
+                }
                 
                 RsObejctType objectType = BitIO.GetData<RsObejctType>(ref _buffer, ref offset);
 
                 string name = BitIO.GetData<string>(ref _buffer, ref offset);
-                
+
                 switch (objectType) 
                 {
                     case RsObejctType.RsSphereObject :
                     {
                         float radius = BitIO.GetData<float>(ref _buffer, ref offset);
                         var sphereRoot =  ObjectController.CreateSphere(_objectsRoot, objectIndex.ToString(), radius, VisualTag.VisualAndCollision);
-                        sphereRoot.GetComponentInChildren<Renderer>().material = _primitiveMaterial;
+                        sphereRoot.GetComponentInChildren<Renderer>().material = material;
                     }
                         break;
 
@@ -270,7 +291,7 @@ namespace raisimUnity
                         float sy = BitIO.GetData<float>(ref _buffer, ref offset);
                         float sz = BitIO.GetData<float>(ref _buffer, ref offset);
                         var boxRoot = ObjectController.CreateBox(_objectsRoot, objectIndex.ToString(), sx, sy, sz, VisualTag.VisualAndCollision);
-                        boxRoot.GetComponentInChildren<Renderer>().material = _primitiveMaterial;
+                        boxRoot.GetComponentInChildren<Renderer>().material = material;
                     }
                         break;
                     case RsObejctType.RsCylinderObject:
@@ -278,7 +299,7 @@ namespace raisimUnity
                         float radius = BitIO.GetData<float>(ref _buffer, ref offset);
                         float height = BitIO.GetData<float>(ref _buffer, ref offset);
                         var cylinderRoot = ObjectController.CreateCylinder(_objectsRoot, objectIndex.ToString(), radius, height, VisualTag.VisualAndCollision);
-                        cylinderRoot.GetComponentInChildren<Renderer>().material = _primitiveMaterial;
+                        cylinderRoot.GetComponentInChildren<Renderer>().material = material;
                     }
                         break;
                     case RsObejctType.RsCapsuleObject:
@@ -286,7 +307,7 @@ namespace raisimUnity
                         float radius = BitIO.GetData<float>(ref _buffer, ref offset);
                         float height = BitIO.GetData<float>(ref _buffer, ref offset);
                         var capsuleRoot = ObjectController.CreateCapsule(_objectsRoot, objectIndex.ToString(), radius, height, VisualTag.VisualAndCollision);
-                        capsuleRoot.GetComponentInChildren<Renderer>().material = _primitiveMaterial;
+                        capsuleRoot.GetComponentInChildren<Renderer>().material = material;
                     }
                         break;
                     case RsObejctType.RsMeshObject:
@@ -299,7 +320,7 @@ namespace raisimUnity
                         var meshRoot = ObjectController.CreateMesh(_objectsRoot, objectIndex.ToString(), 
                             Path.Combine(directoryName, meshFileName), scale, scale, scale, 
                             VisualTag.VisualAndCollision, meshFileExtension != ".dae");
-                        meshRoot.GetComponentInChildren<Renderer>().material = _primitiveMaterial;
+                        meshRoot.GetComponentInChildren<Renderer>().material = material;
                     }
                         break;
                     case RsObejctType.RsHalfSpaceObject:
@@ -563,8 +584,11 @@ namespace raisimUnity
                 if (_client != null && _client.Connected && _stream != null)
                 {
                     // Read XML string
-                    ReadXMLString();
-                    
+                    if (ReadXMLString() != 0)
+                    {
+                        // TODO error
+                    }
+
                     // initialize scene from data 
                     InitializeScene();
                     
@@ -611,8 +635,8 @@ namespace raisimUnity
 
             string xmlString = BitIO.GetData<string>(ref _buffer, ref offset);
 
-            _doc = new XmlDocument();
-            _doc.LoadXml(xmlString);
+            _xmlDoc = new XmlDocument();
+            _xmlDoc.LoadXml(xmlString);
 
             return 0;
         }
