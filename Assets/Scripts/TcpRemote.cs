@@ -10,7 +10,6 @@ using System.IO;
 using System.Net.Sockets;
 using System.Text;
 using System.Xml;
-using UnityEditor;
 using UnityEngine;
 using Quaternion = UnityEngine.Quaternion;
 using Vector3 = UnityEngine.Vector3;
@@ -137,8 +136,8 @@ namespace raisimUnity
         private Material _defaultMaterialB;
         
         // xml document
-        XmlDocument _xmlDoc;
-        
+        private XmlReader _xmlReader;
+
         void Start()
         {
             // set buffer size
@@ -158,6 +157,9 @@ namespace raisimUnity
             _defaultMaterialR = Resources.Load<Material>("materials/Plastic1");
             _defaultMaterialG = Resources.Load<Material>("materials/Plastic2");
             _defaultMaterialB = Resources.Load<Material>("materials/Plastic3");
+            
+            // xml 
+            _xmlReader = new XmlReader();
         }
 
         void Update()
@@ -253,27 +255,38 @@ namespace raisimUnity
             for (ulong i = 0; i < numObjects; i++)
             {
                 ulong objectIndex = BitIO.GetData<ulong>(ref _buffer, ref offset);
-
-                Material material;
-                switch (i % 3)
-                {
-                    case 0:
-                        material = _defaultMaterialR;
-                        break;
-                    case 1:
-                        material = _defaultMaterialG;
-                        break;
-                    case 2:
-                        material = _defaultMaterialB;
-                        break;
-                    default:
-                        material = _defaultMaterialR;
-                        break;
-                }
                 
                 RsObejctType objectType = BitIO.GetData<RsObejctType>(ref _buffer, ref offset);
-
+                
+                // get name and find corresponding appearance from XML
                 string name = BitIO.GetData<string>(ref _buffer, ref offset);
+                Appearances? appearances = _xmlReader.FindApperancesFromObjectName(name);
+                
+                // get material
+                Material material;
+                if (appearances != null && !string.IsNullOrEmpty(appearances.As<Appearances>().materialName))
+                {
+                    material = Resources.Load<Material>(appearances.As<Appearances>().materialName);
+                }
+                else
+                {
+                    // default material
+                    switch (i % 3)
+                    {
+                        case 0:
+                            material = _defaultMaterialR;
+                            break;
+                        case 1:
+                            material = _defaultMaterialG;
+                            break;
+                        case 2:
+                            material = _defaultMaterialB;
+                            break;
+                        default:
+                            material = _defaultMaterialR;
+                            break;
+                    }
+                }
 
                 switch (objectType) 
                 {
@@ -449,7 +462,7 @@ namespace raisimUnity
             Array.Clear(_buffer, 0, _maxBufferSize);
             return 0;
         }
-
+        
         private int UpdatePosition()
         {
             int offset = 0;
@@ -590,7 +603,10 @@ namespace raisimUnity
                     }
 
                     // initialize scene from data 
-                    InitializeScene();
+                    if (InitializeScene() != 0)
+                    {
+                        // TODO error
+                    }
                     
                     // disable other cameras than main camera
                     foreach (var cam in Camera.allCameras)
@@ -635,8 +651,9 @@ namespace raisimUnity
 
             string xmlString = BitIO.GetData<string>(ref _buffer, ref offset);
 
-            _xmlDoc = new XmlDocument();
-            _xmlDoc.LoadXml(xmlString);
+            XmlDocument xmlDoc = new XmlDocument();
+            xmlDoc.LoadXml(xmlString);
+            _xmlReader.CreateApperanceMap(xmlDoc);
 
             return 0;
         }

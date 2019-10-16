@@ -15,9 +15,9 @@ namespace raisimUnity
 {
     public class ObjectController
     {
-        public static GameObject CreateSphere(GameObject root, string name, float radius, string tag)
+        public static GameObject CreateSphere(GameObject root, string objectId, float radius, string tag)
         {
-            var objFrame = new GameObject(name);
+            var objFrame = new GameObject(objectId);
             objFrame.transform.SetParent(root.transform, false);
             objFrame.tag = tag;
             var viz = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -26,9 +26,9 @@ namespace raisimUnity
             return objFrame;
         }
 
-        public static GameObject CreateBox(GameObject root, string name, float sx, float sy, float sz, string tag)
+        public static GameObject CreateBox(GameObject root, string objectId, float sx, float sy, float sz, string tag)
         {
-            var objFrame = new GameObject(name);
+            var objFrame = new GameObject(objectId);
             objFrame.transform.SetParent(root.transform, false);
             objFrame.tag = tag;
             var viz = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -37,9 +37,9 @@ namespace raisimUnity
             return objFrame;
         }
 
-        public static GameObject CreateCylinder(GameObject root, string name, float radius, float height, string tag)
+        public static GameObject CreateCylinder(GameObject root, string objectId, float radius, float height, string tag)
         {
-            var objFrame = new GameObject(name);
+            var objFrame = new GameObject(objectId);
             objFrame.transform.SetParent(root.transform, false);
             objFrame.tag = tag;
             var viz = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
@@ -48,10 +48,10 @@ namespace raisimUnity
             return objFrame;
         }
 
-        public static GameObject CreateCapsule(GameObject root, string name, float radius, float height, string tag)
+        public static GameObject CreateCapsule(GameObject root, string objectId, float radius, float height, string tag)
         {
             
-            var objFrame = new GameObject(name);
+            var objFrame = new GameObject(objectId);
             objFrame.transform.SetParent(root.transform, false);
             objFrame.tag = tag;
                         
@@ -64,24 +64,25 @@ namespace raisimUnity
             return capsule;
         }
 
-        public static GameObject CreateHalfSpace(GameObject root, string name, float height, string tag)
+        public static GameObject CreateHalfSpace(GameObject root, string objectId, float height, string tag)
         {
-            var objFrame = new GameObject(name);
+            var objFrame = new GameObject(objectId);
             objFrame.transform.SetParent(root.transform, false);
             objFrame.tag = tag;
             var plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
             plane.transform.SetParent(objFrame.transform, true);
             plane.transform.localPosition = new Vector3(0, height, 0);
+            plane.transform.localScale = new Vector3(10, 1, 10);
             return plane;
         }
         
-        public static GameObject CreateTerrain(GameObject root, string name, 
+        public static GameObject CreateTerrain(GameObject root, string objectId, 
             ulong numSampleX, float sizeX, float centerX, ulong numSampleY, float sizeY, float centerY, 
             float[,] heights, string tag)
         {
             // Note that we create terrain with mesh since unity support only square size height map
             
-            var objFrame = new GameObject(name);
+            var objFrame = new GameObject(objectId);
             objFrame.transform.SetParent(root.transform, false);
             objFrame.tag = tag;
 
@@ -235,12 +236,12 @@ namespace raisimUnity
             return objFrame;
         }
 
-        public static GameObject CreateMesh(GameObject root, string name, string meshFile, float sx, float sy, float sz, string tag, bool flipYz=false)
+        public static GameObject CreateMesh(GameObject root, string objectId, string meshFile, float sx, float sy, float sz, string tag, bool flipYz=false)
         {
             // meshFile is file name without file extension related to Resources directory
             // sx, sy, sz is scale 
             
-            var objFrame = new GameObject(name);
+            var objFrame = new GameObject(objectId);
             objFrame.transform.SetParent(root.transform, false);
             objFrame.tag = tag;
             var meshRes = Resources.Load(meshFile) as GameObject;
