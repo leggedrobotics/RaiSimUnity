@@ -17,9 +17,6 @@ namespace raisimUnity
     {
         public static GameObject CreateSphere(GameObject root, string objectId, float radius, string tag)
         {
-            var objFrame = new GameObject(objectId);
-            objFrame.transform.SetParent(root.transform, false);
-            objFrame.tag = tag;
             var viz = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             viz.transform.SetParent(objFrame.transform, true);
             viz.transform.localScale = new Vector3(radius*2.0f, radius*2.0f, radius*2.0f);
@@ -28,9 +25,6 @@ namespace raisimUnity
 
         public static GameObject CreateBox(GameObject root, string objectId, float sx, float sy, float sz, string tag)
         {
-            var objFrame = new GameObject(objectId);
-            objFrame.transform.SetParent(root.transform, false);
-            objFrame.tag = tag;
             var viz = GameObject.CreatePrimitive(PrimitiveType.Cube);
             viz.transform.SetParent(objFrame.transform, true);
             viz.transform.localScale = new Vector3(sx, sy, sz);
@@ -39,9 +33,6 @@ namespace raisimUnity
 
         public static GameObject CreateCylinder(GameObject root, string objectId, float radius, float height, string tag)
         {
-            var objFrame = new GameObject(objectId);
-            objFrame.transform.SetParent(root.transform, false);
-            objFrame.tag = tag;
             var viz = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             viz.transform.SetParent(objFrame.transform, true);
             viz.transform.localScale = new Vector3(radius*2f, height*0.5f, radius*2f);
@@ -50,11 +41,6 @@ namespace raisimUnity
 
         public static GameObject CreateCapsule(GameObject root, string objectId, float radius, float height, string tag)
         {
-            
-            var objFrame = new GameObject(objectId);
-            objFrame.transform.SetParent(root.transform, false);
-            objFrame.tag = tag;
-                        
             // Note.
             // raisim geometry of capsule: http://ode.org/wiki/index.php?title=Manual#Capsule_Class
             // unity geometry of capsule: https://docs.unity3d.com/Manual/class-CapsuleCollider.html
@@ -66,9 +52,6 @@ namespace raisimUnity
 
         public static GameObject CreateHalfSpace(GameObject root, string objectId, float height, string tag)
         {
-            var objFrame = new GameObject(objectId);
-            objFrame.transform.SetParent(root.transform, false);
-            objFrame.tag = tag;
             var plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
             plane.transform.SetParent(objFrame.transform, true);
             plane.transform.localPosition = new Vector3(0, height, 0);
@@ -81,10 +64,6 @@ namespace raisimUnity
             float[,] heights, string tag)
         {
             // Note that we create terrain with mesh since unity support only square size height map
-            
-            var objFrame = new GameObject(objectId);
-            objFrame.transform.SetParent(root.transform, false);
-            objFrame.tag = tag;
 
             List<Vector3> vertices = new List<Vector3>();
             List<int> indices = new List<int>();
@@ -241,9 +220,6 @@ namespace raisimUnity
             // meshFile is file name without file extension related to Resources directory
             // sx, sy, sz is scale 
             
-            var objFrame = new GameObject(objectId);
-            objFrame.transform.SetParent(root.transform, false);
-            objFrame.tag = tag;
             var meshRes = Resources.Load(meshFile) as GameObject;
             if (meshRes == null)
             {

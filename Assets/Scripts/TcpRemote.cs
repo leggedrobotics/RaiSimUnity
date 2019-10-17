@@ -436,6 +436,36 @@ namespace raisimUnity
                                 break;
                         }
                     }
+                // get material
+                Material material;
+                if (appearances != null && !string.IsNullOrEmpty(appearances.As<Appearances>().materialName))
+                {
+                    material = Resources.Load<Material>(appearances.As<Appearances>().materialName);
+                }
+                else
+                {
+                    // default material
+                    switch (i % 3)
+                    {
+                        case 0:
+                            material = _defaultMaterialR;
+                            break;
+                        case 1:
+                            material = _defaultMaterialG;
+                            break;
+                        case 2:
+                            material = _defaultMaterialB;
+                            break;
+                        default:
+                            material = _defaultMaterialR;
+                            break;
+                    }
+                }
+                
+                // create base frame of object
+                var objFrame = new GameObject(objectIndex.ToString());
+                objFrame.transform.SetParent(root.transform, false);
+                objFrame.tag = tag;
 
                     switch (objectType) 
                     {
