@@ -62,3 +62,6 @@ sysinfo.txt
 
 # Crashlytics generated file
 crashlytics-build.properties
+
+# log and screenshots
+*.mp4
