@@ -1,4 +1,6 @@
 # RaisimUnity
+
+![raisimunity gif](https://github.com/eastskykang/raisimUnity/blob/master/Images/raisimunity.gif)
  
 raisimUnity is a visualizer for raisim based on [Unity](https://unity.com/). 
 The visualizer gets the simulation data from raisim server application via TCP/IP.
