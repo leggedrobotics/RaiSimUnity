@@ -72,7 +72,7 @@ namespace raisimUnity
             var plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
             plane.transform.SetParent(objFrame.transform, true);
             plane.transform.localPosition = new Vector3(0, height, 0);
-            plane.transform.localScale = new Vector3(10, 1, 10);
+            plane.transform.localScale = new Vector3(5, 1, 5);
             return plane;
         }
         
@@ -150,7 +150,7 @@ namespace raisimUnity
                 indices.Add(i);
             }
             
-            // normals
+//            // normals
 //            for (int i = 0; i < vertices.Count; i += 3) {
 //                Vector3 point1 = ConvertUnity2RS(vertices[i].x, vertices[i].y, vertices[i].z);
 //                Vector3 point2 = ConvertUnity2RS(vertices[i+1].x, vertices[i+1].y, vertices[i+1].z);

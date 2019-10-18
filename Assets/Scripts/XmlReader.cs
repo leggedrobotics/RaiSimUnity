@@ -71,6 +71,11 @@ namespace raisimUnity
             }
         }
 
+        public void ClearAppearanceMap()
+        {
+            _table.Clear();
+        }
+
         public Appearances? FindApperancesFromObjectName(string name)
         {
             if (!_table.ContainsKey(name)) return null;

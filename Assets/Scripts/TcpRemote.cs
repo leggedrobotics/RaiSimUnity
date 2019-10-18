@@ -130,7 +130,8 @@ namespace raisimUnity
         private Shader _standardShader;
         
         // default materials
-        private Material _groundMaterial;
+        private Material _planeMaterial;
+        private Material _terrainMaterial;
         private Material _defaultMaterialR;
         private Material _defaultMaterialG;
         private Material _defaultMaterialB;
@@ -153,7 +154,8 @@ namespace raisimUnity
             _transparentShader = Shader.Find("RaiSim/Transparent");
             
             // materials
-            _groundMaterial = Resources.Load<Material>("materials/Tiles1");
+            _planeMaterial = Resources.Load<Material>("materials/Tiles1");
+            _terrainMaterial = Resources.Load<Material>("materials/Ground1");
             _defaultMaterialR = Resources.Load<Material>("materials/Plastic1");
             _defaultMaterialG = Resources.Load<Material>("materials/Plastic2");
             _defaultMaterialB = Resources.Load<Material>("materials/Plastic3");
@@ -216,6 +218,9 @@ namespace raisimUnity
             {
                 Destroy(child.gameObject);
             }
+            
+            // clear appearances
+            _xmlReader.ClearAppearanceMap();
         }
 
         private void ClearContacts()
@@ -262,201 +267,226 @@ namespace raisimUnity
                 string name = BitIO.GetData<string>(ref _buffer, ref offset);
                 Appearances? appearances = _xmlReader.FindApperancesFromObjectName(name);
                 
-                // get material
-                Material material;
-                if (appearances != null && !string.IsNullOrEmpty(appearances.As<Appearances>().materialName))
+                if (objectType == RsObejctType.RsArticulatedSystemObject)
                 {
-                    material = Resources.Load<Material>(appearances.As<Appearances>().materialName);
+                    string urdfDirPathInServer = BitIO.GetData<string>(ref _buffer, ref offset); 
+                    string urdfDirName = Path.GetFileName(urdfDirPathInServer);
+
+                    // visItem = 0 (visuals)
+                    // visItem = 1 (collisions)
+                    for (int visItem = 0; visItem < 2; visItem++)
+                    {
+                        ulong numberOfVisObjects = BitIO.GetData<ulong>(ref _buffer, ref offset);
+
+                        for (ulong j = 0; j < numberOfVisObjects; j++)
+                        {
+                            RsShapeType shapeType = BitIO.GetData<RsShapeType>(ref _buffer, ref offset);
+                                
+                            ulong group = BitIO.GetData<ulong>(ref _buffer, ref offset);
+
+                            string subName = Path.Combine(objectIndex.ToString(), visItem.ToString(), j.ToString());
+                            string tag = VisualTag.VisualAndCollision;
+
+                            if (visItem == 0)
+                                tag = VisualTag.Visual;
+                            else if (visItem == 1)
+                                tag = VisualTag.Collision;
+
+                            if (shapeType == RsShapeType.RsMeshShape)
+                            {
+                                string meshFile = BitIO.GetData<string>(ref _buffer, ref offset);
+                                string meshFileName = Path.GetFileName(meshFile);
+                                string meshFileExtension = Path.GetExtension(meshFile);
+
+                                double sx = BitIO.GetData<double>(ref _buffer, ref offset);
+                                double sy = BitIO.GetData<double>(ref _buffer, ref offset);
+                                double sz = BitIO.GetData<double>(ref _buffer, ref offset);
+
+                                string meshFilePathInResources = Path.Combine(urdfDirName, Path.GetFileNameWithoutExtension(meshFileName));
+                                ObjectController.CreateMesh(_objectsRoot, subName, meshFilePathInResources, (float)sx, (float)sy, (float)sz, tag, meshFileExtension != ".dae");
+                            }
+                            else
+                            {
+                                ulong size = BitIO.GetData<ulong>(ref _buffer, ref offset);
+                                    
+                                var visParam = new List<double>();
+                                for (ulong k = 0; k < size; k++)
+                                {
+                                    double visSize = BitIO.GetData<double>(ref _buffer, ref offset);
+                                    visParam.Add(visSize);
+                                }
+                                switch (shapeType)
+                                {
+                                    case RsShapeType.RsBoxShape:
+                                    {
+                                        if (visParam.Count != 3) throw new Exception("Box Mesh error");
+                                        ObjectController.CreateBox(_objectsRoot, subName, (float) visParam[0], (float) visParam[1], (float) visParam[2], tag);
+                                    }
+                                        break;
+                                    case RsShapeType.RsCapsuleShape:
+                                    {
+                                        if (visParam.Count != 2) throw new Exception("Capsule Mesh error");
+                                        ObjectController.CreateCapsule(_objectsRoot, subName, (float)visParam[0], (float)visParam[1], tag);
+                                    }
+                                        break;
+                                    case RsShapeType.RsConeShape:
+                                    {
+                                        // TODO URDF does not support cone shape
+                                    }
+                                        break;
+                                    case RsShapeType.RsCylinderShape:
+                                    {
+                                        if (visParam.Count != 2) throw new Exception("Cylinder Mesh error");
+                                        ObjectController.CreateCylinder(_objectsRoot, subName, (float)visParam[0], (float)visParam[1], tag);
+                                    }
+                                        break;
+                                    case RsShapeType.RsSphereShape:
+                                    {
+                                        if (visParam.Count != 1) throw new Exception("Sphere Mesh error");
+                                        ObjectController.CreateSphere(_objectsRoot, subName, (float)visParam[0], tag);
+                                    }
+                                        break;
+                                }
+                            }
+                        }
+                    }
+                }
+                else if (objectType == RsObejctType.RsHalfSpaceObject)
+                {
+                    // get material
+                    Material material;
+                    if (appearances != null && !string.IsNullOrEmpty(appearances.As<Appearances>().materialName))
+                    {
+                        material = Resources.Load<Material>(appearances.As<Appearances>().materialName);
+                    }
+                    else
+                    {
+                        // default material
+                        material = _planeMaterial;
+                    }
+                    
+                    float height = BitIO.GetData<float>(ref _buffer, ref offset);
+                    var planeRoot = ObjectController.CreateHalfSpace(_objectsRoot, objectIndex.ToString(), height, VisualTag.VisualAndCollision);
+                    planeRoot.GetComponentInChildren<Renderer>().material = material;
+                }
+                else if (objectType == RsObejctType.RsHeightMapObject)
+                {
+                    // get material
+                    Material material;
+                    if (appearances != null && !string.IsNullOrEmpty(appearances.As<Appearances>().materialName))
+                    {
+                        material = Resources.Load<Material>(appearances.As<Appearances>().materialName);
+                    }
+                    else
+                    {
+                        // default material
+                        material = _terrainMaterial;
+                    }
+                    
+                    // center
+                    float centerX = BitIO.GetData<float>(ref _buffer, ref offset);
+                    float centerY = BitIO.GetData<float>(ref _buffer, ref offset);
+                    // size
+                    float sizeX = BitIO.GetData<float>(ref _buffer, ref offset);
+                    float sizeY = BitIO.GetData<float>(ref _buffer, ref offset);
+                    // num samples
+                    ulong numSampleX = BitIO.GetData<ulong>(ref _buffer, ref offset);
+                    ulong numSampleY = BitIO.GetData<ulong>(ref _buffer, ref offset);
+                    ulong numSample = BitIO.GetData<ulong>(ref _buffer, ref offset);
+                        
+                    // height values 
+                    float[,] heights = new float[numSampleY, numSampleX];
+                    for (ulong j = 0; j < numSampleY; j++)
+                    {
+                        for (ulong k = 0; k < numSampleX; k++)
+                        {
+                            float height = BitIO.GetData<float>(ref _buffer, ref offset);
+                            heights[j, k] = height;
+                        }
+                    }
+
+                    var terrainRoot = ObjectController.CreateTerrain(_objectsRoot, objectIndex.ToString(), numSampleX, sizeX, centerX, numSampleY, sizeY, centerY, heights, tag);
+                    terrainRoot.GetComponentInChildren<Renderer>().material = material;
                 }
                 else
                 {
-                    // default material
-                    switch (i % 3)
+                    // single body object
+                    
+                    // get material
+                    Material material;
+                    if (appearances != null && !string.IsNullOrEmpty(appearances.As<Appearances>().materialName))
+                        material = Resources.Load<Material>(appearances.As<Appearances>().materialName);
+                    else
                     {
-                        case 0:
-                            material = _defaultMaterialR;
+                        // default material
+                        switch (i % 3)
+                        {
+                            case 0:
+                                material = _defaultMaterialR;
+                                break;
+                            case 1:
+                                material = _defaultMaterialG;
+                                break;
+                            case 2:
+                                material = _defaultMaterialB;
+                                break;
+                            default:
+                                material = _defaultMaterialR;
+                                break;
+                        }
+                    }
+
+                    switch (objectType) 
+                    {
+                        case RsObejctType.RsSphereObject :
+                        {
+                            float radius = BitIO.GetData<float>(ref _buffer, ref offset);
+                            var sphereRoot =  ObjectController.CreateSphere(_objectsRoot, objectIndex.ToString(), radius, VisualTag.VisualAndCollision);
+                            sphereRoot.GetComponentInChildren<Renderer>().material = material;
+                        }
                             break;
-                        case 1:
-                            material = _defaultMaterialG;
+
+                        case RsObejctType.RsBoxObject :
+                        {
+                            float sx = BitIO.GetData<float>(ref _buffer, ref offset);
+                            float sy = BitIO.GetData<float>(ref _buffer, ref offset);
+                            float sz = BitIO.GetData<float>(ref _buffer, ref offset);
+                            var boxRoot = ObjectController.CreateBox(_objectsRoot, objectIndex.ToString(), sx, sy, sz, VisualTag.VisualAndCollision);
+                            boxRoot.GetComponentInChildren<Renderer>().material = material;
+                        }
                             break;
-                        case 2:
-                            material = _defaultMaterialB;
+                        case RsObejctType.RsCylinderObject:
+                        {
+                            float radius = BitIO.GetData<float>(ref _buffer, ref offset);
+                            float height = BitIO.GetData<float>(ref _buffer, ref offset);
+                            var cylinderRoot = ObjectController.CreateCylinder(_objectsRoot, objectIndex.ToString(), radius, height, VisualTag.VisualAndCollision);
+                            cylinderRoot.GetComponentInChildren<Renderer>().material = material;
+                        }
                             break;
-                        default:
-                            material = _defaultMaterialR;
+                        case RsObejctType.RsCapsuleObject:
+                        {
+                            float radius = BitIO.GetData<float>(ref _buffer, ref offset);
+                            float height = BitIO.GetData<float>(ref _buffer, ref offset);
+                            var capsuleRoot = ObjectController.CreateCapsule(_objectsRoot, objectIndex.ToString(), radius, height, VisualTag.VisualAndCollision);
+                            capsuleRoot.GetComponentInChildren<Renderer>().material = material;
+                        }
+                            break;
+                        case RsObejctType.RsMeshObject:
+                        {
+                            string meshFile = BitIO.GetData<string>(ref _buffer, ref offset);
+                            float scale = BitIO.GetData<float>(ref _buffer, ref offset);
+                            string meshFileName = Path.GetFileNameWithoutExtension(meshFile);
+                            string meshFileExtension = Path.GetExtension(meshFile);
+                            string directoryName = Path.GetFileName(Path.GetDirectoryName(meshFile));
+                            var meshRoot = ObjectController.CreateMesh(_objectsRoot, objectIndex.ToString(), 
+                                Path.Combine(directoryName, meshFileName), scale, scale, scale, 
+                                VisualTag.VisualAndCollision, meshFileExtension != ".dae");
+                            meshRoot.GetComponentInChildren<Renderer>().material = material;
+                        }
                             break;
                     }
                 }
 
-                switch (objectType) 
-                {
-                    case RsObejctType.RsSphereObject :
-                    {
-                        float radius = BitIO.GetData<float>(ref _buffer, ref offset);
-                        var sphereRoot =  ObjectController.CreateSphere(_objectsRoot, objectIndex.ToString(), radius, VisualTag.VisualAndCollision);
-                        sphereRoot.GetComponentInChildren<Renderer>().material = material;
-                    }
-                        break;
-
-                    case RsObejctType.RsBoxObject :
-                    {
-                        float sx = BitIO.GetData<float>(ref _buffer, ref offset);
-                        float sy = BitIO.GetData<float>(ref _buffer, ref offset);
-                        float sz = BitIO.GetData<float>(ref _buffer, ref offset);
-                        var boxRoot = ObjectController.CreateBox(_objectsRoot, objectIndex.ToString(), sx, sy, sz, VisualTag.VisualAndCollision);
-                        boxRoot.GetComponentInChildren<Renderer>().material = material;
-                    }
-                        break;
-                    case RsObejctType.RsCylinderObject:
-                    {
-                        float radius = BitIO.GetData<float>(ref _buffer, ref offset);
-                        float height = BitIO.GetData<float>(ref _buffer, ref offset);
-                        var cylinderRoot = ObjectController.CreateCylinder(_objectsRoot, objectIndex.ToString(), radius, height, VisualTag.VisualAndCollision);
-                        cylinderRoot.GetComponentInChildren<Renderer>().material = material;
-                    }
-                        break;
-                    case RsObejctType.RsCapsuleObject:
-                    {
-                        float radius = BitIO.GetData<float>(ref _buffer, ref offset);
-                        float height = BitIO.GetData<float>(ref _buffer, ref offset);
-                        var capsuleRoot = ObjectController.CreateCapsule(_objectsRoot, objectIndex.ToString(), radius, height, VisualTag.VisualAndCollision);
-                        capsuleRoot.GetComponentInChildren<Renderer>().material = material;
-                    }
-                        break;
-                    case RsObejctType.RsMeshObject:
-                    {
-                        string meshFile = BitIO.GetData<string>(ref _buffer, ref offset);
-                        float scale = BitIO.GetData<float>(ref _buffer, ref offset);
-                        string meshFileName = Path.GetFileNameWithoutExtension(meshFile);
-                        string meshFileExtension = Path.GetExtension(meshFile);
-                        string directoryName = Path.GetFileName(Path.GetDirectoryName(meshFile));
-                        var meshRoot = ObjectController.CreateMesh(_objectsRoot, objectIndex.ToString(), 
-                            Path.Combine(directoryName, meshFileName), scale, scale, scale, 
-                            VisualTag.VisualAndCollision, meshFileExtension != ".dae");
-                        meshRoot.GetComponentInChildren<Renderer>().material = material;
-                    }
-                        break;
-                    case RsObejctType.RsHalfSpaceObject:
-                    {
-                        float height = BitIO.GetData<float>(ref _buffer, ref offset);
-                        var planeRoot = ObjectController.CreateHalfSpace(_objectsRoot, objectIndex.ToString(), height, VisualTag.VisualAndCollision);
-                        planeRoot.GetComponentInChildren<Renderer>().material = _groundMaterial;
-                    }
-                        break;
-                    case RsObejctType.RsHeightMapObject:
-                    {
-                        // center
-                        float centerX = BitIO.GetData<float>(ref _buffer, ref offset);
-                        float centerY = BitIO.GetData<float>(ref _buffer, ref offset);
-                        // size
-                        float sizeX = BitIO.GetData<float>(ref _buffer, ref offset);
-                        float sizeY = BitIO.GetData<float>(ref _buffer, ref offset);
-                        // num samples
-                        ulong numSampleX = BitIO.GetData<ulong>(ref _buffer, ref offset);
-                        ulong numSampleY = BitIO.GetData<ulong>(ref _buffer, ref offset);
-                        ulong numSample = BitIO.GetData<ulong>(ref _buffer, ref offset);
-                        
-                        // height values 
-                        float[,] heights = new float[numSampleY, numSampleX];
-                        for (ulong j = 0; j < numSampleY; j++)
-                        {
-                            for (ulong k = 0; k < numSampleX; k++)
-                            {
-                                float height = BitIO.GetData<float>(ref _buffer, ref offset);
-                                heights[j, k] = height;
-                            }
-                        }
-
-                        var terrainRoot = ObjectController.CreateTerrain(_objectsRoot, objectIndex.ToString(), numSampleX, sizeX, centerX, numSampleY, sizeY, centerY, heights, tag);
-                        terrainRoot.GetComponentInChildren<Renderer>().material = _groundMaterial;
-                    }
-                        break;
-                    case RsObejctType.RsArticulatedSystemObject:
-                    {
-                        string urdfDirPathInServer = BitIO.GetData<string>(ref _buffer, ref offset); 
-                        string urdfDirName = Path.GetFileName(urdfDirPathInServer);
-
-                        // visItem = 0 (visuals)
-                        // visItem = 1 (collisions)
-                        for (int visItem = 0; visItem < 2; visItem++)
-                        {
-                            ulong numberOfVisObjects = BitIO.GetData<ulong>(ref _buffer, ref offset);
-
-                            for (ulong j = 0; j < numberOfVisObjects; j++)
-                            {
-                                RsShapeType shapeType = BitIO.GetData<RsShapeType>(ref _buffer, ref offset);
-                                
-                                ulong group = BitIO.GetData<ulong>(ref _buffer, ref offset);
-
-                                string subName = Path.Combine(objectIndex.ToString(), visItem.ToString(), j.ToString());
-                                string tag = VisualTag.VisualAndCollision;
-
-                                if (visItem == 0)
-                                    tag = VisualTag.Visual;
-                                else if (visItem == 1)
-                                    tag = VisualTag.Collision;
-
-                                if (shapeType == RsShapeType.RsMeshShape)
-                                {
-                                    string meshFile = BitIO.GetData<string>(ref _buffer, ref offset);
-                                    string meshFileName = Path.GetFileName(meshFile);
-                                    string meshFileExtension = Path.GetExtension(meshFile);
-
-                                    double sx = BitIO.GetData<double>(ref _buffer, ref offset);
-                                    double sy = BitIO.GetData<double>(ref _buffer, ref offset);
-                                    double sz = BitIO.GetData<double>(ref _buffer, ref offset);
-
-                                    string meshFilePathInResources = Path.Combine(urdfDirName, Path.GetFileNameWithoutExtension(meshFileName));
-                                    ObjectController.CreateMesh(_objectsRoot, subName, meshFilePathInResources, (float)sx, (float)sy, (float)sz, tag, meshFileExtension != ".dae");
-                                }
-                                else
-                                {
-                                    ulong size = BitIO.GetData<ulong>(ref _buffer, ref offset);
-                                    
-                                    var visParam = new List<double>();
-                                    for (ulong k = 0; k < size; k++)
-                                    {
-                                        double visSize = BitIO.GetData<double>(ref _buffer, ref offset);
-                                        visParam.Add(visSize);
-                                    }
-                                    switch (shapeType)
-                                    {
-                                        case RsShapeType.RsBoxShape:
-                                        {
-                                            if (visParam.Count != 3) throw new Exception("Box Mesh error");
-                                            ObjectController.CreateBox(_objectsRoot, subName, (float) visParam[0], (float) visParam[1], (float) visParam[2], tag);
-                                        }
-                                            break;
-                                        case RsShapeType.RsCapsuleShape:
-                                        {
-                                            if (visParam.Count != 2) throw new Exception("Capsule Mesh error");
-                                            ObjectController.CreateCapsule(_objectsRoot, subName, (float)visParam[0], (float)visParam[1], tag);
-                                        }
-                                            break;
-                                        case RsShapeType.RsConeShape:
-                                        {
-                                            // TODO URDF does not support cone shape
-                                        }
-                                            break;
-                                        case RsShapeType.RsCylinderShape:
-                                        {
-                                            if (visParam.Count != 2) throw new Exception("Cylinder Mesh error");
-                                            ObjectController.CreateCylinder(_objectsRoot, subName, (float)visParam[0], (float)visParam[1], tag);
-                                        }
-                                            break;
-                                        case RsShapeType.RsSphereShape:
-                                        {
-                                            if (visParam.Count != 1) throw new Exception("Sphere Mesh error");
-                                            ObjectController.CreateSphere(_objectsRoot, subName, (float)visParam[0], tag);
-                                        }
-                                            break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                        break;
-                }
             }
             
             Array.Clear(_buffer, 0, _maxBufferSize);

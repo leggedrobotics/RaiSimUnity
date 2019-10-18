@@ -15,7 +15,7 @@ using UnityEngine.EventSystems;
 public class CameraController : MonoBehaviour
 {
     // camera pose control
-    private float speed = 0.5f;
+    private float speed = 0.1f;
     private float sensitivity = 0.5f;
  
     private Camera cam;
