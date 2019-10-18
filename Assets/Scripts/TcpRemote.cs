@@ -98,15 +98,15 @@ namespace raisimUnity
         }
         
         // script options
-        private string tcpAddress = "127.0.0.1";
-        private int tcpPort = 8080;
+        private string _tcpAddress = "127.0.0.1";
+        private int _tcpPort = 8080;
 
         // tcp client and stream
         private TcpClient _client = null;
         private NetworkStream _stream = null;
         
         // buffer
-        // TODO get buffer spec from raisim
+        // TODO get buffer spec from raisim?
         private const int _maxBufferSize = 33554432;
         private const int _maxPacketSize = 4096;
         private const int _footerSize = sizeof(Byte);
@@ -220,7 +220,8 @@ namespace raisimUnity
             }
             
             // clear appearances
-            _xmlReader.ClearAppearanceMap();
+            if(_xmlReader != null)
+                _xmlReader.ClearAppearanceMap();
         }
 
         private void ClearContacts()
@@ -611,7 +612,7 @@ namespace raisimUnity
                 // create tcp client and stream
                 if (_client == null || !_client.Connected)
                 {
-                    _client = new TcpClient(tcpAddress, tcpPort);
+                    _client = new TcpClient(_tcpAddress, _tcpPort);
                     _stream = _client.GetStream();
                 }
             }
@@ -885,14 +886,14 @@ namespace raisimUnity
 
         public string TcpAddress
         {
-            get => tcpAddress;
-            set => tcpAddress = value;
+            get => _tcpAddress;
+            set => _tcpAddress = value;
         }
 
         public int TcpPort
         {
-            get => tcpPort;
-            set => tcpPort = value;
+            get => _tcpPort;
+            set => _tcpPort = value;
         }
 
         public bool TcpTryConnect

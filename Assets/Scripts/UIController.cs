@@ -22,6 +22,16 @@ namespace raisimUnity
         private const string _ButtonScreenshotName = "ButtonScreenshot";
         private const string _ButtonRecordName = "ButtonRecord";
         
+        // Dropdown 
+        private const string _DropdownBackgroundName = "DropdownBackground";
+        
+        // Backgrounds
+        private Material _daySky;
+        private Material _sunriseSky;
+        private Material _sunsetSky;
+        private Material _nightSky;
+        private Material _milkywaySky;
+        
         private void Awake()
         {
             _remote = GameObject.Find("RaiSimUnity").GetComponent<TcpRemote>();
@@ -133,6 +143,51 @@ namespace raisimUnity
                         _camera.StartRecording();
                     }
                 });
+            }
+            
+            // background section 
+            {
+                _daySky = Resources.Load<Material>("backgrounds/Wispy Sky/Materials/WispySkyboxMat2");
+                _sunriseSky = Resources.Load<Material>("backgrounds/Wispy Sky/Materials/WispySkyboxMat");
+                _sunsetSky = Resources.Load<Material>("backgrounds/Skybox/Materials/Skybox_Sunset");
+                _nightSky = Resources.Load<Material>("backgrounds/FreeNightSky/Materials/nightsky1");
+                _milkywaySky = Resources.Load<Material>("backgrounds/MilkyWay/Material/MilkyWay");
+
+                var backgroundDropdown = GameObject.Find(_DropdownBackgroundName).GetComponent<Dropdown>();
+                backgroundDropdown.onValueChanged.AddListener(delegate {
+                    ChangeBackground(backgroundDropdown);
+                    DynamicGI.UpdateEnvironment();
+                });
+            }
+        }
+        
+        private void ChangeBackground(Dropdown dropdown)
+        {
+            switch (dropdown.value)
+            {
+            case 0:
+                // day
+                RenderSettings.skybox=_daySky;
+                break;
+            case 1:
+                // sunrise
+                RenderSettings.skybox=_sunriseSky;
+                break;
+            case 2:
+                // sunset
+                RenderSettings.skybox=_sunsetSky;
+                break;
+            case 3:
+                // night
+                RenderSettings.skybox=_nightSky;
+                break;
+            case 4:
+                // milkyway
+                RenderSettings.skybox=_milkywaySky;
+                break;
+            default:
+                // TODO error
+                break;
             }
         }
         
