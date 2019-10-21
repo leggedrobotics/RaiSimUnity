@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using raisimUnity;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -337,6 +338,16 @@ public class CameraController : MonoBehaviour
             ffmpegProc.BeginErrorReadLine();
             ffmpegProc.BeginOutputReadLine();
 
+            if (ffmpegProc.HasExited)
+            {
+                // check exit code
+                int result = ffmpegProc.ExitCode;
+                if (result == 127)
+                {
+                    throw new RsuFfmepgException("ffmpeg command is not found. Install ffmpeg to record video");
+                }
+            }
+
             while (threadIsProcessing) 
             {
                 // Dequeue the frame, encode it as a bitmap, and write it to the file
@@ -363,11 +374,21 @@ public class CameraController : MonoBehaviour
             ffmpegProc.StandardInput.BaseStream.Flush();
             ffmpegProc.StandardInput.BaseStream.Close();
             ffmpegProc.WaitForExit();
+            
+            if (ffmpegProc.HasExited)
+            {
+                // check exit code
+                int result = ffmpegProc.ExitCode;
+                if (result != 0)
+                {
+                    throw new RsuFfmepgException("something wrong while saving video by ffmpeg...");
+                }
+            }
         }
         
         terminateThreadWhenDone = false;
         threadIsProcessing = false;
-        
+
         print ("SCREENRECORDER IO THREAD FINISHED");
     }
 }
