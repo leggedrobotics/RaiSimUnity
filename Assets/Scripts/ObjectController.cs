@@ -15,51 +15,51 @@ namespace raisimUnity
 {
     public class ObjectController
     {
-        public static GameObject CreateSphere(GameObject root, string objectId, float radius, string tag)
+        public static GameObject CreateSphere(GameObject root, float radius, string tag)
         {
-            var viz = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            viz.transform.SetParent(objFrame.transform, true);
-            viz.transform.localScale = new Vector3(radius*2.0f, radius*2.0f, radius*2.0f);
-            return objFrame;
+            var sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            sphere.transform.SetParent(root.transform, true);
+            sphere.transform.localScale = new Vector3(radius*2.0f, radius*2.0f, radius*2.0f);
+            return sphere;
         }
 
-        public static GameObject CreateBox(GameObject root, string objectId, float sx, float sy, float sz, string tag)
+        public static GameObject CreateBox(GameObject root, float sx, float sy, float sz, string tag)
         {
-            var viz = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            viz.transform.SetParent(objFrame.transform, true);
-            viz.transform.localScale = new Vector3(sx, sy, sz);
-            return objFrame;
+            var box = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            box.transform.SetParent(root.transform, true);
+            box.transform.localScale = new Vector3(sx, sy, sz);
+            return box;
         }
 
-        public static GameObject CreateCylinder(GameObject root, string objectId, float radius, float height, string tag)
+        public static GameObject CreateCylinder(GameObject root, float radius, float height, string tag)
         {
-            var viz = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            viz.transform.SetParent(objFrame.transform, true);
-            viz.transform.localScale = new Vector3(radius*2f, height*0.5f, radius*2f);
-            return objFrame;
+            var cylinder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            cylinder.transform.SetParent(root.transform, true);
+            cylinder.transform.localScale = new Vector3(radius*2f, height*0.5f, radius*2f);
+            return cylinder;
         }
 
-        public static GameObject CreateCapsule(GameObject root, string objectId, float radius, float height, string tag)
+        public static GameObject CreateCapsule(GameObject root, float radius, float height, string tag)
         {
             // Note.
             // raisim geometry of capsule: http://ode.org/wiki/index.php?title=Manual#Capsule_Class
             // unity geometry of capsule: https://docs.unity3d.com/Manual/class-CapsuleCollider.html
             var capsule = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            capsule.transform.SetParent(objFrame.transform, true);
+            capsule.transform.SetParent(root.transform, true);
             capsule.transform.localScale = new Vector3(radius*2f, height*0.5f+radius, radius*2f);
             return capsule;
         }
 
-        public static GameObject CreateHalfSpace(GameObject root, string objectId, float height, string tag)
+        public static GameObject CreateHalfSpace(GameObject root, float height, string tag)
         {
             var plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
-            plane.transform.SetParent(objFrame.transform, true);
+            plane.transform.SetParent(root.transform, true);
             plane.transform.localPosition = new Vector3(0, height, 0);
             plane.transform.localScale = new Vector3(5, 1, 5);
             return plane;
         }
         
-        public static GameObject CreateTerrain(GameObject root, string objectId, 
+        public static GameObject CreateTerrain(GameObject root, 
             ulong numSampleX, float sizeX, float centerX, ulong numSampleY, float sizeY, float centerY, 
             float[,] heights, string tag)
         {
@@ -201,7 +201,7 @@ namespace raisimUnity
             temp.SetActive(false);
 
             var terrain = new GameObject("terrain");
-            terrain.transform.SetParent(objFrame.transform, true);
+            terrain.transform.SetParent(root.transform, true);
             terrain.AddComponent<MeshFilter>();
             terrain.AddComponent<MeshRenderer>();
 
@@ -212,10 +212,10 @@ namespace raisimUnity
             // destroy temp 
             GameObject.DestroyImmediate(temp);
 
-            return objFrame;
+            return terrain;
         }
 
-        public static GameObject CreateMesh(GameObject root, string objectId, string meshFile, float sx, float sy, float sz, string tag, bool flipYz=false)
+        public static GameObject CreateMesh(GameObject root, string meshFile, float sx, float sy, float sz, string tag, bool flipYz=false)
         {
             // meshFile is file name without file extension related to Resources directory
             // sx, sy, sz is scale 
@@ -226,7 +226,7 @@ namespace raisimUnity
                 // TODO error
             }
             var mesh = GameObject.Instantiate(meshRes);
-            mesh.transform.SetParent(objFrame.transform, true);
+            mesh.transform.SetParent(root.transform, true);
             mesh.transform.localScale = new Vector3((float)sx, (float)sy, (float)sz);
             if(flipYz)
                 mesh.transform.localRotation = new Quaternion(-0.7071f, 0, 0, 0.7071f);
@@ -237,7 +237,7 @@ namespace raisimUnity
                 children.gameObject.AddComponent<MeshCollider>();
             }
             
-            return objFrame;
+            return mesh;
         }
 
         public static GameObject CreateContactMarker(GameObject root, int index, Vector3 rsPos)

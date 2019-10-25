@@ -12,7 +12,6 @@ namespace raisimUnity
         Cylinder,
         Capsule,
         Mesh,
-        Plane,
     }
     
     public struct Appearance
@@ -55,7 +54,7 @@ namespace raisimUnity
                 var material = appearanceNode.Attributes["material"];
                 if (material != null) appearances.materialName = material.Value;
 
-                // each subappearances
+                // each subappearance
                 foreach (XmlNode app in appearanceNode.ChildNodes)
                 {
                     Appearance appearance = new Appearance();

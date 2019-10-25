@@ -286,6 +286,9 @@ namespace raisimUnity
                             ulong group = BitIO.GetData<ulong>(ref _buffer, ref offset);
 
                             string subName = Path.Combine(objectIndex.ToString(), visItem.ToString(), j.ToString());
+                            
+                            var objFrame = new GameObject(subName);
+                            objFrame.transform.SetParent(_objectsRoot.transform, false);
                             string tag = VisualTag.VisualAndCollision;
 
                             if (visItem == 0)
@@ -304,7 +307,7 @@ namespace raisimUnity
                                 double sz = BitIO.GetData<double>(ref _buffer, ref offset);
 
                                 string meshFilePathInResources = Path.Combine(urdfDirName, Path.GetFileNameWithoutExtension(meshFileName));
-                                ObjectController.CreateMesh(_objectsRoot, subName, meshFilePathInResources, (float)sx, (float)sy, (float)sz, tag, meshFileExtension != ".dae");
+                                ObjectController.CreateMesh(objFrame, meshFilePathInResources, (float)sx, (float)sy, (float)sz, tag, meshFileExtension != ".dae");
                             }
                             else
                             {
@@ -321,13 +324,13 @@ namespace raisimUnity
                                     case RsShapeType.RsBoxShape:
                                     {
                                         if (visParam.Count != 3) throw new Exception("Box Mesh error");
-                                        ObjectController.CreateBox(_objectsRoot, subName, (float) visParam[0], (float) visParam[1], (float) visParam[2], tag);
+                                        ObjectController.CreateBox(objFrame, (float) visParam[0], (float) visParam[1], (float) visParam[2], tag);
                                     }
                                         break;
                                     case RsShapeType.RsCapsuleShape:
                                     {
                                         if (visParam.Count != 2) throw new Exception("Capsule Mesh error");
-                                        ObjectController.CreateCapsule(_objectsRoot, subName, (float)visParam[0], (float)visParam[1], tag);
+                                        ObjectController.CreateCapsule(objFrame, (float)visParam[0], (float)visParam[1], tag);
                                     }
                                         break;
                                     case RsShapeType.RsConeShape:
@@ -338,13 +341,13 @@ namespace raisimUnity
                                     case RsShapeType.RsCylinderShape:
                                     {
                                         if (visParam.Count != 2) throw new Exception("Cylinder Mesh error");
-                                        ObjectController.CreateCylinder(_objectsRoot, subName, (float)visParam[0], (float)visParam[1], tag);
+                                        ObjectController.CreateCylinder(objFrame, (float)visParam[0], (float)visParam[1], tag);
                                     }
                                         break;
                                     case RsShapeType.RsSphereShape:
                                     {
                                         if (visParam.Count != 1) throw new Exception("Sphere Mesh error");
-                                        ObjectController.CreateSphere(_objectsRoot, subName, (float)visParam[0], tag);
+                                        ObjectController.CreateSphere(objFrame, (float)visParam[0], tag);
                                     }
                                         break;
                                 }
@@ -367,7 +370,9 @@ namespace raisimUnity
                     }
                     
                     float height = BitIO.GetData<float>(ref _buffer, ref offset);
-                    var planeRoot = ObjectController.CreateHalfSpace(_objectsRoot, objectIndex.ToString(), height, VisualTag.VisualAndCollision);
+                    var objFrame = new GameObject(objectIndex.ToString());
+                    objFrame.transform.SetParent(_objectsRoot.transform, false);
+                    var planeRoot = ObjectController.CreateHalfSpace(objFrame, height, VisualTag.VisualAndCollision);
                     planeRoot.GetComponentInChildren<Renderer>().material = material;
                 }
                 else if (objectType == RsObejctType.RsHeightMapObject)
@@ -406,12 +411,18 @@ namespace raisimUnity
                         }
                     }
 
-                    var terrainRoot = ObjectController.CreateTerrain(_objectsRoot, objectIndex.ToString(), numSampleX, sizeX, centerX, numSampleY, sizeY, centerY, heights, tag);
+                    var objFrame = new GameObject(objectIndex.ToString());
+                    objFrame.transform.SetParent(_objectsRoot.transform, false);
+                    var terrainRoot = ObjectController.CreateTerrain(objFrame, numSampleX, sizeX, centerX, numSampleY, sizeY, centerY, heights, tag);
                     terrainRoot.GetComponentInChildren<Renderer>().material = material;
                 }
                 else
                 {
                     // single body object
+                    
+                    // create base frame of object
+                    var objFrame = new GameObject(objectIndex.ToString());
+                    objFrame.transform.SetParent(_objectsRoot.transform, false);
                     
                     // get material
                     Material material;
@@ -436,44 +447,15 @@ namespace raisimUnity
                                 break;
                         }
                     }
-                // get material
-                Material material;
-                if (appearances != null && !string.IsNullOrEmpty(appearances.As<Appearances>().materialName))
-                {
-                    material = Resources.Load<Material>(appearances.As<Appearances>().materialName);
-                }
-                else
-                {
-                    // default material
-                    switch (i % 3)
-                    {
-                        case 0:
-                            material = _defaultMaterialR;
-                            break;
-                        case 1:
-                            material = _defaultMaterialG;
-                            break;
-                        case 2:
-                            material = _defaultMaterialB;
-                            break;
-                        default:
-                            material = _defaultMaterialR;
-                            break;
-                    }
-                }
-                
-                // create base frame of object
-                var objFrame = new GameObject(objectIndex.ToString());
-                objFrame.transform.SetParent(root.transform, false);
-                objFrame.tag = tag;
-
+                    
+                    // collision body 
                     switch (objectType) 
                     {
                         case RsObejctType.RsSphereObject :
                         {
                             float radius = BitIO.GetData<float>(ref _buffer, ref offset);
-                            var sphereRoot =  ObjectController.CreateSphere(_objectsRoot, objectIndex.ToString(), radius, VisualTag.VisualAndCollision);
-                            sphereRoot.GetComponentInChildren<Renderer>().material = material;
+                            var sphere =  ObjectController.CreateSphere(objFrame, radius, VisualTag.VisualAndCollision);
+                            sphere.GetComponentInChildren<Renderer>().material = material;
                         }
                             break;
 
@@ -482,24 +464,24 @@ namespace raisimUnity
                             float sx = BitIO.GetData<float>(ref _buffer, ref offset);
                             float sy = BitIO.GetData<float>(ref _buffer, ref offset);
                             float sz = BitIO.GetData<float>(ref _buffer, ref offset);
-                            var boxRoot = ObjectController.CreateBox(_objectsRoot, objectIndex.ToString(), sx, sy, sz, VisualTag.VisualAndCollision);
-                            boxRoot.GetComponentInChildren<Renderer>().material = material;
+                            var box = ObjectController.CreateBox(objFrame, sx, sy, sz, VisualTag.VisualAndCollision);
+                            box.GetComponentInChildren<Renderer>().material = material;
                         }
                             break;
                         case RsObejctType.RsCylinderObject:
                         {
                             float radius = BitIO.GetData<float>(ref _buffer, ref offset);
                             float height = BitIO.GetData<float>(ref _buffer, ref offset);
-                            var cylinderRoot = ObjectController.CreateCylinder(_objectsRoot, objectIndex.ToString(), radius, height, VisualTag.VisualAndCollision);
-                            cylinderRoot.GetComponentInChildren<Renderer>().material = material;
+                            var cylinder = ObjectController.CreateCylinder(objFrame, radius, height, VisualTag.VisualAndCollision);
+                            cylinder.GetComponentInChildren<Renderer>().material = material;
                         }
                             break;
                         case RsObejctType.RsCapsuleObject:
                         {
                             float radius = BitIO.GetData<float>(ref _buffer, ref offset);
                             float height = BitIO.GetData<float>(ref _buffer, ref offset);
-                            var capsuleRoot = ObjectController.CreateCapsule(_objectsRoot, objectIndex.ToString(), radius, height, VisualTag.VisualAndCollision);
-                            capsuleRoot.GetComponentInChildren<Renderer>().material = material;
+                            var capsule = ObjectController.CreateCapsule(objFrame, radius, height, VisualTag.VisualAndCollision);
+                            capsule.GetComponentInChildren<Renderer>().material = material;
                         }
                             break;
                         case RsObejctType.RsMeshObject:
@@ -509,12 +491,62 @@ namespace raisimUnity
                             string meshFileName = Path.GetFileNameWithoutExtension(meshFile);
                             string meshFileExtension = Path.GetExtension(meshFile);
                             string directoryName = Path.GetFileName(Path.GetDirectoryName(meshFile));
-                            var meshRoot = ObjectController.CreateMesh(_objectsRoot, objectIndex.ToString(), 
+                            var mesh = ObjectController.CreateMesh(objFrame, 
                                 Path.Combine(directoryName, meshFileName), scale, scale, scale, 
                                 VisualTag.VisualAndCollision, meshFileExtension != ".dae");
-                            meshRoot.GetComponentInChildren<Renderer>().material = material;
+                            mesh.GetComponentInChildren<Renderer>().material = material;
                         }
                             break;
+                    }
+                    
+                    // visual body
+                    if (appearances != null)
+                    {
+                        foreach (var subapp in appearances.As<Appearances>().subAppearances)
+                        {
+                            switch (subapp.shapes)
+                            {
+                                case AppearanceShapes.Sphere:
+                                {
+                                    float radius = subapp.dimension.x;
+                                    var sphere =  ObjectController.CreateSphere(objFrame, radius, VisualTag.Visual);
+                                    sphere.GetComponentInChildren<Renderer>().material = material;
+                                }
+                                    break;
+                                case AppearanceShapes.Box:
+                                {
+                                    var box = ObjectController.CreateBox(objFrame, subapp.dimension.x, subapp.dimension.y, subapp.dimension.z, VisualTag.Visual);
+                                    box.GetComponentInChildren<Renderer>().material = material;
+                                }
+                                    break;
+                                case AppearanceShapes.Cylinder:
+                                {
+                                    var cylinder = ObjectController.CreateCylinder(objFrame, subapp.dimension.x, subapp.dimension.y, VisualTag.Visual);
+                                    cylinder.GetComponentInChildren<Renderer>().material = material;
+                                }
+                                    break;
+                                case AppearanceShapes.Capsule:
+                                {
+                                    var capsule = ObjectController.CreateCapsule(objFrame, subapp.dimension.x, subapp.dimension.y, VisualTag.Visual);
+                                    capsule.GetComponentInChildren<Renderer>().material = material;
+                                }
+                                    break;
+                                case AppearanceShapes.Mesh:
+                                {
+                                    string meshFile = subapp.fileName;
+                                    string meshFileName = Path.GetFileNameWithoutExtension(meshFile);
+                                    string meshFileExtension = Path.GetExtension(meshFile);
+                                    string directoryName = Path.GetFileName(Path.GetDirectoryName(meshFile));
+                                    var mesh = ObjectController.CreateMesh(objFrame, Path.Combine(directoryName, meshFileName), subapp.dimension.x, subapp.dimension.y, subapp.dimension.z, 
+                                        VisualTag.VisualAndCollision, meshFileExtension != ".dae");
+                                    mesh.GetComponentInChildren<Renderer>().material = material;
+                                }
+                                    break;
+                                default:
+                                    throw new NotImplementedException("Not Implemented Appearance Shape");
+                                    break;
+                            }
+                        }
                     }
                 }
 
