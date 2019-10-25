@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Xml;
 using UnityEngine;
 
@@ -59,9 +60,92 @@ namespace raisimUnity
                 foreach (XmlNode app in appearanceNode.ChildNodes)
                 {
                     Appearance appearance = new Appearance();
+                    var shape = app.Name;
                     
                     var matPerAppearance = app.Attributes["material"];
                     if (matPerAppearance != null) appearance.materialName = matPerAppearance.Value;
+
+                    switch (shape)
+                    {
+                        case "sphere":
+                        {
+                            appearance.shapes = AppearanceShapes.Sphere;
+                            var radius = app.Attributes["radius"];
+                            if (radius == null)
+                            {
+                                // TODO error
+                            }
+                            appearance.dimension = new Vector3(float.Parse(radius.Value), 0, 0);
+                        }
+                        break;
+                        case "box":
+                        {
+                            appearance.shapes = AppearanceShapes.Box;
+                            var xlength = app.Attributes["xLength"];
+                            if (xlength == null)
+                            {
+                                // TODO error
+                            }
+                            var ylength = app.Attributes["yLength"];
+                            if (ylength == null)
+                            {
+                                // TODO error
+                            }
+                            var zlength = app.Attributes["zLength"];
+                            if (zlength == null)
+                            {
+                                // TODO error
+                            }
+                            
+                            appearance.dimension = new Vector3(float.Parse(xlength.Value), float.Parse(ylength.Value), float.Parse(zlength.Value));
+                        }
+                        break;
+                        case "cylinder":
+                        {
+                            appearance.shapes = AppearanceShapes.Cylinder;
+                            var radius = app.Attributes["radius"];
+                            if (radius == null)
+                            {
+                                // TODO error
+                            }
+                            var length = app.Attributes["length"];
+                            if (length == null)
+                            {
+                                // TODO error
+                            }
+                            appearance.dimension = new Vector3(float.Parse(radius.Value), float.Parse(length.Value), 0);
+                        }
+                        break;
+                        case "capsule":
+                        {
+                            appearance.shapes = AppearanceShapes.Capsule;
+                            var radius = app.Attributes["radius"];
+                            if (radius == null)
+                            {
+                                // TODO error
+                            }
+                            var length = app.Attributes["length"];
+                            if (length == null)
+                            {
+                                // TODO error
+                            }
+                            appearance.dimension = new Vector3(float.Parse(radius.Value), float.Parse(length.Value), 0);
+                        }
+                        break;
+                        case "mesh":
+                        {
+                            appearance.shapes = AppearanceShapes.Mesh;
+                            var scale = app.Attributes["scale"];
+                            if (scale == null)
+                            {
+                                // TODO error
+                            }
+                            appearance.dimension = new Vector3(float.Parse(scale.Value), 0, 0);
+                        }
+                        break;
+                      default:
+                            break;
+                    }
                     
                     appearances.subAppearances.Add(appearance);
                 }

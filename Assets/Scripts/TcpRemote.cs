@@ -569,7 +569,7 @@ namespace raisimUnity
                                     string meshFileName = Path.GetFileNameWithoutExtension(meshFile);
                                     string meshFileExtension = Path.GetExtension(meshFile);
                                     string directoryName = Path.GetFileName(Path.GetDirectoryName(meshFile));
-                                    var mesh = ObjectController.CreateMesh(objFrame, Path.Combine(directoryName, meshFileName), subapp.dimension.x, subapp.dimension.y, subapp.dimension.z, 
+                                    var mesh = ObjectController.CreateMesh(objFrame, Path.Combine(directoryName, meshFileName), subapp.dimension.x, subapp.dimension.x, subapp.dimension.x, 
                                         meshFileExtension != ".dae");
                                     mesh.GetComponentInChildren<Renderer>().material = material;
                                     mesh.tag = VisualTag.Visual;
