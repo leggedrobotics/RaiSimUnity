@@ -61,7 +61,7 @@ namespace raisimUnity
         
         public static GameObject CreateTerrain(GameObject root, 
             ulong numSampleX, float sizeX, float centerX, ulong numSampleY, float sizeY, float centerY, 
-            float[,] heights)
+            float[,] heights, bool recomputeNormal = true)
         {
             // Note that we create terrain with mesh since unity support only square size height map
 
@@ -128,24 +128,28 @@ namespace raisimUnity
             for (int i = 0; i < vertices.Count; i++) {
                 indices.Add(i);
             }
-            
-//            // normals
-//            for (int i = 0; i < vertices.Count; i += 3) {
-//                Vector3 point1 = ConvertUnity2RS(vertices[i].x, vertices[i].y, vertices[i].z);
-//                Vector3 point2 = ConvertUnity2RS(vertices[i+1].x, vertices[i+1].y, vertices[i+1].z);
-//                Vector3 point3 = ConvertUnity2RS(vertices[i+2].x, vertices[i+2].y, vertices[i+2].z);
-//                
-//                Vector3 diff1 = point2 - point1;
-//                Vector3 diff2 = point3 - point2;
-//                Vector3 norm = Vector3.Cross(diff1, diff2);
-//                norm = Vector3.Normalize(norm);
-//                norm = ConvertRs2Unity(norm.x, norm.y, norm.z);
-//
-//                normals.Add(norm);
-//                normals.Add(norm);
-//                normals.Add(norm);
-//            }
-            
+
+            if (!recomputeNormal)
+            {
+                // normals
+                for (int i = 0; i < vertices.Count; i += 3)
+                {
+                    Vector3 point1 = ConvertUnity2RS(vertices[i].x, vertices[i].y, vertices[i].z);
+                    Vector3 point2 = ConvertUnity2RS(vertices[i + 1].x, vertices[i + 1].y, vertices[i + 1].z);
+                    Vector3 point3 = ConvertUnity2RS(vertices[i + 2].x, vertices[i + 2].y, vertices[i + 2].z);
+
+                    Vector3 diff1 = point2 - point1;
+                    Vector3 diff2 = point3 - point2;
+                    Vector3 norm = Vector3.Cross(diff1, diff2);
+                    norm = Vector3.Normalize(norm);
+                    norm = ConvertRs2Unity(norm.x, norm.y, norm.z);
+
+                    normals.Add(norm);
+                    normals.Add(norm);
+                    normals.Add(norm);
+                }
+            }
+
             // uvs
             for (ulong i = 0; i < numSampleY-1; i++)
             {
@@ -193,8 +197,8 @@ namespace raisimUnity
             mesh.vertices = vertices.ToArray();
             mesh.triangles = indices.ToArray();
             mesh.uv = uvs.ToArray();
-//            mesh.normals = normals.ToArray();
-            mesh.RecalculateNormals();
+            if (!recomputeNormal) mesh.normals = normals.ToArray();
+            else mesh.RecalculateNormals();
 
             // this is just temporal object (will be deleted immediately!)
             var temp = GameObject.CreatePrimitive(PrimitiveType.Plane);

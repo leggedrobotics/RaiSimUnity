@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Xml;
@@ -378,8 +379,15 @@ namespace raisimUnity
                     var objFrame = new GameObject(objectIndex.ToString());
                     objFrame.transform.SetParent(_objectsRoot.transform, false);
                     var plane = ObjectController.CreateHalfSpace(objFrame, height);
-                    plane.GetComponentInChildren<Renderer>().material = material;
-                    plane.tag = VisualTag.VisualAndCollision;
+                    plane.tag = VisualTag.Collision;
+
+                    // default visual object
+                    if (appearances == null || !appearances.As<Appearances>().subAppearances.Any())
+                    {
+                        var planeVis = ObjectController.CreateHalfSpace(objFrame, height);
+                        planeVis.GetComponentInChildren<Renderer>().material = material;
+                        planeVis.tag = VisualTag.Visual;
+                    }
                 }
                 else if (objectType == RsObejctType.RsHeightMapObject)
                 {
@@ -419,9 +427,16 @@ namespace raisimUnity
 
                     var objFrame = new GameObject(objectIndex.ToString());
                     objFrame.transform.SetParent(_objectsRoot.transform, false);
-                    var terrain = ObjectController.CreateTerrain(objFrame, numSampleX, sizeX, centerX, numSampleY, sizeY, centerY, heights);
-                    terrain.GetComponentInChildren<Renderer>().material = material;
-                    terrain.tag = VisualTag.VisualAndCollision;
+                    var terrain = ObjectController.CreateTerrain(objFrame, numSampleX, sizeX, centerX, numSampleY, sizeY, centerY, heights, false);
+                    terrain.tag = VisualTag.Collision;
+                    
+                    // default visual object
+                    if (appearances == null || !appearances.As<Appearances>().subAppearances.Any())
+                    {
+                        var terrainVis = ObjectController.CreateTerrain(objFrame, numSampleX, sizeX, centerX, numSampleY, sizeY, centerY, heights);
+                        terrainVis.GetComponentInChildren<Renderer>().material = material;
+                        terrainVis.tag = VisualTag.Visual;
+                    }
                 }
                 else
                 {

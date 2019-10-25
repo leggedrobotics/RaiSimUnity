@@ -51,6 +51,7 @@ namespace raisimUnity
                 if (appearanceNode == null) continue;
                 
                 Appearances appearances = new Appearances();
+                appearances.subAppearances = new List<Appearance>();
                 var material = appearanceNode.Attributes["material"];
                 if (material != null) appearances.materialName = material.Value;
 
