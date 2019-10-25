@@ -289,8 +289,8 @@ namespace raisimUnity
                             
                             var objFrame = new GameObject(subName);
                             objFrame.transform.SetParent(_objectsRoot.transform, false);
-                            string tag = VisualTag.VisualAndCollision;
 
+                            string tag = VisualTag.VisualAndCollision;
                             if (visItem == 0)
                                 tag = VisualTag.Visual;
                             else if (visItem == 1)
@@ -307,7 +307,8 @@ namespace raisimUnity
                                 double sz = BitIO.GetData<double>(ref _buffer, ref offset);
 
                                 string meshFilePathInResources = Path.Combine(urdfDirName, Path.GetFileNameWithoutExtension(meshFileName));
-                                ObjectController.CreateMesh(objFrame, meshFilePathInResources, (float)sx, (float)sy, (float)sz, tag, meshFileExtension != ".dae");
+                                var mesh = ObjectController.CreateMesh(objFrame, meshFilePathInResources, (float)sx, (float)sy, (float)sz, meshFileExtension != ".dae");
+                                mesh.tag = tag;
                             }
                             else
                             {
@@ -324,13 +325,15 @@ namespace raisimUnity
                                     case RsShapeType.RsBoxShape:
                                     {
                                         if (visParam.Count != 3) throw new Exception("Box Mesh error");
-                                        ObjectController.CreateBox(objFrame, (float) visParam[0], (float) visParam[1], (float) visParam[2], tag);
+                                        var box = ObjectController.CreateBox(objFrame, (float) visParam[0], (float) visParam[1], (float) visParam[2]);
+                                        box.tag = tag;
                                     }
                                         break;
                                     case RsShapeType.RsCapsuleShape:
                                     {
                                         if (visParam.Count != 2) throw new Exception("Capsule Mesh error");
-                                        ObjectController.CreateCapsule(objFrame, (float)visParam[0], (float)visParam[1], tag);
+                                        var capsule = ObjectController.CreateCapsule(objFrame, (float)visParam[0], (float)visParam[1]);
+                                        capsule.tag = tag;
                                     }
                                         break;
                                     case RsShapeType.RsConeShape:
@@ -341,13 +344,15 @@ namespace raisimUnity
                                     case RsShapeType.RsCylinderShape:
                                     {
                                         if (visParam.Count != 2) throw new Exception("Cylinder Mesh error");
-                                        ObjectController.CreateCylinder(objFrame, (float)visParam[0], (float)visParam[1], tag);
+                                        var cylinder = ObjectController.CreateCylinder(objFrame, (float)visParam[0], (float)visParam[1]);
+                                        cylinder.tag = tag;
                                     }
                                         break;
                                     case RsShapeType.RsSphereShape:
                                     {
                                         if (visParam.Count != 1) throw new Exception("Sphere Mesh error");
-                                        ObjectController.CreateSphere(objFrame, (float)visParam[0], tag);
+                                        var sphere = ObjectController.CreateSphere(objFrame, (float)visParam[0]);
+                                        sphere.tag = tag;
                                     }
                                         break;
                                 }
@@ -372,8 +377,9 @@ namespace raisimUnity
                     float height = BitIO.GetData<float>(ref _buffer, ref offset);
                     var objFrame = new GameObject(objectIndex.ToString());
                     objFrame.transform.SetParent(_objectsRoot.transform, false);
-                    var planeRoot = ObjectController.CreateHalfSpace(objFrame, height, VisualTag.VisualAndCollision);
-                    planeRoot.GetComponentInChildren<Renderer>().material = material;
+                    var plane = ObjectController.CreateHalfSpace(objFrame, height);
+                    plane.GetComponentInChildren<Renderer>().material = material;
+                    plane.tag = VisualTag.VisualAndCollision;
                 }
                 else if (objectType == RsObejctType.RsHeightMapObject)
                 {
@@ -413,8 +419,9 @@ namespace raisimUnity
 
                     var objFrame = new GameObject(objectIndex.ToString());
                     objFrame.transform.SetParent(_objectsRoot.transform, false);
-                    var terrainRoot = ObjectController.CreateTerrain(objFrame, numSampleX, sizeX, centerX, numSampleY, sizeY, centerY, heights, tag);
-                    terrainRoot.GetComponentInChildren<Renderer>().material = material;
+                    var terrain = ObjectController.CreateTerrain(objFrame, numSampleX, sizeX, centerX, numSampleY, sizeY, centerY, heights);
+                    terrain.GetComponentInChildren<Renderer>().material = material;
+                    terrain.tag = VisualTag.VisualAndCollision;
                 }
                 else
                 {
@@ -454,8 +461,9 @@ namespace raisimUnity
                         case RsObejctType.RsSphereObject :
                         {
                             float radius = BitIO.GetData<float>(ref _buffer, ref offset);
-                            var sphere =  ObjectController.CreateSphere(objFrame, radius, VisualTag.VisualAndCollision);
+                            var sphere =  ObjectController.CreateSphere(objFrame, radius);
                             sphere.GetComponentInChildren<Renderer>().material = material;
+                            sphere.tag = VisualTag.Collision;
                         }
                             break;
 
@@ -464,24 +472,27 @@ namespace raisimUnity
                             float sx = BitIO.GetData<float>(ref _buffer, ref offset);
                             float sy = BitIO.GetData<float>(ref _buffer, ref offset);
                             float sz = BitIO.GetData<float>(ref _buffer, ref offset);
-                            var box = ObjectController.CreateBox(objFrame, sx, sy, sz, VisualTag.VisualAndCollision);
+                            var box = ObjectController.CreateBox(objFrame, sx, sy, sz);
                             box.GetComponentInChildren<Renderer>().material = material;
+                            box.tag = VisualTag.Collision;
                         }
                             break;
                         case RsObejctType.RsCylinderObject:
                         {
                             float radius = BitIO.GetData<float>(ref _buffer, ref offset);
                             float height = BitIO.GetData<float>(ref _buffer, ref offset);
-                            var cylinder = ObjectController.CreateCylinder(objFrame, radius, height, VisualTag.VisualAndCollision);
+                            var cylinder = ObjectController.CreateCylinder(objFrame, radius, height);
                             cylinder.GetComponentInChildren<Renderer>().material = material;
+                            cylinder.tag = VisualTag.Collision;
                         }
                             break;
                         case RsObejctType.RsCapsuleObject:
                         {
                             float radius = BitIO.GetData<float>(ref _buffer, ref offset);
                             float height = BitIO.GetData<float>(ref _buffer, ref offset);
-                            var capsule = ObjectController.CreateCapsule(objFrame, radius, height, VisualTag.VisualAndCollision);
+                            var capsule = ObjectController.CreateCapsule(objFrame, radius, height);
                             capsule.GetComponentInChildren<Renderer>().material = material;
+                            capsule.tag = VisualTag.Collision;
                         }
                             break;
                         case RsObejctType.RsMeshObject:
@@ -492,9 +503,9 @@ namespace raisimUnity
                             string meshFileExtension = Path.GetExtension(meshFile);
                             string directoryName = Path.GetFileName(Path.GetDirectoryName(meshFile));
                             var mesh = ObjectController.CreateMesh(objFrame, 
-                                Path.Combine(directoryName, meshFileName), scale, scale, scale, 
-                                VisualTag.VisualAndCollision, meshFileExtension != ".dae");
+                                Path.Combine(directoryName, meshFileName), scale, scale, scale, meshFileExtension != ".dae");
                             mesh.GetComponentInChildren<Renderer>().material = material;
+                            mesh.tag = VisualTag.Collision;
                         }
                             break;
                     }
@@ -509,26 +520,30 @@ namespace raisimUnity
                                 case AppearanceShapes.Sphere:
                                 {
                                     float radius = subapp.dimension.x;
-                                    var sphere =  ObjectController.CreateSphere(objFrame, radius, VisualTag.Visual);
+                                    var sphere =  ObjectController.CreateSphere(objFrame, radius);
                                     sphere.GetComponentInChildren<Renderer>().material = material;
+                                    sphere.tag = VisualTag.Visual;
                                 }
                                     break;
                                 case AppearanceShapes.Box:
                                 {
-                                    var box = ObjectController.CreateBox(objFrame, subapp.dimension.x, subapp.dimension.y, subapp.dimension.z, VisualTag.Visual);
+                                    var box = ObjectController.CreateBox(objFrame, subapp.dimension.x, subapp.dimension.y, subapp.dimension.z);
                                     box.GetComponentInChildren<Renderer>().material = material;
+                                    box.tag = VisualTag.Visual;
                                 }
                                     break;
                                 case AppearanceShapes.Cylinder:
                                 {
-                                    var cylinder = ObjectController.CreateCylinder(objFrame, subapp.dimension.x, subapp.dimension.y, VisualTag.Visual);
+                                    var cylinder = ObjectController.CreateCylinder(objFrame, subapp.dimension.x, subapp.dimension.y);
                                     cylinder.GetComponentInChildren<Renderer>().material = material;
+                                    cylinder.tag = VisualTag.Visual;
                                 }
                                     break;
                                 case AppearanceShapes.Capsule:
                                 {
-                                    var capsule = ObjectController.CreateCapsule(objFrame, subapp.dimension.x, subapp.dimension.y, VisualTag.Visual);
+                                    var capsule = ObjectController.CreateCapsule(objFrame, subapp.dimension.x, subapp.dimension.y);
                                     capsule.GetComponentInChildren<Renderer>().material = material;
+                                    capsule.tag = VisualTag.Visual;
                                 }
                                     break;
                                 case AppearanceShapes.Mesh:
@@ -538,8 +553,9 @@ namespace raisimUnity
                                     string meshFileExtension = Path.GetExtension(meshFile);
                                     string directoryName = Path.GetFileName(Path.GetDirectoryName(meshFile));
                                     var mesh = ObjectController.CreateMesh(objFrame, Path.Combine(directoryName, meshFileName), subapp.dimension.x, subapp.dimension.y, subapp.dimension.z, 
-                                        VisualTag.VisualAndCollision, meshFileExtension != ".dae");
+                                        meshFileExtension != ".dae");
                                     mesh.GetComponentInChildren<Renderer>().material = material;
+                                    mesh.tag = VisualTag.Visual;
                                 }
                                     break;
                                 default:

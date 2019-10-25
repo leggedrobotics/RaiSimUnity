@@ -15,7 +15,7 @@ namespace raisimUnity
 {
     public class ObjectController
     {
-        public static GameObject CreateSphere(GameObject root, float radius, string tag)
+        public static GameObject CreateSphere(GameObject root, float radius)
         {
             var sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             sphere.transform.SetParent(root.transform, true);
@@ -23,7 +23,7 @@ namespace raisimUnity
             return sphere;
         }
 
-        public static GameObject CreateBox(GameObject root, float sx, float sy, float sz, string tag)
+        public static GameObject CreateBox(GameObject root, float sx, float sy, float sz)
         {
             var box = GameObject.CreatePrimitive(PrimitiveType.Cube);
             box.transform.SetParent(root.transform, true);
@@ -31,7 +31,7 @@ namespace raisimUnity
             return box;
         }
 
-        public static GameObject CreateCylinder(GameObject root, float radius, float height, string tag)
+        public static GameObject CreateCylinder(GameObject root, float radius, float height)
         {
             var cylinder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             cylinder.transform.SetParent(root.transform, true);
@@ -39,7 +39,7 @@ namespace raisimUnity
             return cylinder;
         }
 
-        public static GameObject CreateCapsule(GameObject root, float radius, float height, string tag)
+        public static GameObject CreateCapsule(GameObject root, float radius, float height)
         {
             // Note.
             // raisim geometry of capsule: http://ode.org/wiki/index.php?title=Manual#Capsule_Class
@@ -50,7 +50,7 @@ namespace raisimUnity
             return capsule;
         }
 
-        public static GameObject CreateHalfSpace(GameObject root, float height, string tag)
+        public static GameObject CreateHalfSpace(GameObject root, float height)
         {
             var plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
             plane.transform.SetParent(root.transform, true);
@@ -61,7 +61,7 @@ namespace raisimUnity
         
         public static GameObject CreateTerrain(GameObject root, 
             ulong numSampleX, float sizeX, float centerX, ulong numSampleY, float sizeY, float centerY, 
-            float[,] heights, string tag)
+            float[,] heights)
         {
             // Note that we create terrain with mesh since unity support only square size height map
 
@@ -215,7 +215,7 @@ namespace raisimUnity
             return terrain;
         }
 
-        public static GameObject CreateMesh(GameObject root, string meshFile, float sx, float sy, float sz, string tag, bool flipYz=false)
+        public static GameObject CreateMesh(GameObject root, string meshFile, float sx, float sy, float sz, bool flipYz=false)
         {
             // meshFile is file name without file extension related to Resources directory
             // sx, sy, sz is scale 
