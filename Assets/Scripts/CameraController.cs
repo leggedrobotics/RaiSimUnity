@@ -271,8 +271,6 @@ public class CameraController : MonoBehaviour
             threadIsProcessing = true;
             _saverThread = new Thread(SaveVideo);
             _saverThread.Start();
-
-            outputIdx++;
         }
     }
 
@@ -290,7 +288,7 @@ public class CameraController : MonoBehaviour
         print ("SCREENRECORDER IO THREAD STARTED");
 
         // Generate file path
-        string path = outputName + outputIdx.ToString() + ".mp4";
+        string path = outputName + outputIdx++.ToString() + ".mp4";
 
         using (var ffmpegProc = new Process())
         {
