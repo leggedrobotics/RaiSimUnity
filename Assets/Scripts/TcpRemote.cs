@@ -386,6 +386,7 @@ namespace raisimUnity
                     {
                         var planeVis = ObjectController.CreateHalfSpace(objFrame, height);
                         planeVis.GetComponentInChildren<Renderer>().material = material;
+                        planeVis.GetComponentInChildren<Renderer>().material.mainTextureScale = new Vector2(5, 5);
                         planeVis.tag = VisualTag.Visual;
                     }
                 }
@@ -435,6 +436,7 @@ namespace raisimUnity
                     {
                         var terrainVis = ObjectController.CreateTerrain(objFrame, numSampleX, sizeX, centerX, numSampleY, sizeY, centerY, heights);
                         terrainVis.GetComponentInChildren<Renderer>().material = material;
+                        terrainVis.GetComponentInChildren<Renderer>().material.mainTextureScale = new Vector2(sizeX, sizeY);
                         terrainVis.tag = VisualTag.Visual;
                     }
                 }
