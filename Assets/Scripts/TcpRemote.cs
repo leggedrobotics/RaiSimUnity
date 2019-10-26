@@ -142,7 +142,10 @@ namespace raisimUnity
         
         // xml document
         private XmlReader _xmlReader;
-
+        
+        // resource loader
+        private ResourceLoader _loader;
+        
         void Start()
         {
             // set buffer size
@@ -170,7 +173,9 @@ namespace raisimUnity
             // xml 
             _xmlReader = new XmlReader();
             
-            // resource directory
+            // resource loader
+            _loader = new ResourceLoader(); 
+
             SimpleFileBrowser.FileBrowser.ShowLoadDialog(null, null);
             
         }
@@ -282,7 +287,6 @@ namespace raisimUnity
                 if (objectType == RsObejctType.RsArticulatedSystemObject)
                 {
                     string urdfDirPathInServer = BitIO.GetData<string>(ref _buffer, ref offset); 
-                    string urdfDirName = Path.GetFileName(urdfDirPathInServer);
 
                     // visItem = 0 (visuals)
                     // visItem = 1 (collisions)
@@ -310,15 +314,14 @@ namespace raisimUnity
                             if (shapeType == RsShapeType.RsMeshShape)
                             {
                                 string meshFile = BitIO.GetData<string>(ref _buffer, ref offset);
-                                string meshFileName = Path.GetFileName(meshFile);
                                 string meshFileExtension = Path.GetExtension(meshFile);
 
                                 double sx = BitIO.GetData<double>(ref _buffer, ref offset);
                                 double sy = BitIO.GetData<double>(ref _buffer, ref offset);
                                 double sz = BitIO.GetData<double>(ref _buffer, ref offset);
 
-                                string meshFilePathInResources = Path.Combine(urdfDirName, Path.GetFileNameWithoutExtension(meshFileName));
-                                var mesh = _objectController.CreateMesh(objFrame, meshFilePathInResources, (float)sx, (float)sy, (float)sz, meshFileExtension != ".dae");
+                                string meshFilePathInResourceDir = _loader.RetrieveMeshPath(urdfDirPathInServer, meshFile);
+                                var mesh = _objectController.CreateMesh(objFrame, meshFilePathInResourceDir, (float)sx, (float)sy, (float)sz, meshFileExtension != ".dae");
                                 mesh.tag = tag;
                             }
                             else
@@ -526,11 +529,14 @@ namespace raisimUnity
                         {
                             string meshFile = BitIO.GetData<string>(ref _buffer, ref offset);
                             float scale = BitIO.GetData<float>(ref _buffer, ref offset);
-                            string meshFileName = Path.GetFileNameWithoutExtension(meshFile);
+                            
+                            string meshFileName = Path.GetFileName(meshFile);       
                             string meshFileExtension = Path.GetExtension(meshFile);
-                            string directoryName = Path.GetFileName(Path.GetDirectoryName(meshFile));
-                            var mesh = _objectController.CreateMesh(objFrame, 
-                                Path.Combine(directoryName, meshFileName), scale, scale, scale, meshFileExtension != ".dae");
+                            
+                            string meshFilePathInResourceDir = _loader.RetrieveMeshPath(Path.GetDirectoryName(meshFile), meshFileName);
+                            
+                            var mesh = _objectController.CreateMesh(objFrame, meshFilePathInResourceDir, 
+                                scale, scale, scale, meshFileExtension != ".dae");
                             mesh.GetComponentInChildren<Renderer>().material = material;
                             mesh.tag = VisualTag.Collision;
                         }

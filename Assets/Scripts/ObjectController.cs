@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
+using Dummiesman;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Quaternion = UnityEngine.Quaternion;
@@ -15,11 +16,11 @@ namespace raisimUnity
 {
     public class ObjectController
     {
-        private ResourceLoader _loader;
+        private OBJLoader _objLoader;
         
         public ObjectController()
         {
-            _loader = new ResourceLoader(); 
+            _objLoader = new OBJLoader(); 
         }
 
         public GameObject CreateSphere(GameObject root, float radius)
@@ -230,8 +231,9 @@ namespace raisimUnity
         {
             // meshFile is file name without file extension related to Resources directory
             // sx, sy, sz is scale 
-            
-            var meshRes = Resources.Load(meshFile) as GameObject;
+
+            var meshRes = _objLoader.Load(meshFile);
+//            var meshRes = Resources.Load(meshFile) as GameObject;
             if (meshRes == null)
             {
                 // TODO error
