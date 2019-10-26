@@ -2,10 +2,7 @@
  * Author: Dongho Kang (kangd@ethz.ch)
  */
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Xml;
 using Dummiesman;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -232,13 +229,12 @@ namespace raisimUnity
             // meshFile is file name without file extension related to Resources directory
             // sx, sy, sz is scale 
 
-            var meshRes = _objLoader.Load(meshFile);
-//            var meshRes = Resources.Load(meshFile) as GameObject;
-            if (meshRes == null)
+            var mesh = _objLoader.Load(meshFile);
+            if (mesh == null)
             {
                 // TODO error
             }
-            var mesh = GameObject.Instantiate(meshRes);
+//            var mesh = GameObject.Instantiate(meshRes);
             mesh.transform.SetParent(root.transform, true);
             mesh.transform.localScale = new Vector3((float)sx, (float)sy, (float)sz);
             if(flipYz)

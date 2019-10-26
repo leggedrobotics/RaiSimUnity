@@ -598,7 +598,6 @@ namespace raisimUnity
                         }
                     }
                 }
-
             }
             
             Array.Clear(_buffer, 0, _maxBufferSize);
