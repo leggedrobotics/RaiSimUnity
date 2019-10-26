@@ -1,0 +1,47 @@
+<raisim>
+    <!--Simulation specification-->
+    <!--This specification is used to build a raisim world-->
+    <world>
+        <params>
+            <gravity x="0" y="0" z="-9.81"/>
+            <erp erp="0" erp2="0"/>
+        </params>
+        <objects>
+            <ground name="ground" zHeight="0" material="default" collisionMask="-1"/>
+            <sphere name="sphere" radius="0.5" mass="1" material="default" collisionGroup="1" collisionMask="-1">
+                <pos x="-1" y="-1" z="5"/>
+                <quat w="1" x="0" y="0" z="0"/>
+                <!-- no appearance attribute: visualize primitive sphere with default material -->
+            </sphere>
+            <box name="box" xLength="1" yLength="1" zLength="1" mass="1">
+                <pos x="-1" y="1" z="5"/>
+                <quat w="1" x="0" y="0" z="0"/>
+                <!-- has an appearance child -->
+                <apperance>
+                    <mesh fileName="/home/donghok/Workspace/unity/raisimUnity/Assets/Resources/objects/Resources/monkey/monkey.obj" material="metal1" scale="1"/>
+                </apperance>
+            </box>
+            <cylinder name="cylinder" radius="0.5" height="0.5" mass="1">
+                <pos x="1" y="-1" z="5"/>
+                <quat w="1" x="0" y="0" z="0"/>
+                <!-- has an appearance child -->
+                <apperance>
+                    <mesh fileName="/home/donghok/Workspace/unity/raisimUnity/Assets/Resources/objects/Resources/bunny/bunny.obj" material="metal2" scale="1"/>
+                </apperance>
+            </cylinder>
+            <capsule name="capsule" radius="0.5" height="1" mass="1">
+                <pos x="1" y="1" z="5"/>
+                <quat w="1" x="0" y="0" z="0"/>
+                <!-- has an appearance child -->
+                <!-- this appearance node has material but no child: visualize primitive capsule with material -->
+                <appearance material="metal3"/>
+            </capsule>
+        </objects>
+    </world>
+
+    <!--Visual instances-->
+    <!--These are not raisim objects so not governed by physics.-->
+    <visuals>
+        <box xLength="1" yLength="1"  zLength="1"/>
+    </visuals>
+</raisim>

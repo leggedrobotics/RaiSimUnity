@@ -1,0 +1,45 @@
+<raisim>
+    <world>
+        <objects>
+            <heightmap name="ground" centerX="0" centerY="0" xSize="20" ySize="20" heightScale="3"
+                       xSamples="50" ySamples="50" fractalOctaves="3" fractalLacunarity="2" fractalGain="0.25">
+            </heightmap>
+            <as name="anymal1" urdfPath="/home/donghok/Workspace/unity/raisimUnity/Assets/Resources/objects/Resources/anymal/anymal.urdf">
+                <state qpos="-1.5 -1.5 5 1.0 0.0 0.0 0.0 0.03 0.4 -0.8 -0.03 0.4 -0.8 0.03 -0.4 0.8 -0.03 -0.4 0.8"
+                       qvel="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"/>
+            </as>
+            <as name="anymal2" urdfPath="/home/donghok/Workspace/unity/raisimUnity/Assets/Resources/objects/Resources/anymal/anymal.urdf">
+                <state qpos="-1.5 0 5 1.0 0.0 0.0 0.0 0.03 0.4 -0.8 -0.03 0.4 -0.8 0.03 -0.4 0.8 -0.03 -0.4 0.8"
+                       qvel="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"/>
+            </as>
+            <as name="anymal3" urdfPath="/home/donghok/Workspace/unity/raisimUnity/Assets/Resources/objects/Resources/anymal/anymal.urdf">
+                <state qpos="-1.5 +1.5 5 1.0 0.0 0.0 0.0 0.03 0.4 -0.8 -0.03 0.4 -0.8 0.03 -0.4 0.8 -0.03 -0.4 0.8"
+                       qvel="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"/>
+            </as>
+            <as name="anymal4" urdfPath="/home/donghok/Workspace/unity/raisimUnity/Assets/Resources/objects/Resources/anymal/anymal.urdf">
+                <state qpos="0 -1.5 5 1.0 0.0 0.0 0.0 0.03 0.4 -0.8 -0.03 0.4 -0.8 0.03 -0.4 0.8 -0.03 -0.4 0.8"
+                       qvel="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"/>
+            </as>
+            <as name="anymal5" urdfPath="/home/donghok/Workspace/unity/raisimUnity/Assets/Resources/objects/Resources/anymal/anymal.urdf">
+                <state qpos="0 0 5 1.0 0.0 0.0 0.0 0.03 0.4 -0.8 -0.03 0.4 -0.8 0.03 -0.4 0.8 -0.03 -0.4 0.8"
+                       qvel="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"/>
+            </as>
+            <as name="anymal6" urdfPath="/home/donghok/Workspace/unity/raisimUnity/Assets/Resources/objects/Resources/anymal/anymal.urdf">
+                <state qpos="0 1.5 5 1.0 0.0 0.0 0.0 0.03 0.4 -0.8 -0.03 0.4 -0.8 0.03 -0.4 0.8 -0.03 -0.4 0.8"
+                       qvel="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"/>
+            </as>
+            <as name="anymal7" urdfPath="/home/donghok/Workspace/unity/raisimUnity/Assets/Resources/objects/Resources/anymal/anymal.urdf">
+                <state qpos="1.5 -1.5 5 1.0 0.0 0.0 0.0 0.03 0.4 -0.8 -0.03 0.4 -0.8 0.03 -0.4 0.8 -0.03 -0.4 0.8"
+                       qvel="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"/>
+            </as>
+            <as name="anymal8" urdfPath="/home/donghok/Workspace/unity/raisimUnity/Assets/Resources/objects/Resources/anymal/anymal.urdf">
+                <state qpos="1.5 0 5 1.0 0.0 0.0 0.0 0.03 0.4 -0.8 -0.03 0.4 -0.8 0.03 -0.4 0.8 -0.03 -0.4 0.8"
+                       qvel="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"/>
+            </as>
+            <as name="anymal9" urdfPath="/home/donghok/Workspace/unity/raisimUnity/Assets/Resources/objects/Resources/anymal/anymal.urdf">
+                <state qpos="1.5 1.5 5 1.0 0.0 0.0 0.0 0.03 0.4 -0.8 -0.03 0.4 -0.8 0.03 -0.4 0.8 -0.03 -0.4 0.8"
+                       qvel="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"/>
+            </as>
+        </objects>
+    </world>
+</raisim>

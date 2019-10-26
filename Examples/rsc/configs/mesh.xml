@@ -1,0 +1,61 @@
+<raisim>
+    <!--Simulation specification-->
+    <!--This specification is used to build a raisim world-->
+    <world>
+        <params>
+            <gravity x="0" y="0" z="-9.81"/>
+            <erp erp="0" erp2="0"/>
+        </params>
+        <objects>
+            <ground name="ground" zHeight="0" material="default" collisionMask="-1"/>
+            <!-- intertia is a vector with {Ixx, Iyy, Izz, Ixy, Ixz, Iyz} of inertia matrix -->
+            <mesh name="monkey1" fileName="/home/donghok/Workspace/unity/raisimUnity/Assets/Resources/objects/Resources/monkey/monkey.obj"
+                  inertia="1 1 1 0 0 0" com="0 0 0" mass="1" scale="1">
+                <pos x="-1.5" y="-1.5" z="3"/>
+                <quat w="1" x="0" y="0" z="0"/>
+            </mesh>
+            <!-- intertia is a vector with {Ixx, Iyy, Izz, Ixy, Ixz, Iyz} of inertia matrix -->
+            <mesh name="bunny1" fileName="/home/donghok/Workspace/unity/raisimUnity/Assets/Resources/objects/Resources/bunny/bunny.obj"
+                  inertia="1 1 1 0 0 0" com="0 0 0" mass="1" scale="10">
+                <pos x="-1.5" y="1.5" z="3"/>
+                <quat w="1" x="0" y="0" z="0"/>
+            </mesh>
+            <!-- intertia is a vector with {Ixx, Iyy, Izz, Ixy, Ixz, Iyz} of inertia matrix -->
+            <mesh name="bunny2" fileName="/home/donghok/Workspace/unity/raisimUnity/Assets/Resources/objects/Resources/bunny/bunny.obj"
+                  inertia="1 1 1 0 0 0" com="0 0 0" mass="1" scale="10">
+                <pos x="1.5" y="-1.5" z="3"/>
+                <quat w="1" x="0" y="0" z="0"/>
+            </mesh>
+            <!-- intertia is a vector with {Ixx, Iyy, Izz, Ixy, Ixz, Iyz} of inertia matrix -->
+            <mesh name="monkey2" fileName="/home/donghok/Workspace/unity/raisimUnity/Assets/Resources/objects/Resources/monkey/monkey.obj"
+                  inertia="1 1 1 0 0 0" com="0 0 0" mass="1" scale="1">
+                <pos x="1.5" y="1.5" z="3"/>
+                <quat w="1" x="0" y="0" z="0"/>
+            </mesh>
+            <!-- intertia is a vector with {Ixx, Iyy, Izz, Ixy, Ixz, Iyz} of inertia matrix -->
+            <mesh name="bunny3" fileName="/home/donghok/Workspace/unity/raisimUnity/Assets/Resources/objects/Resources/bunny/bunny.obj"
+                  inertia="1 1 1 0 0 0" com="0 0 0" mass="1" scale="10">
+                <pos x="-1.5" y="-1.5" z="7"/>
+                <quat w="1" x="0" y="0" z="0"/>
+            </mesh>
+            <!-- intertia is a vector with {Ixx, Iyy, Izz, Ixy, Ixz, Iyz} of inertia matrix -->
+            <mesh name="monkey3" fileName="/home/donghok/Workspace/unity/raisimUnity/Assets/Resources/objects/Resources/monkey/monkey.obj"
+            inertia="1 1 1 0 0 0" com="0 0 0" mass="1" scale="1">
+                <pos x="-1.5" y="1.5" z="7"/>
+                <quat w="1" x="0" y="0" z="0"/>
+            </mesh>
+            <!-- intertia is a vector with {Ixx, Iyy, Izz, Ixy, Ixz, Iyz} of inertia matrix -->
+            <mesh name="monkey4" fileName="/home/donghok/Workspace/unity/raisimUnity/Assets/Resources/objects/Resources/monkey/monkey.obj"
+            inertia="1 1 1 0 0 0" com="0 0 0" mass="1" scale="1">
+                <pos x="1.5" y="-1.5" z="7"/>
+                <quat w="1" x="0" y="0" z="0"/>
+            </mesh>
+            <!-- intertia is a vector with {Ixx, Iyy, Izz, Ixy, Ixz, Iyz} of inertia matrix -->
+            <mesh name="bunny4" fileName="/home/donghok/Workspace/unity/raisimUnity/Assets/Resources/objects/Resources/bunny/bunny.obj"
+                  inertia="1 1 1 0 0 0" com="0 0 0" mass="1" scale="10">
+                <pos x="1.5" y="1.5" z="7"/>
+                <quat w="1" x="0" y="0" z="0"/>
+            </mesh>
+        </objects>
+    </world>
+</raisim>

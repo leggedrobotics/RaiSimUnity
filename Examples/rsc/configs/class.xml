@@ -1,0 +1,43 @@
+<raisim>
+    <!--Apperance classes: can be instantiated-->
+    <apperanceClass name="monkey" material="metal03">
+        <mesh fileName="/home/donghok/Workspace/unity/raisimUnity/Assets/Resources/objects/Resources/monkey/monkey.obj" scale="1"/>
+    </apperanceClass>
+    <apperance name="dot">
+        <sphere radius="0.1"/>
+    </apperance>
+
+    <objectClass name="balls">
+        <sphere name="sphere" radius="0.5" mass="1" material="default" collisionGroup="1" collisionMask="-1"/>
+    </objectClass>
+
+    <!--Simulation specification-->
+    <!--This specification is used to build a raisim world-->
+    <world>
+        <params>
+            <gravity x="0" y="0" z="-9.81"/>
+            <erp erp="0" erp2="0"/>
+        </params>
+        <objects>
+            <ground name="ground" zHeight="0" material="default" collisionMask="-1"/>
+            <!-- no appearance attribute: visualize normal sphere -->
+            <sphere name="sphere" radius="0.5" mass="1" material="default" collisionGroup="1" collisionMask="-1">
+                <pos x="-1" y="-1" z="5"/>
+                <quat w="1" x="0" y="0" z="0"/>
+            </sphere>
+            <!-- has appearance attribute: visualize monkey appearance -->
+            <box name="box" xLength="1" yLength="1" zLength="1" mass="1" apperance="monkey">
+                <pos x="-1" y="1" z="5"/>
+                <quat w="1" x="0" y="0" z="0"/>
+            </box>
+            <cylinder name="cylinder" radius="0.5" height="0.5" mass="1">
+                <pos x="1" y="-1" z="5"/>
+                <quat w="1" x="0" y="0" z="0"/>
+            </cylinder>
+            <capsule name="capsule" radius="0.5" height="1" mass="1">
+                <pos x="1" y="1" z="5"/>
+                <quat w="1" x="0" y="0" z="0"/>
+            </capsule>
+        </objects>
+    </world>
+</raisim>

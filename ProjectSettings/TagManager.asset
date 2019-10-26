@@ -6,7 +6,6 @@ TagManager:
   tags:
   - visual
   - collision
-  - visual,collision
   - contact
   layers:
   - Default

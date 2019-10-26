@@ -14,6 +14,7 @@ using System.Xml;
 using UnityEngine;
 using Quaternion = UnityEngine.Quaternion;
 using Vector3 = UnityEngine.Vector3;
+using SimpleFileBrowser;
 
 namespace raisimUnity
 {
@@ -76,7 +77,6 @@ namespace raisimUnity
     {
         public const string Visual = "visual";
         public const string Collision = "collision";
-        public const string VisualAndCollision = "visual,collision";
     }
 
     public class TcpRemote : MonoBehaviour
@@ -125,6 +125,9 @@ namespace raisimUnity
         private GameObject _objectsRoot;
         private GameObject _contactPointsRoot;
         private GameObject _contactForcesRoot;
+        
+        // object controller 
+        private ObjectController _objectController;
 
         // shaders
         private Shader _transparentShader;
@@ -150,19 +153,26 @@ namespace raisimUnity
             _contactPointsRoot = GameObject.Find("ContactPoints");
             _contactForcesRoot = GameObject.Find("ContactForces");
             
+            // object controller 
+            _objectController = new ObjectController();
+
             // shaders
             _standardShader = Shader.Find("Standard");
             _transparentShader = Shader.Find("RaiSim/Transparent");
             
             // materials
-            _planeMaterial = Resources.Load<Material>("materials/Tiles1");
-            _terrainMaterial = Resources.Load<Material>("materials/Ground1");
-            _defaultMaterialR = Resources.Load<Material>("materials/Plastic1");
-            _defaultMaterialG = Resources.Load<Material>("materials/Plastic2");
-            _defaultMaterialB = Resources.Load<Material>("materials/Plastic3");
+            _planeMaterial = Resources.Load<Material>("Tiles1");
+            _terrainMaterial = Resources.Load<Material>("Ground1");
+            _defaultMaterialR = Resources.Load<Material>("Plastic1");
+            _defaultMaterialG = Resources.Load<Material>("Plastic2");
+            _defaultMaterialB = Resources.Load<Material>("Plastic3");
             
             // xml 
             _xmlReader = new XmlReader();
+            
+            // resource directory
+            SimpleFileBrowser.FileBrowser.ShowLoadDialog(null, null);
+            
         }
 
         void Update()
@@ -291,7 +301,7 @@ namespace raisimUnity
                             var objFrame = new GameObject(subName);
                             objFrame.transform.SetParent(_objectsRoot.transform, false);
 
-                            string tag = VisualTag.VisualAndCollision;
+                            string tag = "";
                             if (visItem == 0)
                                 tag = VisualTag.Visual;
                             else if (visItem == 1)
@@ -308,7 +318,7 @@ namespace raisimUnity
                                 double sz = BitIO.GetData<double>(ref _buffer, ref offset);
 
                                 string meshFilePathInResources = Path.Combine(urdfDirName, Path.GetFileNameWithoutExtension(meshFileName));
-                                var mesh = ObjectController.CreateMesh(objFrame, meshFilePathInResources, (float)sx, (float)sy, (float)sz, meshFileExtension != ".dae");
+                                var mesh = _objectController.CreateMesh(objFrame, meshFilePathInResources, (float)sx, (float)sy, (float)sz, meshFileExtension != ".dae");
                                 mesh.tag = tag;
                             }
                             else
@@ -326,14 +336,14 @@ namespace raisimUnity
                                     case RsShapeType.RsBoxShape:
                                     {
                                         if (visParam.Count != 3) throw new Exception("Box Mesh error");
-                                        var box = ObjectController.CreateBox(objFrame, (float) visParam[0], (float) visParam[1], (float) visParam[2]);
+                                        var box = _objectController.CreateBox(objFrame, (float) visParam[0], (float) visParam[1], (float) visParam[2]);
                                         box.tag = tag;
                                     }
                                         break;
                                     case RsShapeType.RsCapsuleShape:
                                     {
                                         if (visParam.Count != 2) throw new Exception("Capsule Mesh error");
-                                        var capsule = ObjectController.CreateCapsule(objFrame, (float)visParam[0], (float)visParam[1]);
+                                        var capsule = _objectController.CreateCapsule(objFrame, (float)visParam[0], (float)visParam[1]);
                                         capsule.tag = tag;
                                     }
                                         break;
@@ -345,14 +355,14 @@ namespace raisimUnity
                                     case RsShapeType.RsCylinderShape:
                                     {
                                         if (visParam.Count != 2) throw new Exception("Cylinder Mesh error");
-                                        var cylinder = ObjectController.CreateCylinder(objFrame, (float)visParam[0], (float)visParam[1]);
+                                        var cylinder = _objectController.CreateCylinder(objFrame, (float)visParam[0], (float)visParam[1]);
                                         cylinder.tag = tag;
                                     }
                                         break;
                                     case RsShapeType.RsSphereShape:
                                     {
                                         if (visParam.Count != 1) throw new Exception("Sphere Mesh error");
-                                        var sphere = ObjectController.CreateSphere(objFrame, (float)visParam[0]);
+                                        var sphere = _objectController.CreateSphere(objFrame, (float)visParam[0]);
                                         sphere.tag = tag;
                                     }
                                         break;
@@ -378,13 +388,13 @@ namespace raisimUnity
                     float height = BitIO.GetData<float>(ref _buffer, ref offset);
                     var objFrame = new GameObject(objectIndex.ToString());
                     objFrame.transform.SetParent(_objectsRoot.transform, false);
-                    var plane = ObjectController.CreateHalfSpace(objFrame, height);
+                    var plane = _objectController.CreateHalfSpace(objFrame, height);
                     plane.tag = VisualTag.Collision;
 
                     // default visual object
                     if (appearances == null || !appearances.As<Appearances>().subAppearances.Any())
                     {
-                        var planeVis = ObjectController.CreateHalfSpace(objFrame, height);
+                        var planeVis = _objectController.CreateHalfSpace(objFrame, height);
                         planeVis.GetComponentInChildren<Renderer>().material = material;
                         planeVis.GetComponentInChildren<Renderer>().material.mainTextureScale = new Vector2(5, 5);
                         planeVis.tag = VisualTag.Visual;
@@ -428,13 +438,13 @@ namespace raisimUnity
 
                     var objFrame = new GameObject(objectIndex.ToString());
                     objFrame.transform.SetParent(_objectsRoot.transform, false);
-                    var terrain = ObjectController.CreateTerrain(objFrame, numSampleX, sizeX, centerX, numSampleY, sizeY, centerY, heights, false);
+                    var terrain = _objectController.CreateTerrain(objFrame, numSampleX, sizeX, centerX, numSampleY, sizeY, centerY, heights, false);
                     terrain.tag = VisualTag.Collision;
                     
                     // default visual object
                     if (appearances == null || !appearances.As<Appearances>().subAppearances.Any())
                     {
-                        var terrainVis = ObjectController.CreateTerrain(objFrame, numSampleX, sizeX, centerX, numSampleY, sizeY, centerY, heights);
+                        var terrainVis = _objectController.CreateTerrain(objFrame, numSampleX, sizeX, centerX, numSampleY, sizeY, centerY, heights);
                         terrainVis.GetComponentInChildren<Renderer>().material = material;
                         terrainVis.GetComponentInChildren<Renderer>().material.mainTextureScale = new Vector2(sizeX, sizeY);
                         terrainVis.tag = VisualTag.Visual;
@@ -478,7 +488,7 @@ namespace raisimUnity
                         case RsObejctType.RsSphereObject :
                         {
                             float radius = BitIO.GetData<float>(ref _buffer, ref offset);
-                            var sphere =  ObjectController.CreateSphere(objFrame, radius);
+                            var sphere =  _objectController.CreateSphere(objFrame, radius);
                             sphere.GetComponentInChildren<Renderer>().material = material;
                             sphere.tag = VisualTag.Collision;
                         }
@@ -489,7 +499,7 @@ namespace raisimUnity
                             float sx = BitIO.GetData<float>(ref _buffer, ref offset);
                             float sy = BitIO.GetData<float>(ref _buffer, ref offset);
                             float sz = BitIO.GetData<float>(ref _buffer, ref offset);
-                            var box = ObjectController.CreateBox(objFrame, sx, sy, sz);
+                            var box = _objectController.CreateBox(objFrame, sx, sy, sz);
                             box.GetComponentInChildren<Renderer>().material = material;
                             box.tag = VisualTag.Collision;
                         }
@@ -498,7 +508,7 @@ namespace raisimUnity
                         {
                             float radius = BitIO.GetData<float>(ref _buffer, ref offset);
                             float height = BitIO.GetData<float>(ref _buffer, ref offset);
-                            var cylinder = ObjectController.CreateCylinder(objFrame, radius, height);
+                            var cylinder = _objectController.CreateCylinder(objFrame, radius, height);
                             cylinder.GetComponentInChildren<Renderer>().material = material;
                             cylinder.tag = VisualTag.Collision;
                         }
@@ -507,7 +517,7 @@ namespace raisimUnity
                         {
                             float radius = BitIO.GetData<float>(ref _buffer, ref offset);
                             float height = BitIO.GetData<float>(ref _buffer, ref offset);
-                            var capsule = ObjectController.CreateCapsule(objFrame, radius, height);
+                            var capsule = _objectController.CreateCapsule(objFrame, radius, height);
                             capsule.GetComponentInChildren<Renderer>().material = material;
                             capsule.tag = VisualTag.Collision;
                         }
@@ -519,7 +529,7 @@ namespace raisimUnity
                             string meshFileName = Path.GetFileNameWithoutExtension(meshFile);
                             string meshFileExtension = Path.GetExtension(meshFile);
                             string directoryName = Path.GetFileName(Path.GetDirectoryName(meshFile));
-                            var mesh = ObjectController.CreateMesh(objFrame, 
+                            var mesh = _objectController.CreateMesh(objFrame, 
                                 Path.Combine(directoryName, meshFileName), scale, scale, scale, meshFileExtension != ".dae");
                             mesh.GetComponentInChildren<Renderer>().material = material;
                             mesh.tag = VisualTag.Collision;
@@ -537,28 +547,28 @@ namespace raisimUnity
                                 case AppearanceShapes.Sphere:
                                 {
                                     float radius = subapp.dimension.x;
-                                    var sphere =  ObjectController.CreateSphere(objFrame, radius);
+                                    var sphere =  _objectController.CreateSphere(objFrame, radius);
                                     sphere.GetComponentInChildren<Renderer>().material = material;
                                     sphere.tag = VisualTag.Visual;
                                 }
                                     break;
                                 case AppearanceShapes.Box:
                                 {
-                                    var box = ObjectController.CreateBox(objFrame, subapp.dimension.x, subapp.dimension.y, subapp.dimension.z);
+                                    var box = _objectController.CreateBox(objFrame, subapp.dimension.x, subapp.dimension.y, subapp.dimension.z);
                                     box.GetComponentInChildren<Renderer>().material = material;
                                     box.tag = VisualTag.Visual;
                                 }
                                     break;
                                 case AppearanceShapes.Cylinder:
                                 {
-                                    var cylinder = ObjectController.CreateCylinder(objFrame, subapp.dimension.x, subapp.dimension.y);
+                                    var cylinder = _objectController.CreateCylinder(objFrame, subapp.dimension.x, subapp.dimension.y);
                                     cylinder.GetComponentInChildren<Renderer>().material = material;
                                     cylinder.tag = VisualTag.Visual;
                                 }
                                     break;
                                 case AppearanceShapes.Capsule:
                                 {
-                                    var capsule = ObjectController.CreateCapsule(objFrame, subapp.dimension.x, subapp.dimension.y);
+                                    var capsule = _objectController.CreateCapsule(objFrame, subapp.dimension.x, subapp.dimension.y);
                                     capsule.GetComponentInChildren<Renderer>().material = material;
                                     capsule.tag = VisualTag.Visual;
                                 }
@@ -569,7 +579,7 @@ namespace raisimUnity
                                     string meshFileName = Path.GetFileNameWithoutExtension(meshFile);
                                     string meshFileExtension = Path.GetExtension(meshFile);
                                     string directoryName = Path.GetFileName(Path.GetDirectoryName(meshFile));
-                                    var mesh = ObjectController.CreateMesh(objFrame, Path.Combine(directoryName, meshFileName), subapp.dimension.x, subapp.dimension.x, subapp.dimension.x, 
+                                    var mesh = _objectController.CreateMesh(objFrame, Path.Combine(directoryName, meshFileName), subapp.dimension.x, subapp.dimension.x, subapp.dimension.x, 
                                         meshFileExtension != ".dae");
                                     mesh.GetComponentInChildren<Renderer>().material = material;
                                     mesh.tag = VisualTag.Visual;
@@ -685,14 +695,14 @@ namespace raisimUnity
                 double posZ = BitIO.GetData<double>(ref _buffer, ref offset);
                 
                 if(_showContactPoints)
-                    ObjectController.CreateContactMarker(_contactPointsRoot, (int)i, new Vector3((float)posX, (float)posY, (float)posZ));
+                    _objectController.CreateContactMarker(_contactPointsRoot, (int)i, new Vector3((float)posX, (float)posY, (float)posZ));
                 
                 double forceX = BitIO.GetData<double>(ref _buffer, ref offset);
                 double forceY = BitIO.GetData<double>(ref _buffer, ref offset);
                 double forceZ = BitIO.GetData<double>(ref _buffer, ref offset);
                 
                 if(_showContactForces)
-                    ObjectController.CreateContactForceMarker(_contactForcesRoot, (int)i, 
+                    _objectController.CreateContactForceMarker(_contactForcesRoot, (int)i, 
                         new Vector3((float)posX, (float)posY, (float)posZ), 
                         new Vector3((float)forceX, (float)forceY, (float)forceZ));
             }
@@ -919,28 +929,6 @@ namespace raisimUnity
                 }
             }
 
-            // visual and collision body (single body objects)
-            foreach (var obj in GameObject.FindGameObjectsWithTag(VisualTag.VisualAndCollision))
-            {
-                foreach (var collider in obj.GetComponentsInChildren<Collider>())
-                    collider.enabled = _showVisualBody || _showCollisionBody;
-                foreach (var renderer in obj.GetComponentsInChildren<Renderer>())
-                {
-                    renderer.enabled = _showVisualBody || _showCollisionBody;
-                    Color temp = renderer.material.color;
-                    if (_showContactForces || _showContactPoints)
-                    {
-                        renderer.material.shader = _transparentShader;
-                        renderer.material.color = new Color(temp.r, temp.g, temp.b, 0.2f);
-                    }
-                    else
-                    {
-                        renderer.material.shader = _standardShader;
-                        renderer.material.color = new Color(temp.r, temp.g, temp.b, 1.0f);
-                    }
-                }
-            }
-            
             // contact points
             foreach (Transform contact in _contactPointsRoot.transform)
             {

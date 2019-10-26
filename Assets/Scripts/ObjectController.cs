@@ -15,7 +15,14 @@ namespace raisimUnity
 {
     public class ObjectController
     {
-        public static GameObject CreateSphere(GameObject root, float radius)
+        private ResourceLoader _loader;
+        
+        public ObjectController()
+        {
+            _loader = new ResourceLoader(); 
+        }
+
+        public GameObject CreateSphere(GameObject root, float radius)
         {
             var sphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             sphere.transform.SetParent(root.transform, true);
@@ -23,7 +30,7 @@ namespace raisimUnity
             return sphere;
         }
 
-        public static GameObject CreateBox(GameObject root, float sx, float sy, float sz)
+        public GameObject CreateBox(GameObject root, float sx, float sy, float sz)
         {
             var box = GameObject.CreatePrimitive(PrimitiveType.Cube);
             box.transform.SetParent(root.transform, true);
@@ -31,7 +38,7 @@ namespace raisimUnity
             return box;
         }
 
-        public static GameObject CreateCylinder(GameObject root, float radius, float height)
+        public GameObject CreateCylinder(GameObject root, float radius, float height)
         {
             var cylinder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             cylinder.transform.SetParent(root.transform, true);
@@ -39,7 +46,7 @@ namespace raisimUnity
             return cylinder;
         }
 
-        public static GameObject CreateCapsule(GameObject root, float radius, float height)
+        public GameObject CreateCapsule(GameObject root, float radius, float height)
         {
             // Note.
             // raisim geometry of capsule: http://ode.org/wiki/index.php?title=Manual#Capsule_Class
@@ -50,7 +57,7 @@ namespace raisimUnity
             return capsule;
         }
 
-        public static GameObject CreateHalfSpace(GameObject root, float height)
+        public GameObject CreateHalfSpace(GameObject root, float height)
         {
             var plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
             plane.transform.SetParent(root.transform, true);
@@ -59,7 +66,7 @@ namespace raisimUnity
             return plane;
         }
         
-        public static GameObject CreateTerrain(GameObject root, 
+        public GameObject CreateTerrain(GameObject root, 
             ulong numSampleX, float sizeX, float centerX, ulong numSampleY, float sizeY, float centerY, 
             float[,] heights, bool recomputeNormal = true)
         {
@@ -219,7 +226,7 @@ namespace raisimUnity
             return terrain;
         }
 
-        public static GameObject CreateMesh(GameObject root, string meshFile, float sx, float sy, float sz, bool flipYz=false)
+        public GameObject CreateMesh(GameObject root, string meshFile, float sx, float sy, float sz, bool flipYz=false)
         {
             // meshFile is file name without file extension related to Resources directory
             // sx, sy, sz is scale 
@@ -244,7 +251,7 @@ namespace raisimUnity
             return mesh;
         }
 
-        public static GameObject CreateContactMarker(GameObject root, int index, Vector3 rsPos)
+        public GameObject CreateContactMarker(GameObject root, int index, Vector3 rsPos)
         {
             var marker = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             marker.transform.SetParent(root.transform, true);
@@ -259,7 +266,7 @@ namespace raisimUnity
             return marker;
         }
         
-        public static GameObject CreateContactForceMarker(GameObject root, int index, Vector3 rsPos, Vector3 force)
+        public GameObject CreateContactForceMarker(GameObject root, int index, Vector3 rsPos, Vector3 force)
         {
             var meshRes = Resources.Load("others/arrow") as GameObject;
             var marker = GameObject.Instantiate(meshRes);

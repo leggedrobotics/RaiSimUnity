@@ -1,0 +1,94 @@
+<raisim>
+    <!--Simulation specification-->
+    <!--This specification is used to build a raisim world-->
+    <world>
+        <params>
+            <gravity x="0" y="0" z="-9.81"/>
+            <erp erp="0" erp2="0"/>
+        </params>
+        <objects>
+            <ground name="ground" zHeight="0" material="default" collisionMask="-1"/>
+            <box name="box1" xLength="1" yLength="1" zLength="1" mass="1">
+                <pos x="-3" y="-3" z="6"/>
+            </box>
+            <sphere name="sphere1" radius="0.5" mass="1">
+                <pos x="-3" y="-3" z="8"/>
+            </sphere>
+            <capsule name="capsule1" radius="0.5" height="1" mass="1">
+                <pos x="-3" y="-3" z="10"/>
+            </capsule>
+            <cylinder name="cylinder1" radius="0.5" height="0.5" mass="1">
+                <pos x="-3" y="-1" z="6"/>
+            </cylinder>
+            <box name="box2" xLength="1" yLength="1" zLength="1" mass="1">
+                <pos x="-3" y="-1" z="8"/>
+            </box>
+            <sphere name="sphere2" radius="0.5" mass="1">
+                <pos x="-3" y="-1" z="10"/>
+            </sphere>
+            <capsule name="capsule2" radius="0.5" height="1" mass="1">
+                <pos x="-3" y="1" z="6"/>
+            </capsule>
+            <cylinder name="cylinder2" radius="0.5" height="0.5" mass="1">
+                <pos x="-3" y="1" z="8"/>
+            </cylinder>
+            <box name="box3" xLength="1" yLength="1" zLength="1" mass="1">
+                <pos x="-3" y="1" z="10"/>
+            </box>
+            <sphere name="sphere3" radius="0.5" mass="1">
+                <pos x="-1" y="-3" z="6"/>
+            </sphere>
+            <capsule name="capsule3" radius="0.5" height="1" mass="1">
+                <pos x="-1" y="-3" z="8"/>
+            </capsule>
+            <cylinder name="cylinder3" radius="0.5" height="0.5" mass="1">
+                <pos x="-1" y="-3" z="10"/>
+            </cylinder>
+            <box name="box4" xLength="1" yLength="1" zLength="1" mass="1">
+                <pos x="-1" y="-1" z="6"/>
+            </box>
+            <sphere name="sphere4" radius="0.5" mass="1">
+                <pos x="-1" y="-1" z="8"/>
+            </sphere>
+            <capsule name="capsule4" radius="0.5" height="1" mass="1">
+                <pos x="-1" y="-1" z="10"/>
+            </capsule>
+            <cylinder name="cylinder4" radius="0.5" height="0.5" mass="1">
+                <pos x="-1" y="1" z="6"/>
+            </cylinder>
+            <box name="box5" xLength="1" yLength="1" zLength="1" mass="1">
+                <pos x="-1" y="1" z="8"/>
+            </box>
+            <sphere name="sphere5" radius="0.5" mass="1">
+                <pos x="-1" y="1" z="10"/>
+            </sphere>
+            <capsule name="capsule5" radius="0.5" height="1" mass="1">
+                <pos x="1" y="-3" z="6"/>
+            </capsule>
+            <cylinder name="cylinder5" radius="0.5" height="0.5" mass="1">
+                <pos x="1" y="-3" z="8"/>
+            </cylinder>
+            <box name="box6" xLength="1" yLength="1" zLength="1" mass="1">
+                <pos x="1" y="-3" z="10"/>
+            </box>
+            <sphere name="sphere6" radius="0.5" mass="1">
+                <pos x="1" y="-1" z="6"/>
+            </sphere>
+            <capsule name="capsule6" radius="0.5" height="1" mass="1">
+                <pos x="1" y="-1" z="8"/>
+            </capsule>
+            <cylinder name="cylinder6" radius="0.5" height="0.5" mass="1">
+                <pos x="1" y="-1" z="10"/>
+            </cylinder>
+            <box name="box7" xLength="1" yLength="1" zLength="1" mass="1">
+                <pos x="1" y="1" z="6"/>
+            </box>
+            <sphere name="sphere7" radius="0.5" mass="1">
+                <pos x="1" y="1" z="8"/>
+            </sphere>
+            <capsule name="capsule7" radius="0.5" height="1" mass="1">
+                <pos x="1" y="1" z="10"/>
+            </capsule>
+        </objects>
+    </world>
+</raisim>
