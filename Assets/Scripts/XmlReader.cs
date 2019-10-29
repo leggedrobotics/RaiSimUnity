@@ -1,6 +1,9 @@
+/*
+ * Author: Dongho Kang (kangd@ethz.ch)
+ */
+
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Xml;
 using UnityEngine;
 

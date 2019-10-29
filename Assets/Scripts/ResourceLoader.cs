@@ -1,18 +1,23 @@
+/*
+ * Author: Dongho Kang (kangd@ethz.ch)
+ */
+
 using System.Collections.Generic;
 using System.IO;
+using Collada141;
 
 namespace raisimUnity
 {
     public class ResourceLoader
     {
-        private List<string> resourceDirs;
+        private List<string> _resourceDirs;
 
         public ResourceLoader()
         {
-            resourceDirs = new List<string>();
+            _resourceDirs = new List<string>();
             
             // TODO just for test 
-            resourceDirs.Add("/home/donghok/Workspace/unity/raisimUnity/Examples/rsc");
+            _resourceDirs.Add("/home/donghok/Workspace/unity/raisimUnity/Examples/rsc");
         }
 
         public string RetrieveMeshPath(string meshDirPathInServer, string meshName)
@@ -34,7 +39,7 @@ namespace raisimUnity
             // meshName: .../meshes/anymal_base.dae
             //
             // curr = urdf    parent = alma    grandParent = robot
-            foreach (var dir in resourceDirs)
+            foreach (var dir in _resourceDirs)
             {
                 var meshPath = Path.Combine(dir, grandParent, parent, curr, meshName);
                 if (File.Exists(meshPath))
@@ -50,7 +55,7 @@ namespace raisimUnity
             // meshName: .../meshes/anymal_base.dae
             //
             // curr = urdf    parent = alma    
-            foreach (var dir in resourceDirs)
+            foreach (var dir in _resourceDirs)
             {
                 var meshPath = Path.Combine(dir, parent, curr, meshName);
                 if (File.Exists(meshPath))
@@ -66,7 +71,7 @@ namespace raisimUnity
             // meshName: anymal_base.dae
             //
             // curr = anymal
-            foreach (var dir in resourceDirs)
+            foreach (var dir in _resourceDirs)
             {
                 var meshPath = Path.Combine(dir, curr, meshName);
                 if (File.Exists(meshPath))
@@ -78,6 +83,5 @@ namespace raisimUnity
             // couldn't find mesh from resource directories
             return null;
         }
-
     }
 }

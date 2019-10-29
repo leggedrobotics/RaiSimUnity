@@ -3,6 +3,9 @@
  */
 
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using Collada141;
 using Dummiesman;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -14,10 +17,12 @@ namespace raisimUnity
     public class ObjectController
     {
         private OBJLoader _objLoader;
+        private ColladaLoader _colladaLoader;
         
         public ObjectController()
         {
             _objLoader = new OBJLoader(); 
+            _colladaLoader = new ColladaLoader();
         }
 
         public GameObject CreateSphere(GameObject root, float radius)
@@ -229,7 +234,24 @@ namespace raisimUnity
             // meshFile is file name without file extension related to Resources directory
             // sx, sy, sz is scale 
 
-            var mesh = _objLoader.Load(meshFile);
+            GameObject mesh = null;
+
+            string fileExtension = Path.GetExtension(meshFile);
+            switch (fileExtension)
+            {
+                case ".dae" : 
+                    mesh = _colladaLoader.Load(meshFile);
+                    break;
+                case ".obj" :
+                    mesh = _objLoader.Load(meshFile);
+                    break;
+                case ".stl" :
+                    break;
+                default :
+                    // TODO Notsupported Mesh type 
+                    break;
+            }
+            
             if (mesh == null)
             {
                 // TODO error

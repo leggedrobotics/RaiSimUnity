@@ -1,3 +1,7 @@
+/*
+ * Author: Dongho Kang (kangd@ethz.ch)
+ */
+
 using System;
 using System.Collections.Generic;
 using System.Text;
