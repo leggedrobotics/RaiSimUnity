@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace Collada141
 {
@@ -44,7 +45,7 @@ namespace Collada141
                         // converted as vector3 
                         List<Vector3> vertexList = new List<Vector3>();
                         List<Vector3> normalList = new List<Vector3>();
-                        List<int> idxList = new List<int>();
+                        int[] idxList = new int[0];
                         
                         var mesh = geom.Item as mesh;
                         if (mesh == null)
@@ -82,7 +83,6 @@ namespace Collada141
                         // triangle or polylist 
                         foreach (var meshItem in mesh.Items)
                         {
-                            // indices
                             int indexStride = 1;
                             int posOffset = 0;
                             int normalOffset = 0;
@@ -91,6 +91,9 @@ namespace Collada141
                             // source name
                             string positionSourceName = "";
                             string normalSourceName = "";
+                            
+                            // current indices
+                            List<int> currIdxList = new List<int>();
                             
                             // triangles
                             if (meshItem is triangles)
@@ -113,12 +116,12 @@ namespace Collada141
                                     if (input.semantic == "VERTEX")
                                     {
                                         VertexSources vs = vertexSourceDict[sourceName];
-                                        if (vs.positionId != null && vs.positionId.Length > 0)
+                                        if (!string.IsNullOrEmpty(vs.positionId))
                                         {
                                             positionSourceName = vs.positionId;
                                             posOffset = offset;
                                         }
-                                        else if (vs.normalId != null && vs.normalId.Length > 0)
+                                        else if (string.IsNullOrEmpty(vs.normalId))
                                         {
                                             normalSourceName = vs.normalId;
                                             normalOffset = offset;
@@ -134,7 +137,7 @@ namespace Collada141
                                 numIndices = count * 3;
                                 
                                 // parse index from p
-                                idxList = triangles.p.Split(' ').Select(Int32.Parse).ToList();
+                                currIdxList = triangles.p.Split(' ').Select(Int32.Parse).ToList();
                             }
 
                             // vertex
@@ -156,8 +159,8 @@ namespace Collada141
 
                             for (int i = 0; i < (int)numIndices; i++)
                             {
-                                int posIndex = idxList[i * indexStride + posOffset];
-                                int normalIndex = idxList[i * indexStride + normalOffset];
+                                int posIndex = currIdxList[i * indexStride + posOffset];
+                                int normalIndex = currIdxList[i * indexStride + normalOffset];
                                 
                                 vertexList.Add(new Vector3(
                                     (float)positionFloatArray[posIndex*3],
@@ -184,15 +187,19 @@ namespace Collada141
                                 }
                             }
 
+                            // indices
+                            int curNumIndices = idxList.Length;
+                            Array.Resize(ref idxList, curNumIndices +  numIndices);
                             for (int i = 0; i < numIndices; i++)
                             {
-                                idxList.Add(i + indexOffset);
+                                idxList[curNumIndices + i] = i + indexOffset;
                             }
                         }
-                        
+
                         // Create sub-gameobject
                         var unitySubObj = new GameObject(geom.id);
                         unitySubObj.transform.SetParent(unityObj.transform, true);
+                        
                         if (model.asset.up_axis == UpAxisType.Z_UP)
                             unitySubObj.transform.localRotation = new Quaternion(-0.7071f, 0, 0, 0.7071f);
                         
@@ -200,7 +207,7 @@ namespace Collada141
                         Mesh unityMesh = new Mesh();
                         unityMesh.vertices = vertexList.ToArray();
                         unityMesh.normals = normalList.ToArray();
-                        unityMesh.triangles = idxList.ToArray();
+                        unityMesh.triangles = idxList;
                         unitySubObj.AddComponent<MeshFilter>();
                         unitySubObj.AddComponent<MeshRenderer>();
                         unitySubObj.AddComponent<MeshCollider>();
