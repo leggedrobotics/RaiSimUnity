@@ -193,6 +193,8 @@ namespace Collada141
                         // Create sub-gameobject
                         var unitySubObj = new GameObject(geom.id);
                         unitySubObj.transform.SetParent(unityObj.transform, true);
+                        if (model.asset.up_axis == UpAxisType.Z_UP)
+                            unitySubObj.transform.localRotation = new Quaternion(-0.7071f, 0, 0, 0.7071f);
                         
                         // Add mesh to sub-gameobject
                         Mesh unityMesh = new Mesh();
