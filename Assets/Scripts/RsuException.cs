@@ -12,6 +12,12 @@ namespace raisimUnity
         }
     }
 
+    public class RsuUpdateException : Exception
+    {
+        public RsuUpdateException(string message): base(message) {
+        }
+    }
+
     public class RsuFfmepgException : Exception
     {
         public RsuFfmepgException(string message): base(message) {

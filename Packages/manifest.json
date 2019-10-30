@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "co.parabox.stl": "https://github.com/karl-/pb_Stl.git",
     "com.unity.collab-proxy": "1.2.16",
     "com.unity.ext.nunit": "1.0.0",
     "com.unity.ide.rider": "1.1.2-preview.2",
@@ -40,5 +41,11 @@
     "com.unity.modules.vr": "1.0.0",
     "com.unity.modules.wind": "1.0.0",
     "com.unity.modules.xr": "1.0.0"
+  },
+  "lock": {
+    "co.parabox.stl": {
+      "hash": "091eb79b91065329d4c87eb0894c58fc7a5e3dcf",
+      "revision": "HEAD"
+    }
   }
 }
