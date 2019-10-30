@@ -20,6 +20,11 @@ namespace raisimUnity
             _resourceDirs.Add("/home/donghok/Workspace/unity/raisimUnity/Examples/rsc");
         }
 
+        public void AddResourceDirectory()
+        {
+//            _resourceDirs.Add("/home/donghok/Workspace/unity/raisimUnity/Examples/rsc");
+        }
+
         public string RetrieveMeshPath(string meshDirPathInServer, string meshName)
         {
             // find a full mesh path from client side.

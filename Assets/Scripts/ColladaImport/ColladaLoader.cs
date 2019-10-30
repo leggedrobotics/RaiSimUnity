@@ -176,47 +176,75 @@ namespace Collada141
                             {
                                 int posIndex = currIdxList[i * indexStride + posOffset];
                                 int normalIndex = currIdxList[i * indexStride + normalOffset];
-                                
-                                vertexList.Add(new Vector3(
-                                    (float)positionFloatArray[posIndex*3],
-                                    (float)positionFloatArray[posIndex*3+1],
-                                    (float)positionFloatArray[posIndex*3+2]
-                                ));
 
-                                if (normalFloatArray.Count > 0 && (normalFloatArray.Count > normalIndex))
+                                if (model.asset.up_axis == UpAxisType.Y_UP)
                                 {
-                                    normalList.Add(new Vector3(
-                                        (float)normalFloatArray[normalIndex*3],
-                                        (float)normalFloatArray[normalIndex*3+1],
-                                        (float)normalFloatArray[normalIndex*3+2]
-                                    ));  
-                                }
-                                else
-                                {
-                                    // Add dummy normal for debugging
-                                    normalList.Add(new Vector3(
-                                        0,
-                                        0,
-                                        0
+                                    vertexList.Add(new Vector3(
+                                        (float)positionFloatArray[posIndex*3],
+                                        (float)positionFloatArray[posIndex*3+1],
+                                        (float)positionFloatArray[posIndex*3+2]
                                     ));
+                                    
+                                    if (normalFloatArray.Count > 0 && (normalFloatArray.Count > normalIndex))
+                                    {
+                                        normalList.Add(new Vector3(
+                                            (float)normalFloatArray[normalIndex*3],
+                                            (float)normalFloatArray[normalIndex*3+1],
+                                            (float)normalFloatArray[normalIndex*3+2]
+                                        ));  
+                                    }
+                                    else
+                                    {
+                                        // Add dummy normal for debugging
+                                        normalList.Add(new Vector3(
+                                            0,
+                                            0,
+                                            0
+                                        ));
+                                    }
+                                }
+                                else if (model.asset.up_axis == UpAxisType.Z_UP)
+                                {
+                                    vertexList.Add(new Vector3(
+                                        -(float)positionFloatArray[posIndex*3],
+                                        (float)positionFloatArray[posIndex*3+2],
+                                        -(float)positionFloatArray[posIndex*3+1]
+                                    ));
+                                    
+                                    if (normalFloatArray.Count > 0 && (normalFloatArray.Count > normalIndex))
+                                    {
+                                        normalList.Add(new Vector3(
+                                            -(float)normalFloatArray[normalIndex*3],
+                                            (float)normalFloatArray[normalIndex*3+2],
+                                            -(float)normalFloatArray[normalIndex*3+1]
+                                        ));  
+                                    }
+                                    else
+                                    {
+                                        // Add dummy normal for debugging
+                                        normalList.Add(new Vector3(
+                                            0,
+                                            0,
+                                            0
+                                        ));
+                                    }
                                 }
                             }
 
                             // indices
                             int curNumIndices = idxList.Length;
                             Array.Resize(ref idxList, curNumIndices +  numIndices);
-                            for (int i = 0; i < numIndices; i++)
+                            for (int i = 0; i < numIndices; i+=3)
                             {
-                                idxList[curNumIndices + i] = i + indexOffset;
+                                idxList[curNumIndices + i+0] = i+2 + indexOffset;
+                                idxList[curNumIndices + i+1] = i+1 + indexOffset;
+                                idxList[curNumIndices + i+2] = i+0 + indexOffset;
                             }
                         }
 
                         // Create sub-gameobject
                         var unitySubObj = new GameObject(geom.id);
                         unitySubObj.transform.SetParent(unityObj.transform, true);
-                        
-                        if (model.asset.up_axis == UpAxisType.Z_UP)
-                            unitySubObj.transform.localRotation = new Quaternion(-0.7071f, 0, 0, 0.7071f);
                         
                         // Add mesh to sub-gameobject
                         Mesh unityMesh = new Mesh();
