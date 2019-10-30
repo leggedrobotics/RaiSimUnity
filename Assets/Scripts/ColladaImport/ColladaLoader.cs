@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Assertions;
 
 namespace Collada141
 {
@@ -24,7 +23,13 @@ namespace Collada141
         {
             COLLADA model = COLLADA.Load(inputFile);
             GameObject unityObj = new GameObject("mesh");
-
+            
+            // (material id, effect id)
+            Dictionary<string, string> materials = new Dictionary<string, string>();
+            
+            // (effect id, material)
+            Dictionary<string, Material> effects = new Dictionary<string, Material>(); 
+            
             // Iterate on libraries
             foreach (var item in model.Items)
             {
@@ -46,6 +51,9 @@ namespace Collada141
                         List<Vector3> vertexList = new List<Vector3>();
                         List<Vector3> normalList = new List<Vector3>();
                         int[] idxList = new int[0];
+                        
+                        // material id
+                        string materialId = "";
                         
                         var mesh = geom.Item as mesh;
                         if (mesh == null)
@@ -138,6 +146,13 @@ namespace Collada141
                                 
                                 // parse index from p
                                 currIdxList = triangles.p.Split(' ').Select(Int32.Parse).ToList();
+                                
+                                // material
+                                string materialName = triangles.material;
+                                if (!string.IsNullOrEmpty(materialName) && materials.ContainsKey(materialName))
+                                {
+                                    materialId = materialName;
+                                }
                             }
 
                             // vertex
@@ -170,11 +185,11 @@ namespace Collada141
 
                                 if (normalFloatArray.Count > 0 && (normalFloatArray.Count > normalIndex))
                                 {
-                                  normalList.Add(new Vector3(
-                                      (float)normalFloatArray[normalIndex*3],
-                                      (float)normalFloatArray[normalIndex*3+1],
-                                      (float)normalFloatArray[normalIndex*3+2]
-                                      ));  
+                                    normalList.Add(new Vector3(
+                                        (float)normalFloatArray[normalIndex*3],
+                                        (float)normalFloatArray[normalIndex*3+1],
+                                        (float)normalFloatArray[normalIndex*3+2]
+                                    ));  
                                 }
                                 else
                                 {
@@ -208,23 +223,61 @@ namespace Collada141
                         unityMesh.vertices = vertexList.ToArray();
                         unityMesh.normals = normalList.ToArray();
                         unityMesh.triangles = idxList;
+                        
                         unitySubObj.AddComponent<MeshFilter>();
                         unitySubObj.AddComponent<MeshRenderer>();
                         unitySubObj.AddComponent<MeshCollider>();
-
                         unitySubObj.GetComponent<MeshFilter>().mesh = unityMesh;
-//                        unityObj.GetComponent<MeshRenderer>().material =  temp.GetComponent<MeshRenderer>().sharedMaterial;
+                        
+                        if(!string.IsNullOrEmpty(materialId) && effects.ContainsKey(materials[materialId]))
+                            unitySubObj.GetComponent<Renderer>().material = effects[materials[materialId]];
+                    }
+                }
+                else if (item is library_effects)
+                {
+                    // effect libraries
+                    var lib_effect = item as library_effects;
+                    foreach (var eff in lib_effect.effect)
+                    {
+                        var name = eff.id;
+                        if (eff.Items == null) continue; 
+
+                        foreach (var it in eff.Items)
+                        {
+                            var profile = it as effectFx_profile_abstractProfile_COMMON;
+                            var phong = profile.technique.Item as effectFx_profile_abstractProfile_COMMONTechniquePhong;
+                            
+                            var diffuse = phong.diffuse.Item as common_color_or_texture_typeColor;
+
+                            if (diffuse != null)
+                            {
+                                Material material = new Material(Shader.Find("Diffuse"));
+                                Color color = new Color(
+                                    (float)diffuse.Values[0],
+                                    (float)diffuse.Values[1],
+                                    (float)diffuse.Values[2],
+                                    (float)diffuse.Values[3]
+                                );
+                                material.color = color;
+                            
+                                effects.Add(name, material);
+                            }
+                        }
                     }
                 }
                 else if (item is library_materials)
                 {
                     // material libraries
-                    
+                    var material = item as library_materials;
+
+                    foreach (var mat in material.material)
+                    {
+                        materials.Add(mat.id, mat.instance_effect.url.Substring(1));
+                    }
                 }
             }
             
             return unityObj;
         }
-
     }
 }
