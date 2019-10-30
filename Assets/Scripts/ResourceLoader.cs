@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Collada141;
+using UnityEngine;
 
 namespace raisimUnity
 {
@@ -12,14 +13,39 @@ namespace raisimUnity
     {
         private List<string> _resourceDirs;
 
+        private const string _keyNoRscDir = "NoRscDir";
+        private const string _keyRscDir = "RscDir";
+
         public ResourceLoader()
-        {
+        {  
             _resourceDirs = new List<string>();
         }
 
         public void AddResourceDirectory(string path)
         {
             _resourceDirs.Add(path);
+        }
+
+        public void LoadResourceDirectories()
+        {
+            int numberResourceDirs = 0;
+            if (PlayerPrefs.HasKey(_keyNoRscDir))
+                numberResourceDirs= PlayerPrefs.GetInt(_keyNoRscDir);
+            
+            for (int i = 0; i < numberResourceDirs; i++)
+            {
+                string path = PlayerPrefs.GetString(_keyRscDir+i);
+                _resourceDirs.Add(path);
+            }
+        }
+
+        public void SaveResourceDirectories()
+        {
+            PlayerPrefs.SetInt(_keyNoRscDir, _resourceDirs.Count);
+            for(int i = 0; i < _resourceDirs.Count; i++)
+            {
+                PlayerPrefs.SetString(_keyRscDir+i, _resourceDirs[i]);
+            }
         }
 
         public void RemoveResourceDirectory()

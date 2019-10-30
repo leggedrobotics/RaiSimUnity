@@ -170,6 +170,7 @@ namespace raisimUnity
             
             // resource section 
             {
+                _remote.ResourceLoader.LoadResourceDirectories();
                 RefereshScrollResources();
 
                 var addButton = GameObject.Find(_ButtonAddResourceName).GetComponent<Button>();

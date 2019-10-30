@@ -886,6 +886,9 @@ namespace raisimUnity
             // close tcp client
             if (_stream != null) _stream.Close();
             if (_client != null) _client.Close();
+            
+            // save preference
+            _loader.SaveResourceDirectories();
         }
 
         public void ShowOrHideObjects()
