@@ -177,9 +177,8 @@ namespace raisimUnity
                     SimpleFileBrowser.FileBrowser.ShowLoadDialog((path) =>
                     {
                         _remote.ResourceLoader.AddResourceDirectory(path);
+                        RefereshScrollResources();
                     }, null, true);
-                    
-                    RefereshScrollResources();
                 });
             }
         }

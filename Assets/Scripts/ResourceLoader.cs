@@ -15,9 +15,6 @@ namespace raisimUnity
         public ResourceLoader()
         {
             _resourceDirs = new List<string>();
-            
-            // TODO just for test 
-            _resourceDirs.Add("/home/donghok/Workspace/unity/raisimUnity/Examples/rsc");
         }
 
         public void AddResourceDirectory(string path)
