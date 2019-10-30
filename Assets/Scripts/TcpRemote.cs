@@ -83,7 +83,16 @@ namespace raisimUnity
     {
         // prevent repeated instances
         private static TcpRemote instance;
-        private TcpRemote() {}
+
+        private TcpRemote()
+        {
+            // xml 
+            _xmlReader = new XmlReader();
+            
+            // resource loader
+            _loader = new ResourceLoader();
+        }
+        
         public static TcpRemote Instance
         {
             get 
@@ -169,15 +178,6 @@ namespace raisimUnity
             _defaultMaterialR = Resources.Load<Material>("Plastic1");
             _defaultMaterialG = Resources.Load<Material>("Plastic2");
             _defaultMaterialB = Resources.Load<Material>("Plastic3");
-            
-            // xml 
-            _xmlReader = new XmlReader();
-            
-            // resource loader
-            _loader = new ResourceLoader(); 
-
-            SimpleFileBrowser.FileBrowser.ShowLoadDialog(null, null);
-            
         }
 
         void Update()
@@ -993,6 +993,11 @@ namespace raisimUnity
         public bool TcpConnected
         {
             get => _client != null && _client.Connected;
+        }
+
+        public ResourceLoader ResourceLoader
+        {
+            get { return _loader; }
         }
     }
 }

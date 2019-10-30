@@ -6,6 +6,9 @@ using System;
 using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.UI;
+using UnityEngine.UIElements;
+using Button = UnityEngine.UI.Button;
+using Toggle = UnityEngine.UI.Toggle;
 
 namespace raisimUnity
 {
@@ -21,9 +24,13 @@ namespace raisimUnity
         private const string _ButtonConnectName = "ButtonConnect";
         private const string _ButtonScreenshotName = "ButtonScreenshot";
         private const string _ButtonRecordName = "ButtonRecord";
+        private const string _ButtonAddResourceName = "ButtonAddRsc";
         
         // Dropdown 
         private const string _DropdownBackgroundName = "DropdownBackground";
+        
+        // Scroll View
+        private const string _ScrollViewResourceDirs = "ScrollResources";
         
         // Backgrounds
         private Material _daySky;
@@ -159,6 +166,53 @@ namespace raisimUnity
                     DynamicGI.UpdateEnvironment();
                 });
             }
+            
+            // resource section 
+            {
+                RefereshScrollResources();
+
+                var addButton = GameObject.Find(_ButtonAddResourceName).GetComponent<Button>();
+                addButton.onClick.AddListener(() =>
+                {
+                    SimpleFileBrowser.FileBrowser.ShowLoadDialog((path) =>
+                    {
+                        _remote.ResourceLoader.AddResourceDirectory(path);
+                    }, null, true);
+                    
+                    RefereshScrollResources();
+                });
+            }
+        }
+
+        private void RefereshScrollResources()
+        {
+            var scrollRect = GameObject.Find(_ScrollViewResourceDirs).GetComponent<ScrollRect>();
+            
+            // remove every text
+            var uiContent = FindContent(scrollRect);
+            foreach (Transform child in uiContent)
+            {
+                Destroy(child.gameObject);
+            }
+
+            // referesh text
+            foreach (var dir in _remote.ResourceLoader.ResourceDirs)
+            {
+                DefaultControls.Resources tempResource = new DefaultControls.Resources();
+                GameObject newText = DefaultControls.CreateText(tempResource);
+                newText.AddComponent<LayoutElement>();
+                newText.transform.SetParent(uiContent);
+                newText.GetComponent<Text>().text = dir;
+            }
+        }
+
+        private RectTransform FindContent (ScrollRect ScrollViewObject) {
+            RectTransform RetVal = null;
+            Transform[] Temp = ScrollViewObject.GetComponentsInChildren<Transform>();
+            foreach (Transform Child in Temp) {
+                if (Child.name == "Content") { RetVal = Child.gameObject.GetComponent<RectTransform>(); }
+            }
+            return RetVal;
         }
         
         private void ChangeBackground(Dropdown dropdown)

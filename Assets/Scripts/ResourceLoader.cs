@@ -20,9 +20,9 @@ namespace raisimUnity
             _resourceDirs.Add("/home/donghok/Workspace/unity/raisimUnity/Examples/rsc");
         }
 
-        public void AddResourceDirectory()
+        public void AddResourceDirectory(string path)
         {
-//            _resourceDirs.Add("/home/donghok/Workspace/unity/raisimUnity/Examples/rsc");
+            _resourceDirs.Add(path);
         }
 
         public string RetrieveMeshPath(string meshDirPathInServer, string meshName)
@@ -87,6 +87,11 @@ namespace raisimUnity
             
             // couldn't find mesh from resource directories
             return null;
+        }
+
+        public List<string> ResourceDirs
+        {
+            get { return _resourceDirs; }
         }
     }
 }
