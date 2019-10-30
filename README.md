@@ -43,3 +43,12 @@ We strongly recommend to use JetBrain's Rider IDE and Unity Rider Editor package
 - See [Wiki doc](https://github.com/eastskykang/raisimUnity/wiki/Unity-with-Rider) for more details.
 - See [Wiki doc](https://github.com/eastskykang/raisimUnity/wiki/Creating-a-material-from-texture-files) to create new material from texture files.
 
+## Dependencies
+
+3rd party libraries, packages and assets are already included in the project. 
+This is just for listing the source.
+
+- [pb_Stl](https://github.com/karl-/pb_Stl)
+- C# Collada model 
+- [OBJImport](https://assetstore.unity.com/packages/tools/modeling/runtime-obj-importer-49547)
+- [SimpleFileBrowser](https://assetstore.unity.com/packages/tools/gui/runtime-file-browser-113006)
