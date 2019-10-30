@@ -24,7 +24,8 @@ namespace raisimUnity
         private const string _ButtonConnectName = "ButtonConnect";
         private const string _ButtonScreenshotName = "ButtonScreenshot";
         private const string _ButtonRecordName = "ButtonRecord";
-        private const string _ButtonAddResourceName = "ButtonAddRsc";
+        private const string _ButtonAddResourceName = "ButtonAddResource";
+        private const string _ButtonDeleteResourceName = "ButtonDeleteResource";
         
         // Dropdown 
         private const string _DropdownBackgroundName = "DropdownBackground";
@@ -180,6 +181,13 @@ namespace raisimUnity
                         RefereshScrollResources();
                     }, null, true);
                 });
+                
+                var removeButton = GameObject.Find(_ButtonDeleteResourceName).GetComponent<Button>();
+                removeButton.onClick.AddListener(() =>
+                {
+                    _remote.ResourceLoader.RemoveResourceDirectory();
+                    RefereshScrollResources();
+                });
             }
         }
 
@@ -202,6 +210,7 @@ namespace raisimUnity
                 newText.AddComponent<LayoutElement>();
                 newText.transform.SetParent(uiContent);
                 newText.GetComponent<Text>().text = dir;
+                newText.GetComponent<Text>().alignment = TextAnchor.MiddleLeft;
             }
         }
 

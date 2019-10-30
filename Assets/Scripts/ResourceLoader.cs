@@ -22,6 +22,11 @@ namespace raisimUnity
             _resourceDirs.Add(path);
         }
 
+        public void RemoveResourceDirectory()
+        {
+            _resourceDirs.RemoveAt(_resourceDirs.Count - 1);
+        }
+
         public string RetrieveMeshPath(string meshDirPathInServer, string meshName)
         {
             // find a full mesh path from client side.
