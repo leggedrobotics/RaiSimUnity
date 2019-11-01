@@ -183,7 +183,7 @@ namespace Collada141
                         // converted as vector3 
                         List<Vector3> vertexList = new List<Vector3>();
                         List<Vector3> normalList = new List<Vector3>();
-                        int[] idxList = new int[0];
+                        List<int[]> idxList = new List<int[]>();
 
                         // submesh 
                         int numSubmesh = 0;
@@ -229,6 +229,7 @@ namespace Collada141
                             int posOffset = 0;
                             int normalOffset = 0;
                             int numIndices = 0;
+                            int curNumIndices = 0;
                             
                             // source name
                             string positionSourceName = "";
@@ -347,22 +348,26 @@ namespace Collada141
                             }
 
                             // indices
-                            int curNumIndices = idxList.Length;
-                            Array.Resize(ref idxList, curNumIndices +  numIndices);
+                            int[] currIndices = new int[numIndices];
                             for (int i = 0; i < numIndices; i+=3)
                             {
-                                idxList[curNumIndices + i+0] = i+2 + indexOffset;
-                                idxList[curNumIndices + i+1] = i+1 + indexOffset;
-                                idxList[curNumIndices + i+2] = i+0 + indexOffset;
+                                currIndices[i+0] = i+2 + indexOffset;
+                                currIndices[i+1] = i+1 + indexOffset;
+                                currIndices[i+2] = i+0 + indexOffset;
                             }
+                            idxList.Add(currIndices);
+                            curNumIndices += numIndices;
                         }
 
                         // Add mesh to sub-gameobject
                         Mesh unityMesh = new Mesh();
                         unityMesh.vertices = vertexList.ToArray();
                         unityMesh.normals = normalList.ToArray();
-                        unityMesh.triangles = idxList;
                         unityMesh.subMeshCount = numSubmesh;
+                        for (int i = 0; i < idxList.Count; i++)
+                        {
+                            unityMesh.SetTriangles(idxList[i], i);
+                        }
 
                         geomDict.Add(geom.id, unityMesh);
                         geomMatDict.Add(geom.id, subMaterials);
