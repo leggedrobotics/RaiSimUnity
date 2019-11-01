@@ -6,9 +6,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using raisimUnity;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Collada141
 {
@@ -23,7 +25,12 @@ namespace Collada141
         public GameObject Load(string inputFile)
         {
             COLLADA model = COLLADA.Load(inputFile);
+            
+            // parent directory 
+            string parentDir = Directory.GetParent(inputFile).FullName;
 
+            // (image id, texture)
+            Dictionary<string, Texture2D> textureDict = new Dictionary<string, Texture2D>();
             // (effect id, material)
             Dictionary<string, Material> effectDict = new Dictionary<string, Material>();
             // (material id, effect id)
@@ -40,7 +47,29 @@ namespace Collada141
             // Iterate on libraries
             foreach (var item in model.Items)
             {
-                if (item is library_effects)
+                if (item is library_images)
+                {
+                    // image libraries -> effectDict
+                    var lib_image = item as library_images;
+                    if(lib_image == null || lib_image.image == null)
+                        continue;
+
+                    foreach (var image in lib_image.image)
+                    {
+                        var imagePath = Path.Combine(parentDir, image.Item as string);
+                        
+                        // load image
+                        byte[] byteArray = File.ReadAllBytes(imagePath);
+                        Texture2D texture = new Texture2D(2,2);
+                        bool isLoaded = texture.LoadImage(byteArray);
+                        if (!isLoaded)
+                        {
+                            // TODO error
+                        }
+                        textureDict.Add(image.id, texture);
+                    }
+                }
+                else if (item is library_effects)
                 {
                     // effect libraries -> effectDict
                     var lib_effect = item as library_effects;
@@ -55,22 +84,72 @@ namespace Collada141
                         foreach (var it in eff.Items)
                         {
                             var profile = it as effectFx_profile_abstractProfile_COMMON;
-                            var phong = profile.technique.Item as effectFx_profile_abstractProfile_COMMONTechniquePhong;
-                            
-                            var diffuse = phong.diffuse.Item as common_color_or_texture_typeColor;
 
-                            if (diffuse != null)
-                            {
-                                Material material = new Material(Shader.Find("Diffuse"));
-                                Color color = new Color(
-                                    (float)diffuse.Values[0],
-                                    (float)diffuse.Values[1],
-                                    (float)diffuse.Values[2],
-                                    (float)diffuse.Values[3]
-                                );
-                                material.color = color;
+                            Dictionary<string, string> surfaceDict = new Dictionary<string, string>();
+                            Dictionary<string, string> samplerDict = new Dictionary<string, string>();
                             
-                                effectDict.Add(name, material);
+                            if (it.Items != null)
+                            {
+                                foreach(var it2 in it.Items)
+                                {
+                                    var newparam = it2 as common_newparam_type;
+                                    if (newparam.Item is fx_surface_common)
+                                    {
+                                        var surface = newparam.Item as fx_surface_common;
+                                        surfaceDict.Add(newparam.sid, surface.init_from[0].Value);
+                                    }
+                                    else if (newparam.Item is fx_sampler2D_common)
+                                    {
+                                        var sampler = newparam.Item as fx_sampler2D_common;
+                                        samplerDict.Add(newparam.sid, sampler.source);
+                                    }
+                                }
+                            }
+
+                            var phong = profile.technique.Item as effectFx_profile_abstractProfile_COMMONTechniquePhong;
+                            if (phong.diffuse.Item is common_color_or_texture_typeColor)
+                            {
+                                // color
+                                var diffuse = phong.diffuse.Item as common_color_or_texture_typeColor;
+    
+                                if (diffuse != null)
+                                {
+                                    Material material = new Material(Shader.Find("Diffuse"));
+                                    Color color = new Color(
+                                        (float)diffuse.Values[0],
+                                        (float)diffuse.Values[1],
+                                        (float)diffuse.Values[2],
+                                        (float)diffuse.Values[3]
+                                    );
+                                    material.color = color;
+                            
+                                    effectDict.Add(name, material);
+                                }
+                            }
+                            else if (phong.diffuse.Item is common_color_or_texture_typeTexture)
+                            {
+                                // texture
+                                var diffuse = phong.diffuse.Item as common_color_or_texture_typeTexture;
+                                
+                                if (diffuse != null)
+                                {
+                                    var texture = diffuse.texture;
+
+                                    if (samplerDict.ContainsKey(texture))
+                                    {
+                                        var surface = samplerDict[texture];
+                                        if (surfaceDict.ContainsKey(surface))
+                                        {
+                                            var textureName = surfaceDict[surface];
+                                            if (textureDict.ContainsKey(textureName))
+                                            {
+                                                Material material = new Material(Shader.Find("Diffuse"));
+                                                material.SetTexture("_MainTex", textureDict[textureName]);
+                                                effectDict.Add(name, material);    
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
