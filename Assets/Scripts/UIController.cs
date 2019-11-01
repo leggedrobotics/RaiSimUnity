@@ -3,6 +3,7 @@
  */
 
 using System;
+using System.IO;
 using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.UI;
@@ -137,7 +138,9 @@ namespace raisimUnity
                 var screenshotButton = GameObject.Find(_ButtonScreenshotName).GetComponent<Button>();
                 screenshotButton.onClick.AddListener(() =>
                 {
-                    var filename = "Screenshot " + DateTime.Now.ToString("yyyy-MM-d hh-mm-ss") + ".png";
+                    if (!File.Exists("Screenshot"))
+                        Directory.CreateDirectory("Screenshot");
+                    var filename = "Screenshot/Screenshot " + DateTime.Now.ToString("yyyy-MM-d hh-mm-ss") + ".png";
                     ScreenCapture.CaptureScreenshot(filename);
                 });
                 
