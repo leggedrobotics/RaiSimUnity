@@ -144,9 +144,9 @@ namespace raisimUnity
                 // normals
                 for (int i = 0; i < vertices.Count; i += 3)
                 {
-                    Vector3 point1 = ConvertUnity2RS(vertices[i].x, vertices[i].y, vertices[i].z);
-                    Vector3 point2 = ConvertUnity2RS(vertices[i + 1].x, vertices[i + 1].y, vertices[i + 1].z);
-                    Vector3 point3 = ConvertUnity2RS(vertices[i + 2].x, vertices[i + 2].y, vertices[i + 2].z);
+                    Vector3 point1 = ConvertUnity2Rs(vertices[i].x, vertices[i].y, vertices[i].z);
+                    Vector3 point2 = ConvertUnity2Rs(vertices[i + 1].x, vertices[i + 1].y, vertices[i + 1].z);
+                    Vector3 point3 = ConvertUnity2Rs(vertices[i + 2].x, vertices[i + 2].y, vertices[i + 2].z);
 
                     Vector3 diff1 = point2 - point1;
                     Vector3 diff2 = point3 - point2;
@@ -330,7 +330,7 @@ namespace raisimUnity
             return new Vector3(-rx, rz, -ry);
         }
 
-        private static Vector3 ConvertUnity2RS(float ux, float uy, float uz)
+        private static Vector3 ConvertUnity2Rs(float ux, float uy, float uz)
         {
             return new Vector3(-ux, -uz, uy);
         }

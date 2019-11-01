@@ -15,6 +15,9 @@ using UnityEngine;
 using Quaternion = UnityEngine.Quaternion;
 using Vector3 = UnityEngine.Vector3;
 using SimpleFileBrowser;
+using TMPro.EditorUtilities;
+using UnityEngine.UI;
+using UnityEngine.Windows.Speech;
 
 namespace raisimUnity
 {
@@ -155,6 +158,9 @@ namespace raisimUnity
         // resource loader
         private ResourceLoader _loader;
         
+        // error modal view
+        private GameObject _errorModalView;
+        
         void Start()
         {
             // set buffer size
@@ -178,6 +184,9 @@ namespace raisimUnity
             _defaultMaterialR = Resources.Load<Material>("Plastic1");
             _defaultMaterialG = Resources.Load<Material>("Plastic2");
             _defaultMaterialB = Resources.Load<Material>("Plastic3");
+            
+            // ui controller 
+            _errorModalView = GameObject.Find("ErrorModalView");
         }
 
         void Update()
@@ -205,7 +214,14 @@ namespace raisimUnity
                 }
                 catch (Exception e)
                 {
-                    print("update failed." + e);
+                    // modal view
+                    var modal = _errorModalView.GetComponent<Canvas>();
+                    modal.enabled = true;
+//                    var message = modal.transform.Find("Message").GetComponentInChildren<Text>();
+//                    message.text = e.Message;
+
+                    // close connection
+                    CloseConnection();
                 }
             }
             
@@ -321,6 +337,11 @@ namespace raisimUnity
                                 double sz = BitIO.GetData<double>(ref _buffer, ref offset);
 
                                 string meshFilePathInResourceDir = _loader.RetrieveMeshPath(urdfDirPathInServer, meshFile);
+                                if (meshFilePathInResourceDir == null)
+                                {
+                                    throw new RsuInitException("Cannot find mesh from resource directories: " + meshFile);
+                                }
+                                
                                 var mesh = _objectController.CreateMesh(objFrame, meshFilePathInResourceDir, (float)sx, (float)sy, (float)sz, meshFileExtension != ".dae");
                                 mesh.tag = tag;
                             }
@@ -593,7 +614,6 @@ namespace raisimUnity
                                     break;
                                 default:
                                     throw new NotImplementedException("Not Implemented Appearance Shape");
-                                    break;
                             }
                         }
                     }
@@ -656,8 +676,7 @@ namespace raisimUnity
                     }
                     else
                     {
-                        // TODO error
-                        print("local object is null");
+                        throw new RsuTcpConnectionException("update position failed: cannot find unity game object: " + objectName);
                     }
                 }
             }
@@ -714,7 +733,7 @@ namespace raisimUnity
 
             return 0;
         }
-        
+
         public void EstablishConnection()
         {
             try
@@ -888,7 +907,7 @@ namespace raisimUnity
             if (_client != null) _client.Close();
             
             // save preference
-            _loader.SaveResourceDirectories();
+            _loader.SaveToPref();
         }
 
         public void ShowOrHideObjects()

@@ -110,10 +110,12 @@ namespace raisimUnity
                         {
                             _remote.EstablishConnection();
                         }
-                        catch (Exception)
+                        catch (Exception e)
                         {
                             var modal = GameObject.Find("ErrorModalView").GetComponent<Canvas>();
                             modal.enabled = true;
+//                            var message = modal.transform.Find("message").GetComponentInChildren<Text>();
+//                            message.text = e.Message;
                         }
                     }
                     else
@@ -170,7 +172,7 @@ namespace raisimUnity
             
             // resource section 
             {
-                _remote.ResourceLoader.LoadResourceDirectories();
+                _remote.ResourceLoader.LoadFromPref();
                 RefereshScrollResources();
 
                 var addButton = GameObject.Find(_ButtonAddResourceName).GetComponent<Button>();

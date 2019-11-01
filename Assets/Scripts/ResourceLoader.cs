@@ -26,7 +26,7 @@ namespace raisimUnity
             _resourceDirs.Add(path);
         }
 
-        public void LoadResourceDirectories()
+        public void LoadFromPref()
         {
             int numberResourceDirs = 0;
             if (PlayerPrefs.HasKey(_keyNoRscDir))
@@ -39,7 +39,7 @@ namespace raisimUnity
             }
         }
 
-        public void SaveResourceDirectories()
+        public void SaveToPref()
         {
             PlayerPrefs.SetInt(_keyNoRscDir, _resourceDirs.Count);
             for(int i = 0; i < _resourceDirs.Count; i++)

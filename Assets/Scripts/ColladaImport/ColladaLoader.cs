@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using raisimUnity;
 using UnityEngine;
 
 namespace Collada141
@@ -22,20 +23,70 @@ namespace Collada141
         public GameObject Load(string inputFile)
         {
             COLLADA model = COLLADA.Load(inputFile);
-            GameObject unityObj = new GameObject("mesh");
-            
-            // (material id, effect id)
-            Dictionary<string, string> materials = new Dictionary<string, string>();
-            
+
             // (effect id, material)
-            Dictionary<string, Material> effects = new Dictionary<string, Material>(); 
+            Dictionary<string, Material> effectDict = new Dictionary<string, Material>();
+            // (material id, effect id)
+            Dictionary<string, string> materialDict = new Dictionary<string, string>();
+            // (geom id, mesh)
+            Dictionary<string, Mesh> geomDict = new Dictionary<string, Mesh>();
+            
+            // root game object for mesh file
+            GameObject unityObj = new GameObject("mesh");
             
             // Iterate on libraries
             foreach (var item in model.Items)
             {
-                if (item is library_geometries)
+                if (item is library_effects)
                 {
-                    // geometry libraries
+                    // effect libraries -> effectDict
+                    var lib_effect = item as library_effects;
+                    if(lib_effect == null)
+                        continue;
+                    
+                    foreach (var eff in lib_effect.effect)
+                    {
+                        var name = eff.id;
+                        if (eff.Items == null) continue; 
+
+                        foreach (var it in eff.Items)
+                        {
+                            var profile = it as effectFx_profile_abstractProfile_COMMON;
+                            var phong = profile.technique.Item as effectFx_profile_abstractProfile_COMMONTechniquePhong;
+                            
+                            var diffuse = phong.diffuse.Item as common_color_or_texture_typeColor;
+
+                            if (diffuse != null)
+                            {
+                                Material material = new Material(Shader.Find("Diffuse"));
+                                Color color = new Color(
+                                    (float)diffuse.Values[0],
+                                    (float)diffuse.Values[1],
+                                    (float)diffuse.Values[2],
+                                    (float)diffuse.Values[3]
+                                );
+                                material.color = color;
+                            
+                                effectDict.Add(name, material);
+                            }
+                        }
+                    }
+                }
+                else if (item is library_materials)
+                {
+                    // material libraries -> materialDict
+                    var material = item as library_materials;
+                    if(material == null)
+                        continue;
+
+                    foreach (var mat in material.material)
+                    {
+                        materialDict.Add(mat.id, mat.instance_effect.url.Substring(1));
+                    }
+                }
+                else if (item is library_geometries)
+                {
+                    // geometry libraries -> geomDict
                     var geometries = item as library_geometries;
                     if (geometries== null)
                         continue;
@@ -149,7 +200,7 @@ namespace Collada141
                                 
                                 // material
                                 string materialName = triangles.material;
-                                if (!string.IsNullOrEmpty(materialName) && materials.ContainsKey(materialName))
+                                if (!string.IsNullOrEmpty(materialName) && materialDict.ContainsKey(materialName))
                                 {
                                     materialId = materialName;
                                 }
@@ -179,29 +230,7 @@ namespace Collada141
 
                                 if (model.asset.up_axis == UpAxisType.Y_UP)
                                 {
-                                    vertexList.Add(new Vector3(
-                                        (float)positionFloatArray[posIndex*3],
-                                        (float)positionFloatArray[posIndex*3+1],
-                                        (float)positionFloatArray[posIndex*3+2]
-                                    ));
-                                    
-                                    if (normalFloatArray.Count > 0 && (normalFloatArray.Count > normalIndex))
-                                    {
-                                        normalList.Add(new Vector3(
-                                            (float)normalFloatArray[normalIndex*3],
-                                            (float)normalFloatArray[normalIndex*3+1],
-                                            (float)normalFloatArray[normalIndex*3+2]
-                                        ));  
-                                    }
-                                    else
-                                    {
-                                        // Add dummy normal for debugging
-                                        normalList.Add(new Vector3(
-                                            0,
-                                            0,
-                                            0
-                                        ));
-                                    }
+                                    throw new NotImplementedException();
                                 }
                                 else if (model.asset.up_axis == UpAxisType.Z_UP)
                                 {
@@ -242,69 +271,90 @@ namespace Collada141
                             }
                         }
 
-                        // Create sub-gameobject
-                        var unitySubObj = new GameObject(geom.id);
-                        unitySubObj.transform.SetParent(unityObj.transform, true);
-                        
                         // Add mesh to sub-gameobject
                         Mesh unityMesh = new Mesh();
                         unityMesh.vertices = vertexList.ToArray();
                         unityMesh.normals = normalList.ToArray();
                         unityMesh.triangles = idxList;
                         
-                        unitySubObj.AddComponent<MeshFilter>();
-                        unitySubObj.AddComponent<MeshRenderer>();
-                        unitySubObj.AddComponent<MeshCollider>();
-                        unitySubObj.GetComponent<MeshFilter>().mesh = unityMesh;
-                        
-                        if(!string.IsNullOrEmpty(materialId) && effects.ContainsKey(materials[materialId]))
-                            unitySubObj.GetComponent<Renderer>().material = effects[materials[materialId]];
+                        geomDict.Add(geom.id, unityMesh);
                     }
                 }
-                else if (item is library_effects)
+                else if (item is library_visual_scenes)
                 {
-                    // effect libraries
-                    var lib_effect = item as library_effects;
-                    foreach (var eff in lib_effect.effect)
+                    var visual_scenes = item as library_visual_scenes;
+                    if (visual_scenes == null)
+                        continue;
+
+                    foreach (var vis in visual_scenes.visual_scene)
                     {
-                        var name = eff.id;
-                        if (eff.Items == null) continue; 
-
-                        foreach (var it in eff.Items)
+                        foreach (var node in vis.node)
                         {
-                            var profile = it as effectFx_profile_abstractProfile_COMMON;
-                            var phong = profile.technique.Item as effectFx_profile_abstractProfile_COMMONTechniquePhong;
-                            
-                            var diffuse = phong.diffuse.Item as common_color_or_texture_typeColor;
+                            Quaternion quat = Quaternion.identity;
+                            Vector3 pos = Vector3.zero;
 
-                            if (diffuse != null)
+                            foreach (var item2 in node.Items)
                             {
-                                Material material = new Material(Shader.Find("Diffuse"));
-                                Color color = new Color(
-                                    (float)diffuse.Values[0],
-                                    (float)diffuse.Values[1],
-                                    (float)diffuse.Values[2],
-                                    (float)diffuse.Values[3]
-                                );
-                                material.color = color;
+                                var matrix = item2 as matrix;
+                                if(matrix == null) continue;
+                                
+                                Matrix4x4 unityMatrix = new Matrix4x4();
+                                unityMatrix.SetColumn(0, new Vector4(
+                                    (float)matrix.Values[0], 
+                                    (float)matrix.Values[4],
+                                    (float)matrix.Values[8],
+                                    (float)matrix.Values[12]
+                                ));
+                                unityMatrix.SetColumn(1, new Vector4(
+                                    (float)matrix.Values[1], 
+                                    (float)matrix.Values[5],
+                                    (float)matrix.Values[9],
+                                    (float)matrix.Values[13]
+                                ));
+                                unityMatrix.SetColumn(2, new Vector4(
+                                    (float)matrix.Values[2], 
+                                    (float)matrix.Values[6],
+                                    (float)matrix.Values[10],
+                                    (float)matrix.Values[14]
+                                ));
+                                unityMatrix.SetColumn(3, new Vector4(
+                                    (float)matrix.Values[3], 
+                                    (float)matrix.Values[7],
+                                    (float)matrix.Values[11],
+                                    (float)matrix.Values[15]
+                                ));
+
+                                quat = Quaternion.LookRotation(unityMatrix.GetColumn(2), unityMatrix.GetColumn(1));
+                                pos = unityMatrix.GetColumn(3);
+                            }
                             
-                                effects.Add(name, material);
+                            foreach (var geom in node.instance_geometry)
+                            {
+                                var url = geom.url.Substring(1);
+                                
+                                if (geomDict.ContainsKey(url))
+                                {
+                                    var unityMesh = geomDict[url];
+                                    
+                                    // Create sub-gameobject
+                                    var unitySubObj = new GameObject(geom.name);
+                                    unitySubObj.AddComponent<MeshFilter>();
+                                    unitySubObj.AddComponent<MeshRenderer>();
+                                    unitySubObj.AddComponent<MeshCollider>();
+                                    unitySubObj.GetComponent<MeshFilter>().mesh = unityMesh;
+
+//                                    if(!string.IsNullOrEmpty(materialId) && effectDict.ContainsKey(materialDict[materialId]))
+//                                        unitySubObj.GetComponent<Renderer>().material = effectDict[materialDict[materialId]];
+                                    
+                                    unitySubObj.transform.SetParent(unityObj.transform, true);
+                                    ObjectController.SetTransform(unitySubObj, pos, quat);
+                                }
                             }
                         }
                     }
                 }
-                else if (item is library_materials)
-                {
-                    // material libraries
-                    var material = item as library_materials;
-
-                    foreach (var mat in material.material)
-                    {
-                        materials.Add(mat.id, mat.instance_effect.url.Substring(1));
-                    }
-                }
             }
-            
+
             return unityObj;
         }
     }
