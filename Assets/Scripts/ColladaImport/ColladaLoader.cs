@@ -28,8 +28,11 @@ namespace Collada141
             Dictionary<string, Material> effectDict = new Dictionary<string, Material>();
             // (material id, effect id)
             Dictionary<string, string> materialDict = new Dictionary<string, string>();
+            
             // (geom id, mesh)
             Dictionary<string, Mesh> geomDict = new Dictionary<string, Mesh>();
+            // (geom id, materilas)
+            Dictionary<string, List<string>> geomMatDict = new Dictionary<string, List<string>>(); 
             
             // root game object for mesh file
             GameObject unityObj = new GameObject("mesh");
@@ -102,9 +105,10 @@ namespace Collada141
                         List<Vector3> vertexList = new List<Vector3>();
                         List<Vector3> normalList = new List<Vector3>();
                         int[] idxList = new int[0];
-                        
-                        // material id
-                        string materialId = "";
+
+                        // submesh 
+                        int numSubmesh = 0;
+                        List<string> subMaterials = new List<string>();
                         
                         var mesh = geom.Item as mesh;
                         if (mesh == null)
@@ -202,8 +206,11 @@ namespace Collada141
                                 string materialName = triangles.material;
                                 if (!string.IsNullOrEmpty(materialName) && materialDict.ContainsKey(materialName))
                                 {
-                                    materialId = materialName;
+                                    subMaterials.Add(materialName);
                                 }
+                                
+                                // Increment submesh count 
+                                numSubmesh += 1;
                             }
 
                             // vertex
@@ -276,8 +283,10 @@ namespace Collada141
                         unityMesh.vertices = vertexList.ToArray();
                         unityMesh.normals = normalList.ToArray();
                         unityMesh.triangles = idxList;
-                        
+                        unityMesh.subMeshCount = numSubmesh;
+
                         geomDict.Add(geom.id, unityMesh);
+                        geomMatDict.Add(geom.id, subMaterials);
                     }
                 }
                 else if (item is library_visual_scenes)
@@ -342,12 +351,26 @@ namespace Collada141
                                     unitySubObj.AddComponent<MeshRenderer>();
                                     unitySubObj.AddComponent<MeshCollider>();
                                     unitySubObj.GetComponent<MeshFilter>().mesh = unityMesh;
-
-//                                    if(!string.IsNullOrEmpty(materialId) && effectDict.ContainsKey(materialDict[materialId]))
-//                                        unitySubObj.GetComponent<Renderer>().material = effectDict[materialDict[materialId]];
                                     
+                                    // local transform
                                     unitySubObj.transform.SetParent(unityObj.transform, true);
                                     ObjectController.SetTransform(unitySubObj, pos, quat);
+                                    
+                                    // material
+                                    var materials = geomMatDict[url];
+                                    if (materials.Count > 0)
+                                    {
+                                        List<Material> unityMaterials = new List<Material>();
+                                        foreach (var mat in materials)
+                                        {
+                                            if (!materialDict.ContainsKey(mat)) continue;
+                                            
+                                            var eff = materialDict[mat];
+                                            if(effectDict.ContainsKey(eff))
+                                                unityMaterials.Add(effectDict[eff]);
+                                        }
+                                        unitySubObj.GetComponent<Renderer>().materials = unityMaterials.ToArray();
+                                    }
                                 }
                             }
                         }
