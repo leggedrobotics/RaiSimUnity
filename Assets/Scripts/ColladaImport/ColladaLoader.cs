@@ -114,7 +114,7 @@ namespace Collada141
     
                                 if (diffuse != null)
                                 {
-                                    Material material = new Material(Shader.Find("Diffuse"));
+                                    Material material = new Material(Shader.Find("Standard"));
                                     Color color = new Color(
                                         (float)diffuse.Values[0],
                                         (float)diffuse.Values[1],
@@ -143,7 +143,7 @@ namespace Collada141
                                             var textureName = surfaceDict[surface];
                                             if (textureDict.ContainsKey(textureName))
                                             {
-                                                Material material = new Material(Shader.Find("Diffuse"));
+                                                Material material = new Material(Shader.Find("Standard"));
                                                 material.SetTexture("_MainTex", textureDict[textureName]);
                                                 effectDict.Add(name, material);    
                                             }
@@ -183,6 +183,7 @@ namespace Collada141
                         // converted as vector3 
                         List<Vector3> vertexList = new List<Vector3>();
                         List<Vector3> normalList = new List<Vector3>();
+                        List<Vector2> uvList = new List<Vector2>();
                         List<int[]> idxList = new List<int[]>();
 
                         // submesh 
@@ -228,12 +229,14 @@ namespace Collada141
                             int indexStride = 1;
                             int posOffset = 0;
                             int normalOffset = 0;
+                            int uvOffset = 0;
                             int numIndices = 0;
                             int curNumIndices = 0;
                             
                             // source name
                             string positionSourceName = "";
                             string normalSourceName = "";
+                            string uvSourceName = "";
                             
                             // current indices
                             List<int> currIdxList = new List<int>();
@@ -275,6 +278,11 @@ namespace Collada141
                                         normalSourceName = sourceName;
                                         normalOffset = offset;
                                     }
+                                    else if (input.semantic == "TEXCOORD")
+                                    {
+                                        uvSourceName = sourceName;
+                                        uvOffset = offset;
+                                    }
                                 }
                                 
                                 numIndices = count * 3;
@@ -307,6 +315,13 @@ namespace Collada141
                                 normalFloatArray = sourceDict[normalSourceName].ToList();
                             }
                             
+                            // uv
+                            List<double> uvFloatArray = new List<double>();
+                            if (sourceDict.ContainsKey(uvSourceName))
+                            {
+                                uvFloatArray = sourceDict[uvSourceName].ToList();
+                            }
+                            
                             // add to list
                             int indexOffset = vertexList.Count;
 
@@ -314,6 +329,7 @@ namespace Collada141
                             {
                                 int posIndex = currIdxList[i * indexStride + posOffset];
                                 int normalIndex = currIdxList[i * indexStride + normalOffset];
+                                int uvIndex = currIdxList[i * indexStride + uvOffset];
 
                                 if (model.asset.up_axis == UpAxisType.Y_UP)
                                 {
@@ -344,6 +360,14 @@ namespace Collada141
                                             0
                                         ));
                                     }
+
+                                    if (uvFloatArray.Count > 0)
+                                    {
+                                        uvList.Add(new Vector2(
+                                            (float)uvFloatArray[uvIndex*2],
+                                            (float)uvFloatArray[uvIndex*2+1]
+                                        ));
+                                    }
                                 }
                             }
 
@@ -355,7 +379,9 @@ namespace Collada141
                                 currIndices[i+1] = i+1 + indexOffset;
                                 currIndices[i+2] = i+0 + indexOffset;
                             }
-                            idxList.Add(currIndices);
+                            
+                            if (numIndices != 0)
+                                idxList.Add(currIndices);
                             curNumIndices += numIndices;
                         }
 
@@ -367,6 +393,11 @@ namespace Collada141
                         for (int i = 0; i < idxList.Count; i++)
                         {
                             unityMesh.SetTriangles(idxList[i], i);
+                        }
+
+                        if (uvList.Count > 0)
+                        {
+                            unityMesh.uv = uvList.ToArray();
                         }
 
                         geomDict.Add(geom.id, unityMesh);
