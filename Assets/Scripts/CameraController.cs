@@ -139,7 +139,11 @@ public class CameraController : MonoBehaviour
                     }
                 
                     _selected = hit.transform.parent.gameObject;
-                
+//                    var meshscale = new List<float>();
+//                    meshscale.Add(_selected.transform.localScale.x);
+//                    meshscale.Add(_selected.transform.localScale.y);
+//                    meshscale.Add(_selected.transform.localScale.z);
+
                     foreach (var ren in _selected.GetComponentsInChildren<Renderer>())
                     {
                         ren.material.shader = Shader.Find("Outlined/UltimateOutline");
