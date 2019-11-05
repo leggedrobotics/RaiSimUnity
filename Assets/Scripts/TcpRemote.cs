@@ -23,6 +23,8 @@ namespace raisimUnity
         NoMessage,
         ContactInfoUpdate,
         ConfigXml,
+        VisualInitialization,
+        VisualPositionUpdate,
     }
 
     enum ClientMessageType : int
@@ -36,6 +38,8 @@ namespace raisimUnity
         RequestResume,
         RequestContactInfos,
         RequestConfigXML,
+        RequestInitializeVisuals,
+        RequestVisualPosition,
     }
 
     enum ServerStatus : int
@@ -67,6 +71,15 @@ namespace raisimUnity
         RsMeshShape,
         RsCapsuleShape, 
         RsConeShape,
+    }
+
+    enum RsVisualType : int
+    {
+        RsVisualSphere = 0,
+        RsVisualBox,
+        RsVisualCylinder,
+        RsVisualCapsule,
+        RsVisualMesh,
     }
 
     static class VisualTag
@@ -128,6 +141,7 @@ namespace raisimUnity
         
         // root objects
         private GameObject _objectsRoot;
+        private GameObject _visualsRoot;
         private GameObject _contactPointsRoot;
         private GameObject _contactForcesRoot;
         
@@ -161,6 +175,7 @@ namespace raisimUnity
             
             // object roots
             _objectsRoot = GameObject.Find("Objects");
+            _visualsRoot = GameObject.Find("Visuals");
             _contactPointsRoot = GameObject.Find("ContactPoints");
             _contactForcesRoot = GameObject.Find("ContactForces");
             
@@ -620,6 +635,82 @@ namespace raisimUnity
             Array.Clear(_buffer, 0, _maxBufferSize);
             return 0;
         }
+
+        private int InitializeVisuals()
+        {
+            int offset = 0;
+            
+            WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestInitializeVisuals));
+            if (ReadData() == 0)
+                return -1;
+
+            ServerStatus state = BitIO.GetData<ServerStatus>(ref _buffer, ref offset);
+            
+            if (state == ServerStatus.StatusTerminating)
+                return 0;
+
+            ServerMessageType messageType = BitIO.GetData<ServerMessageType>(ref _buffer, ref offset);
+            
+            ulong numObjects = BitIO.GetData<ulong>(ref _buffer, ref offset);
+
+            for (ulong i = 0; i < numObjects; i++)
+            {
+                RsVisualType objectType = BitIO.GetData<RsVisualType>(ref _buffer, ref offset);
+                
+                // get name and find corresponding appearance from XML
+                string name = BitIO.GetData<string>(ref _buffer, ref offset);
+                
+                float colorR = BitIO.GetData<float>(ref _buffer, ref offset);
+                float colorG = BitIO.GetData<float>(ref _buffer, ref offset);
+                float colorB = BitIO.GetData<float>(ref _buffer, ref offset);
+                float colorA = BitIO.GetData<float>(ref _buffer, ref offset);
+                
+                string material = BitIO.GetData<string>(ref _buffer, ref offset);
+
+                switch (objectType)
+                {
+                    case RsVisualType.RsVisualSphere :
+                    {
+                        float radius = BitIO.GetData<float>(ref _buffer, ref offset);
+                        var sphere =  _objectController.CreateSphere(_visualsRoot, radius);
+//                        sphere.GetComponentInChildren<Renderer>().material = material;
+                        sphere.tag = VisualTag.Visual;
+                        sphere.name = name;
+                    }
+                        break;
+                    case RsVisualType.RsVisualBox:
+                    {
+                        float sx = BitIO.GetData<float>(ref _buffer, ref offset);
+                        float sy = BitIO.GetData<float>(ref _buffer, ref offset);
+                        float sz = BitIO.GetData<float>(ref _buffer, ref offset);
+                        var box = _objectController.CreateBox(_visualsRoot, sx, sy, sz);
+                        box.tag = VisualTag.Visual;
+                        box.name = name;
+                    }
+                        break;
+                    case RsVisualType.RsVisualCylinder:
+                    {
+                        float radius = BitIO.GetData<float>(ref _buffer, ref offset);
+                        float height = BitIO.GetData<float>(ref _buffer, ref offset);
+                        var cylinder = _objectController.CreateCylinder(_visualsRoot, radius, height);
+                        cylinder.tag = VisualTag.Visual;
+                        cylinder.name = name;
+                    }
+                        break;
+                    case RsVisualType.RsVisualCapsule:
+                    {
+                        float radius = BitIO.GetData<float>(ref _buffer, ref offset);
+                        float height = BitIO.GetData<float>(ref _buffer, ref offset);
+                        var capsule = _objectController.CreateCapsule(_visualsRoot, radius, height);
+                        capsule.tag = VisualTag.Visual;
+                        capsule.name = name;
+                    }
+                        break;
+                }
+            }
+
+            return 0;
+        }
         
         private int UpdatePosition()
         {
@@ -761,6 +852,12 @@ namespace raisimUnity
 
                     // initialize scene from data 
                     if (InitializeScene() != 0)
+                    {
+                        // TODO error
+                    }
+                    
+                    // initialize visuals from data
+                    if (InitializeVisuals() != 0)
                     {
                         // TODO error
                     }
