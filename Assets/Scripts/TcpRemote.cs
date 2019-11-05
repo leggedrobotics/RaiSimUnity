@@ -500,14 +500,16 @@ namespace raisimUnity
                     }
                     
                     // collision body 
+                    GameObject collisionObject = null;
+                    
                     switch (objectType) 
                     {
                         case RsObejctType.RsSphereObject :
                         {
                             float radius = BitIO.GetData<float>(ref _buffer, ref offset);
-                            var sphere =  _objectController.CreateSphere(objFrame, radius);
-                            sphere.GetComponentInChildren<Renderer>().material = material;
-                            sphere.tag = VisualTag.Collision;
+                            collisionObject =  _objectController.CreateSphere(objFrame, radius);
+//                            sphere.GetComponentInChildren<Renderer>().material = material;
+                            collisionObject.tag = VisualTag.Collision;
                         }
                             break;
 
@@ -516,27 +518,24 @@ namespace raisimUnity
                             float sx = BitIO.GetData<float>(ref _buffer, ref offset);
                             float sy = BitIO.GetData<float>(ref _buffer, ref offset);
                             float sz = BitIO.GetData<float>(ref _buffer, ref offset);
-                            var box = _objectController.CreateBox(objFrame, sx, sy, sz);
-                            box.GetComponentInChildren<Renderer>().material = material;
-                            box.tag = VisualTag.Collision;
+                            collisionObject = _objectController.CreateBox(objFrame, sx, sy, sz);
+                            collisionObject.tag = VisualTag.Collision;
                         }
                             break;
                         case RsObejctType.RsCylinderObject:
                         {
                             float radius = BitIO.GetData<float>(ref _buffer, ref offset);
                             float height = BitIO.GetData<float>(ref _buffer, ref offset);
-                            var cylinder = _objectController.CreateCylinder(objFrame, radius, height);
-                            cylinder.GetComponentInChildren<Renderer>().material = material;
-                            cylinder.tag = VisualTag.Collision;
+                            collisionObject = _objectController.CreateCylinder(objFrame, radius, height);
+                            collisionObject.tag = VisualTag.Collision;
                         }
                             break;
                         case RsObejctType.RsCapsuleObject:
                         {
                             float radius = BitIO.GetData<float>(ref _buffer, ref offset);
                             float height = BitIO.GetData<float>(ref _buffer, ref offset);
-                            var capsule = _objectController.CreateCapsule(objFrame, radius, height);
-                            capsule.GetComponentInChildren<Renderer>().material = material;
-                            capsule.tag = VisualTag.Collision;
+                            collisionObject = _objectController.CreateCapsule(objFrame, radius, height);
+                            collisionObject.tag = VisualTag.Collision;
                         }
                             break;
                         case RsObejctType.RsMeshObject:
@@ -549,10 +548,9 @@ namespace raisimUnity
                             
                             string meshFilePathInResourceDir = _loader.RetrieveMeshPath(Path.GetDirectoryName(meshFile), meshFileName);
                             
-                            var mesh = _objectController.CreateMesh(objFrame, meshFilePathInResourceDir, 
+                            collisionObject = _objectController.CreateMesh(objFrame, meshFilePathInResourceDir, 
                                 scale, scale, scale, meshFileExtension != ".dae");
-                            mesh.GetComponentInChildren<Renderer>().material = material;
-                            mesh.tag = VisualTag.Collision;
+                            collisionObject.tag = VisualTag.Collision;
                         }
                             break;
                     }
@@ -609,6 +607,13 @@ namespace raisimUnity
                                     throw new NotImplementedException("Not Implemented Appearance Shape");
                             }
                         }
+                    }
+                    else
+                    {
+                        // default visual object (same shape with collision)
+                        GameObject visualObject = GameObject.Instantiate(collisionObject, objFrame.transform);
+                        visualObject.GetComponentInChildren<Renderer>().material = material;
+                        visualObject.tag = VisualTag.Visual;
                     }
                 }
             }
