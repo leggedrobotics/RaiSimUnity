@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using Collada141;
 using Dummiesman;
+using raisimUnity.STLImport;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Quaternion = UnityEngine.Quaternion;
@@ -18,11 +19,13 @@ namespace raisimUnity
     {
         private OBJLoader _objLoader;
         private ColladaLoader _colladaLoader;
+        private StlLoader _stlLoader;
         
         public ObjectController()
         {
             _objLoader = new OBJLoader(); 
             _colladaLoader = new ColladaLoader();
+            _stlLoader = new StlLoader();
         }
 
         public GameObject CreateSphere(GameObject root, float radius)
@@ -246,6 +249,7 @@ namespace raisimUnity
                     mesh = _objLoader.Load(meshFile);
                     break;
                 case ".stl" :
+                    mesh = _stlLoader.Load(meshFile);
                     break;
                 default :
                     // TODO Notsupported Mesh type 

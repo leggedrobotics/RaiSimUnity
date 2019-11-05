@@ -508,7 +508,6 @@ namespace raisimUnity
                         {
                             float radius = BitIO.GetData<float>(ref _buffer, ref offset);
                             collisionObject =  _objectController.CreateSphere(objFrame, radius);
-//                            sphere.GetComponentInChildren<Renderer>().material = material;
                             collisionObject.tag = VisualTag.Collision;
                         }
                             break;

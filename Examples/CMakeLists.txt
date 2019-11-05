@@ -22,6 +22,7 @@ create_executable(primitives src/primitives.cpp)
 create_executable(meshes src/meshes.cpp)
 create_executable(collada src/collada.cpp)
 create_executable(anymal src/anymal.cpp)
+create_executable(atlas src/atlas.cpp)
 create_executable(heightmap src/heightmap.cpp)
 
 # EOF
