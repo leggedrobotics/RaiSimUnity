@@ -215,10 +215,22 @@ namespace raisimUnity
                 try
                 {
                     // update object position
-                    UpdatePosition();
+                    if (UpdatePosition() != 0)
+                    {
+                        // TODO error
+                    }
 
                     // update contacts
-                    UpdateContacts();
+                    if (UpdateContacts() != 0)
+                    {
+                        // TODO error
+                    }
+                    
+                    // update visuals
+                    if (UpdateVisualsPosition() != 0)
+                    {
+                        // TODO error
+                    }
                 }
                 catch (Exception e)
                 {
@@ -259,6 +271,12 @@ namespace raisimUnity
                 Destroy(child.gameObject);
             }
             
+            // visuals
+            foreach (Transform child in _visualsRoot.transform)
+            {
+                Destroy(child.gameObject);
+            }
+            
             // clear appearances
             if(_xmlReader != null)
                 _xmlReader.ClearAppearanceMap();
@@ -288,11 +306,12 @@ namespace raisimUnity
                 return -1;
 
             ServerStatus state = BitIO.GetData<ServerStatus>(ref _buffer, ref offset);
-            
             if (state == ServerStatus.StatusTerminating)
                 return 0;
 
             ServerMessageType messageType = BitIO.GetData<ServerMessageType>(ref _buffer, ref offset);
+            if (messageType != ServerMessageType.Initialization)
+                return -1;
 
             ulong configurationNumber = BitIO.GetData<ulong>(ref _buffer, ref offset);
 
@@ -645,11 +664,12 @@ namespace raisimUnity
                 return -1;
 
             ServerStatus state = BitIO.GetData<ServerStatus>(ref _buffer, ref offset);
-            
             if (state == ServerStatus.StatusTerminating)
                 return 0;
 
             ServerMessageType messageType = BitIO.GetData<ServerMessageType>(ref _buffer, ref offset);
+            if (messageType != ServerMessageType.VisualInitialization)
+                return -1;
             
             ulong numObjects = BitIO.GetData<ulong>(ref _buffer, ref offset);
 
@@ -664,18 +684,19 @@ namespace raisimUnity
                 float colorG = BitIO.GetData<float>(ref _buffer, ref offset);
                 float colorB = BitIO.GetData<float>(ref _buffer, ref offset);
                 float colorA = BitIO.GetData<float>(ref _buffer, ref offset);
-                
-                string material = BitIO.GetData<string>(ref _buffer, ref offset);
+                string materialName = BitIO.GetData<string>(ref _buffer, ref offset);
+                bool glow = BitIO.GetData<bool>(ref _buffer, ref offset);
 
+                GameObject visual = null;
+                    
                 switch (objectType)
                 {
                     case RsVisualType.RsVisualSphere :
                     {
                         float radius = BitIO.GetData<float>(ref _buffer, ref offset);
-                        var sphere =  _objectController.CreateSphere(_visualsRoot, radius);
-//                        sphere.GetComponentInChildren<Renderer>().material = material;
-                        sphere.tag = VisualTag.Visual;
-                        sphere.name = name;
+                        visual =  _objectController.CreateSphere(_visualsRoot, radius);
+                        visual.tag = VisualTag.Visual;
+                        visual.name = name;
                     }
                         break;
                     case RsVisualType.RsVisualBox:
@@ -683,29 +704,47 @@ namespace raisimUnity
                         float sx = BitIO.GetData<float>(ref _buffer, ref offset);
                         float sy = BitIO.GetData<float>(ref _buffer, ref offset);
                         float sz = BitIO.GetData<float>(ref _buffer, ref offset);
-                        var box = _objectController.CreateBox(_visualsRoot, sx, sy, sz);
-                        box.tag = VisualTag.Visual;
-                        box.name = name;
+                        visual = _objectController.CreateBox(_visualsRoot, sx, sy, sz);
+                        visual.tag = VisualTag.Visual;
+                        visual.name = name;
                     }
                         break;
                     case RsVisualType.RsVisualCylinder:
                     {
                         float radius = BitIO.GetData<float>(ref _buffer, ref offset);
                         float height = BitIO.GetData<float>(ref _buffer, ref offset);
-                        var cylinder = _objectController.CreateCylinder(_visualsRoot, radius, height);
-                        cylinder.tag = VisualTag.Visual;
-                        cylinder.name = name;
+                        visual = _objectController.CreateCylinder(_visualsRoot, radius, height);
+                        visual.tag = VisualTag.Visual;
+                        visual.name = name;
                     }
                         break;
                     case RsVisualType.RsVisualCapsule:
                     {
                         float radius = BitIO.GetData<float>(ref _buffer, ref offset);
                         float height = BitIO.GetData<float>(ref _buffer, ref offset);
-                        var capsule = _objectController.CreateCapsule(_visualsRoot, radius, height);
-                        capsule.tag = VisualTag.Visual;
-                        capsule.name = name;
+                        visual = _objectController.CreateCapsule(_visualsRoot, radius, height);
+                        visual.tag = VisualTag.Visual;
+                        visual.name = name;
                     }
                         break;
+                }
+                
+                if (string.IsNullOrEmpty(materialName) && visual != null)
+                {
+                    // set material by rgb 
+                    visual.GetComponentInChildren<Renderer>().material.color = new Color(colorR, colorG, colorB, colorA);
+                    if(glow)
+                    {
+                        visual.GetComponentInChildren<Renderer>().material.EnableKeyword("_EMISSION");
+                        visual.GetComponentInChildren<Renderer>().material.SetColor(
+                            "_EmissionColor", new Color(colorR, colorG, colorB, colorA));
+                    }
+                }
+                else
+                {
+                    // set material from
+                    Material material = Resources.Load<Material>(materialName);
+                    visual.GetComponentInChildren<Renderer>().material = material;
                 }
             }
 
@@ -727,6 +766,10 @@ namespace raisimUnity
 
             ServerMessageType messageType = BitIO.GetData<ServerMessageType>(ref _buffer, ref offset);
             if (messageType == ServerMessageType.NoMessage)
+            {
+                return -1;
+            }
+            if (messageType != ServerMessageType.ObjectPositionUpdate)
             {
                 return -1;
             }
@@ -770,6 +813,63 @@ namespace raisimUnity
             }
             
             Array.Clear(_buffer, 0, _maxBufferSize);
+            return 0;
+        }
+
+        private int UpdateVisualsPosition()
+        {
+            int offset = 0;
+            
+            WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestVisualPosition));
+            if (ReadData() == 0)
+                return -1;
+
+            ServerStatus state = BitIO.GetData<ServerStatus>(ref _buffer, ref offset);
+            
+            if (state == ServerStatus.StatusTerminating)
+                return 0;
+
+            ServerMessageType messageType = BitIO.GetData<ServerMessageType>(ref _buffer, ref offset);
+            if (messageType == ServerMessageType.NoMessage)
+            {
+                return -1;
+            }
+            if (messageType != ServerMessageType.VisualPositionUpdate)
+            {
+                return -1;
+            }
+            
+            ulong numObjects = BitIO.GetData<ulong>(ref _buffer, ref offset);
+
+            for (ulong i = 0; i < numObjects; i++)
+            {
+                string visualName = BitIO.GetData<string>(ref _buffer, ref offset);
+                
+                double posX = BitIO.GetData<double>(ref _buffer, ref offset);
+                double posY = BitIO.GetData<double>(ref _buffer, ref offset);
+                double posZ = BitIO.GetData<double>(ref _buffer, ref offset);
+                    
+                double quatW = BitIO.GetData<double>(ref _buffer, ref offset);
+                double quatX = BitIO.GetData<double>(ref _buffer, ref offset);
+                double quatY = BitIO.GetData<double>(ref _buffer, ref offset);
+                double quatZ = BitIO.GetData<double>(ref _buffer, ref offset);
+
+                GameObject localObject = GameObject.Find(visualName);
+
+                if (localObject != null)
+                {
+                    ObjectController.SetTransform(
+                        localObject, 
+                        new Vector3((float)posX, (float)posY, (float)posZ), 
+                        new Quaternion((float)quatX, (float)quatY, (float)quatZ, (float)quatW)
+                    );
+                }
+                else
+                {
+                    throw new RsuTcpConnectionException("update position failed: cannot find unity game object: " + visualName);
+                }
+            }
+
             return 0;
         }
 

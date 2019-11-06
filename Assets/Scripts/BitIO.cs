@@ -106,6 +106,13 @@ namespace raisimUnity
                 offset = offset + (int)size;
                 return data;
             }
+
+            if (type == typeof(bool))
+            {
+                var data = BitConverter.ToBoolean(buffer, offset).As<T>();
+                offset = offset + sizeof(bool);
+                return data;
+            }
             
             throw new NotImplementedException();
         }
