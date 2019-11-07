@@ -4994,7 +4994,7 @@ GameObject:
   - component: {fileID: 1514533797}
   - component: {fileID: 1514533796}
   m_Layer: 5
-  m_Name: ErrorTitle
+  m_Name: _TextErrorTitle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6097,7 +6097,7 @@ GameObject:
   - component: {fileID: 1897923179}
   - component: {fileID: 1897923178}
   m_Layer: 5
-  m_Name: ErrorMessage
+  m_Name: _TextErrorMessage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

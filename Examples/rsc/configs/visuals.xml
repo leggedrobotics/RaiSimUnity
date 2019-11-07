@@ -26,7 +26,7 @@
                 <quat w="1" x="0" y="0" z="0"/>
                 <!-- has an appearance child -->
                 <apperance>
-                    <mesh fileName="/home/donghok/Workspace/unity/raisimUnity/Assets/Resources/objects/Resources/bunny/bunny.obj" material="Metal2" scale="1"/>
+                    <mesh fileName="/home/donghok/Workspace/unity/raisimUnity/Assets/Resources/objects/Resources/monkey/monkey.obj" material="Metal2" scale="1"/>
                 </apperance>
             </cylinder>
             <capsule name="capsule" radius="0.5" height="1" mass="1">

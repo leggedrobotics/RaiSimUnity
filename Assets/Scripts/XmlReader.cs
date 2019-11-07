@@ -51,7 +51,7 @@ namespace raisimUnity
             foreach (XmlNode obj in objects.ChildNodes)
             {
                 // xml <appearance> tag
-                var appearanceNode = obj.SelectSingleNode("appearance");
+                var appearanceNode = obj.SelectSingleNode("apperance");
                 if (appearanceNode == null) continue;
                 
                 Appearances appearances = new Appearances();
@@ -139,11 +139,18 @@ namespace raisimUnity
                         {
                             appearance.shapes = AppearanceShapes.Mesh;
                             var scale = app.Attributes["scale"];
-                            if (scale == null)
+                            float scaleVal = 1;
+                            if (scale != null)
+                            {
+                                scaleVal = float.Parse(scale.Value);
+                            }
+                            appearance.dimension = new Vector3(float.Parse(scale.Value), float.Parse(scale.Value), float.Parse(scale.Value));
+                            var fileName = app.Attributes["fileName"];
+                            if (fileName == null)
                             {
                                 // TODO error
                             }
-                            appearance.dimension = new Vector3(float.Parse(scale.Value), 0, 0);
+                            appearance.fileName = fileName.Value;
                         }
                         break;
                       default:

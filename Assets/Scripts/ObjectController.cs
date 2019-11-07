@@ -239,6 +239,11 @@ namespace raisimUnity
 
             GameObject mesh = null;
 
+            if (!File.Exists(meshFile))
+            {
+                throw new RsuResourceException("Cannot find mesh file: " + meshFile);
+            }
+
             string fileExtension = Path.GetExtension(meshFile);
             switch (fileExtension)
             {
@@ -258,7 +263,7 @@ namespace raisimUnity
             
             if (mesh == null)
             {
-                // TODO error
+                // TODO
             }
 //            var mesh = GameObject.Instantiate(meshRes);
             mesh.transform.SetParent(root.transform, true);

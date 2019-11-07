@@ -23,4 +23,10 @@ namespace raisimUnity
         public RsuFfmepgException(string message): base(message) {
         }
     }
+
+    public class RsuResourceException : Exception
+    {
+        public RsuResourceException(string message): base(message) {
+        }
+    }
 }

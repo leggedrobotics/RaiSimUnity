@@ -195,7 +195,7 @@ namespace raisimUnity
             _defaultMaterialB = Resources.Load<Material>("Plastic3");
             
             // ui controller 
-            _errorModalView = GameObject.Find("ErrorModalView");
+            _errorModalView = GameObject.Find("_ModalViewError");
         }
 
         void Update()
@@ -590,6 +590,8 @@ namespace raisimUnity
                     }
                     
                     // visual body
+                    GameObject visualObject = null;
+
                     if (appearances != null)
                     {
                         foreach (var subapp in appearances.As<Appearances>().subAppearances)
@@ -599,42 +601,42 @@ namespace raisimUnity
                                 case AppearanceShapes.Sphere:
                                 {
                                     float radius = subapp.dimension.x;
-                                    var sphere =  _objectController.CreateSphere(objFrame, radius);
-                                    sphere.GetComponentInChildren<Renderer>().material = material;
-                                    sphere.tag = VisualTag.Visual;
+                                    visualObject =  _objectController.CreateSphere(objFrame, radius);
+                                    visualObject.GetComponentInChildren<Renderer>().material = material;
+                                    visualObject.tag = VisualTag.Visual;
                                 }
                                     break;
                                 case AppearanceShapes.Box:
                                 {
-                                    var box = _objectController.CreateBox(objFrame, subapp.dimension.x, subapp.dimension.y, subapp.dimension.z);
-                                    box.GetComponentInChildren<Renderer>().material = material;
-                                    box.tag = VisualTag.Visual;
+                                    visualObject = _objectController.CreateBox(objFrame, subapp.dimension.x, subapp.dimension.y, subapp.dimension.z);
+                                    visualObject.GetComponentInChildren<Renderer>().material = material;
+                                    visualObject.tag = VisualTag.Visual;
                                 }
                                     break;
                                 case AppearanceShapes.Cylinder:
                                 {
-                                    var cylinder = _objectController.CreateCylinder(objFrame, subapp.dimension.x, subapp.dimension.y);
-                                    cylinder.GetComponentInChildren<Renderer>().material = material;
-                                    cylinder.tag = VisualTag.Visual;
+                                    visualObject = _objectController.CreateCylinder(objFrame, subapp.dimension.x, subapp.dimension.y);
+                                    visualObject.GetComponentInChildren<Renderer>().material = material;
+                                    visualObject.tag = VisualTag.Visual;
                                 }
                                     break;
                                 case AppearanceShapes.Capsule:
                                 {
-                                    var capsule = _objectController.CreateCapsule(objFrame, subapp.dimension.x, subapp.dimension.y);
-                                    capsule.GetComponentInChildren<Renderer>().material = material;
-                                    capsule.tag = VisualTag.Visual;
+                                    visualObject = _objectController.CreateCapsule(objFrame, subapp.dimension.x, subapp.dimension.y);
+                                    visualObject.GetComponentInChildren<Renderer>().material = material;
+                                    visualObject.tag = VisualTag.Visual;
                                 }
                                     break;
                                 case AppearanceShapes.Mesh:
                                 {
-                                    string meshFile = subapp.fileName;
-                                    string meshFileName = Path.GetFileNameWithoutExtension(meshFile);
-                                    string meshFileExtension = Path.GetExtension(meshFile);
-                                    string directoryName = Path.GetFileName(Path.GetDirectoryName(meshFile));
-                                    var mesh = _objectController.CreateMesh(objFrame, Path.Combine(directoryName, meshFileName), subapp.dimension.x, subapp.dimension.x, subapp.dimension.x, 
-                                        meshFileExtension != ".dae");
-                                    mesh.GetComponentInChildren<Renderer>().material = material;
-                                    mesh.tag = VisualTag.Visual;
+                                    string meshFileName = Path.GetFileName(subapp.fileName);       
+                                    string meshFileExtension = Path.GetExtension(subapp.fileName);
+                                    string meshFilePathInResourceDir = _loader.RetrieveMeshPath(Path.GetDirectoryName(subapp.fileName), meshFileName);
+                            
+                                    visualObject = _objectController.CreateMesh(objFrame, meshFilePathInResourceDir, 
+                                        subapp.dimension.x, subapp.dimension.y, subapp.dimension.z, meshFileExtension != ".dae");
+                                    visualObject.GetComponentInChildren<Renderer>().material = material;
+                                    visualObject.tag = VisualTag.Visual;
                                 }
                                     break;
                                 default:
@@ -645,7 +647,7 @@ namespace raisimUnity
                     else
                     {
                         // default visual object (same shape with collision)
-                        GameObject visualObject = GameObject.Instantiate(collisionObject, objFrame.transform);
+                        visualObject = GameObject.Instantiate(collisionObject, objFrame.transform);
                         visualObject.GetComponentInChildren<Renderer>().material = material;
                         visualObject.tag = VisualTag.Visual;
                     }

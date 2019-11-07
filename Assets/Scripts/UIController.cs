@@ -40,7 +40,7 @@ namespace raisimUnity
         
         // Toggle
         private const string _ToggleVisualBodiesName = "_ToggleVisualBodies";
-        private const string _ToggleCollisionBodiesName = "_ToggleVisualBodies";
+        private const string _ToggleCollisionBodiesName = "_ToggleCollisionBodies";
         private const string _ToggleContactPointsName = "_ToggleContactPoints";
         private const string _ToggleContactForcesName = "_ToggleContactForces";
         
