@@ -18,7 +18,7 @@
                 <quat w="1" x="0" y="0" z="0"/>
                 <!-- has an appearance child -->
                 <apperance>
-                    <mesh fileName="/home/donghok/Workspace/unity/raisimUnity/Assets/Resources/objects/Resources/monkey/monkey.obj" material="metal1" scale="1"/>
+                    <mesh fileName="/home/donghok/Workspace/unity/raisimUnity/Assets/Resources/objects/Resources/monkey/monkey.obj" material="Metal1" scale="1"/>
                 </apperance>
             </box>
             <cylinder name="cylinder" radius="0.5" height="0.5" mass="1">
@@ -26,7 +26,7 @@
                 <quat w="1" x="0" y="0" z="0"/>
                 <!-- has an appearance child -->
                 <apperance>
-                    <mesh fileName="/home/donghok/Workspace/unity/raisimUnity/Assets/Resources/objects/Resources/bunny/bunny.obj" material="metal2" scale="1"/>
+                    <mesh fileName="/home/donghok/Workspace/unity/raisimUnity/Assets/Resources/objects/Resources/bunny/bunny.obj" material="Metal2" scale="1"/>
                 </apperance>
             </cylinder>
             <capsule name="capsule" radius="0.5" height="1" mass="1">
@@ -34,7 +34,7 @@
                 <quat w="1" x="0" y="0" z="0"/>
                 <!-- has an appearance child -->
                 <!-- this appearance node has material but no child: visualize primitive capsule with material -->
-                <appearance material="metal3"/>
+                <appearance material="Metal3"/>
             </capsule>
         </objects>
     </world>
@@ -42,6 +42,6 @@
     <!--Visual instances-->
     <!--These are not raisim objects so not governed by physics.-->
     <visuals>
-        <box xLength="1" yLength="1"  zLength="1"/>
+        <box name="boxmarker1" xLength="1" yLength="1"  zLength="1"/>
     </visuals>
 </raisim>

@@ -22,11 +22,11 @@ namespace raisimUnity
         
         // UI element names
         // Buttons
-        private const string _ButtonConnectName = "ButtonConnect";
-        private const string _ButtonScreenshotName = "ButtonScreenshot";
-        private const string _ButtonRecordName = "ButtonRecord";
-        private const string _ButtonAddResourceName = "ButtonAddResource";
-        private const string _ButtonDeleteResourceName = "ButtonDeleteResource";
+        private const string _ButtonConnectName = "_ButtonConnect";
+        private const string _ButtonScreenshotName = "_ButtonScreenshot";
+        private const string _ButtonRecordName = "_ButtonRecord";
+        private const string _ButtonAddResourceName = "_ButtonAddResource";
+        private const string _ButtonDeleteResourceName = "_ButtonDeleteResource";
         
         // Dropdown 
         private const string _DropdownBackgroundName = "DropdownBackground";
@@ -34,6 +34,20 @@ namespace raisimUnity
         // Scroll View
         private const string _ScrollViewResourceDirs = "ScrollResources";
         
+        // Input field
+        private const string _InputFieldTcpName = "_InputFieldTcp"; 
+        private const string _InputFieldPortName = "_InputFieldPort"; 
+        
+        // Toggle
+        private const string _ToggleVisualBodiesName = "_ToggleVisualBodies";
+        private const string _ToggleCollisionBodiesName = "_ToggleVisualBodies";
+        private const string _ToggleContactPointsName = "_ToggleContactPoints";
+        private const string _ToggleContactForcesName = "_ToggleContactForces";
+        
+        // Modal view
+        private const string _ErrorModalViewName = "_ModalViewError";
+        private const string _ErrorModalViewMessageName = "_TextErrorMessage";
+
         // Backgrounds
         private Material _daySky;
         private Material _sunriseSky;
@@ -58,7 +72,7 @@ namespace raisimUnity
 
             // modal view
             {
-                var modal = GameObject.Find("ErrorModalView").GetComponent<Canvas>();
+                var modal = GameObject.Find(_ErrorModalViewName).GetComponent<Canvas>();
                 modal.enabled = false;
                 var okButton = modal.GetComponentInChildren<Button>();
                 okButton.onClick.AddListener(() => { modal.enabled = false;});
@@ -66,25 +80,25 @@ namespace raisimUnity
             
             // visualize section
             {
-                var toggleVisual = GameObject.Find("ToggleVisualBodies").GetComponent<Toggle>();
+                var toggleVisual = GameObject.Find(_ToggleVisualBodiesName).GetComponent<Toggle>();
                 toggleVisual.onValueChanged.AddListener((isSelected) =>
                 {
                     _remote.ShowVisualBody = isSelected;
                     _remote.ShowOrHideObjects();
                 });
-                var toggleCollision = GameObject.Find("ToggleCollisionBodies").GetComponent<Toggle>();
+                var toggleCollision = GameObject.Find(_ToggleCollisionBodiesName).GetComponent<Toggle>();
                 toggleCollision.onValueChanged.AddListener((isSelected) =>
                 {
                     _remote.ShowCollisionBody = isSelected;
                     _remote.ShowOrHideObjects();
                 });
-                var toggleContactPoints = GameObject.Find("ToggleContactPoints").GetComponent<Toggle>();
+                var toggleContactPoints = GameObject.Find(_ToggleContactPointsName).GetComponent<Toggle>();
                 toggleContactPoints.onValueChanged.AddListener((isSelected) =>
                 {
                     _remote.ShowContactPoints = isSelected;
                     _remote.ShowOrHideObjects();
                 });
-                var toggleContactForces = GameObject.Find("ToggleContactForces").GetComponent<Toggle>();
+                var toggleContactForces = GameObject.Find(_ToggleContactForcesName).GetComponent<Toggle>();
                 toggleContactForces.onValueChanged.AddListener((isSelected) =>
                 {
                     _remote.ShowContactForces = isSelected;
@@ -94,9 +108,9 @@ namespace raisimUnity
             
             // connection section
             {
-                var ipInputField = GameObject.Find("TCP IP Inputfield").GetComponent<InputField>();
+                var ipInputField = GameObject.Find(_InputFieldTcpName).GetComponent<InputField>();
                 ipInputField.text = _remote.TcpAddress;
-                var portInputField = GameObject.Find("TCP Port Inputfield").GetComponent<InputField>();
+                var portInputField = GameObject.Find(_InputFieldPortName).GetComponent<InputField>();
                 portInputField.text = _remote.TcpPort.ToString();
                 var connectButton = GameObject.Find(_ButtonConnectName).GetComponent<Button>();
                 connectButton.onClick.AddListener(() =>
@@ -113,10 +127,10 @@ namespace raisimUnity
                         }
                         catch (Exception e)
                         {
-                            var modal = GameObject.Find("ErrorModalView").GetComponent<Canvas>();
+                            var modal = GameObject.Find(_ErrorModalViewName).GetComponent<Canvas>();
                             modal.enabled = true;
-//                            var message = modal.transform.Find("message").GetComponentInChildren<Text>();
-//                            message.text = e.Message;
+                            var message = GameObject.Find(_ErrorModalViewMessageName).GetComponentInChildren<Text>();
+                            message.text = e.Message;
                         }
                     }
                     else

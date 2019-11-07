@@ -24,7 +24,6 @@
 
 #include "raisim/World.hpp"
 #include "raisim/RaisimServer.hpp"
-#include <thread>
 #include "helper.hpp"
 
 int main() {

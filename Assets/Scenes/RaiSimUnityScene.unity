@@ -427,7 +427,7 @@ GameObject:
   - component: {fileID: 131015734}
   - component: {fileID: 131015733}
   m_Layer: 5
-  m_Name: ButtonRecord
+  m_Name: _ButtonRecord
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -543,7 +543,7 @@ GameObject:
   - component: {fileID: 135247268}
   - component: {fileID: 135247269}
   m_Layer: 5
-  m_Name: ToggleVisualBodies
+  m_Name: _ToggleVisualBodies
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -733,7 +733,7 @@ GameObject:
   - component: {fileID: 175673251}
   - component: {fileID: 175673250}
   m_Layer: 5
-  m_Name: HeaderResources
+  m_Name: _HeaderResources
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1214,7 +1214,7 @@ GameObject:
   - component: {fileID: 421461888}
   - component: {fileID: 421461889}
   m_Layer: 5
-  m_Name: ToggleCollisionBodies
+  m_Name: _ToggleCollisionBodies
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1329,7 +1329,7 @@ GameObject:
   - component: {fileID: 442845236}
   - component: {fileID: 442845237}
   m_Layer: 5
-  m_Name: ToggleContactPoints
+  m_Name: _ToggleContactPoints
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1538,7 +1538,7 @@ GameObject:
   - component: {fileID: 467076727}
   - component: {fileID: 467076726}
   m_Layer: 5
-  m_Name: HeaderBackground
+  m_Name: _HeaderBackground
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2227,7 +2227,7 @@ GameObject:
   - component: {fileID: 781404814}
   - component: {fileID: 781404813}
   m_Layer: 5
-  m_Name: ErrorModalView
+  m_Name: _ModalViewError
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2326,7 +2326,7 @@ GameObject:
   - component: {fileID: 788858887}
   - component: {fileID: 788858886}
   m_Layer: 5
-  m_Name: ButtonConnect
+  m_Name: _ButtonConnect
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3161,7 +3161,7 @@ GameObject:
   - component: {fileID: 992072793}
   - component: {fileID: 992072792}
   m_Layer: 5
-  m_Name: TCP IP Inputfield
+  m_Name: _InputFieldTcp
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3378,7 +3378,7 @@ GameObject:
   - component: {fileID: 1032170147}
   - component: {fileID: 1032170146}
   m_Layer: 5
-  m_Name: HeaderConnection
+  m_Name: _HeaderConnection
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3532,7 +3532,7 @@ GameObject:
   - component: {fileID: 1070194963}
   - component: {fileID: 1070194962}
   m_Layer: 5
-  m_Name: TCP Port Inputfield
+  m_Name: _InputFieldPort
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3692,7 +3692,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0.00013032339, y: 0}
+  m_AnchoredPosition: {x: 0.000025598009, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1131478607
@@ -4445,7 +4445,7 @@ GameObject:
   - component: {fileID: 1459180874}
   - component: {fileID: 1459180875}
   m_Layer: 5
-  m_Name: ToggleContactForces
+  m_Name: _ToggleContactForces
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4532,7 +4532,7 @@ GameObject:
   - component: {fileID: 1479222929}
   - component: {fileID: 1479222928}
   m_Layer: 5
-  m_Name: ButtonDeleteResource
+  m_Name: _ButtonDeleteResource
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4800,7 +4800,7 @@ GameObject:
   - component: {fileID: 1486902632}
   - component: {fileID: 1486902631}
   m_Layer: 5
-  m_Name: ButtonScreenshot
+  m_Name: _ButtonScreenshot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4994,7 +4994,7 @@ GameObject:
   - component: {fileID: 1514533797}
   - component: {fileID: 1514533796}
   m_Layer: 5
-  m_Name: Title
+  m_Name: ErrorTitle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5897,7 +5897,7 @@ GameObject:
   - component: {fileID: 1851105701}
   - component: {fileID: 1851105700}
   m_Layer: 5
-  m_Name: HeaderRecording
+  m_Name: _HeaderRecording
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6043,8 +6043,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 648470227}
   m_HandleRect: {fileID: 648470226}
   m_Direction: 2
-  m_Value: 1.0000002
-  m_Size: 0.6643799
+  m_Value: 1.0000007
+  m_Size: 0.75299615
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -6097,7 +6097,7 @@ GameObject:
   - component: {fileID: 1897923179}
   - component: {fileID: 1897923178}
   m_Layer: 5
-  m_Name: Message
+  m_Name: ErrorMessage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6174,7 +6174,7 @@ GameObject:
   - component: {fileID: 1897945574}
   - component: {fileID: 1897945573}
   m_Layer: 5
-  m_Name: HeaderVisualization
+  m_Name: _HeaderVisualization
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6573,7 +6573,7 @@ GameObject:
   - component: {fileID: 2107977368}
   - component: {fileID: 2107977367}
   m_Layer: 5
-  m_Name: ButtonAddResource
+  m_Name: _ButtonAddResource
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
