@@ -9,6 +9,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Xml;
 using UnityEngine;
+using UnityEngine.Rendering;
 using Quaternion = UnityEngine.Quaternion;
 using Vector3 = UnityEngine.Vector3;
 
@@ -686,6 +687,7 @@ namespace raisimUnity
                 float colorA = BitIO.GetData<float>(ref _buffer, ref offset);
                 string materialName = BitIO.GetData<string>(ref _buffer, ref offset);
                 bool glow = BitIO.GetData<bool>(ref _buffer, ref offset);
+                bool shadow = BitIO.GetData<bool>(ref _buffer, ref offset);
 
                 GameObject visual = null;
                     
@@ -729,6 +731,7 @@ namespace raisimUnity
                         break;
                 }
                 
+                // set material or color
                 if (string.IsNullOrEmpty(materialName) && visual != null)
                 {
                     // set material by rgb 
@@ -745,6 +748,16 @@ namespace raisimUnity
                     // set material from
                     Material material = Resources.Load<Material>(materialName);
                     visual.GetComponentInChildren<Renderer>().material = material;
+                }
+                
+                // set shadow 
+                if (shadow)
+                {
+                    visual.GetComponentInChildren<Renderer>().shadowCastingMode = ShadowCastingMode.On;
+                }
+                else
+                {
+                    visual.GetComponentInChildren<Renderer>().shadowCastingMode = ShadowCastingMode.Off;
                 }
             }
 
