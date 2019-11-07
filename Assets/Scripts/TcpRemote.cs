@@ -596,6 +596,10 @@ namespace raisimUnity
                     {
                         foreach (var subapp in appearances.As<Appearances>().subAppearances)
                         {
+                            // subapp material 
+                            if(!String.IsNullOrEmpty(subapp.materialName))
+                                material = Resources.Load<Material>(subapp.materialName);
+                            
                             switch (subapp.shapes)
                             {
                                 case AppearanceShapes.Sphere:
