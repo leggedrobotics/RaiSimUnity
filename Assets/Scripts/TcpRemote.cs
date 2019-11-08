@@ -166,14 +166,12 @@ namespace raisimUnity
         // resource loader
         private ResourceLoader _loader;
         
-        // error modal view
+        // modal view
         private GameObject _errorModalView;
-        
-        void Start()
+        private LoadingViewController _loadingModalView;
+
+        void Awake()
         {
-            // set buffer size
-            _buffer = new byte[_maxBufferSize];
-            
             // object roots
             _objectsRoot = GameObject.Find("Objects");
             _visualsRoot = GameObject.Find("Visuals");
@@ -195,7 +193,14 @@ namespace raisimUnity
             _defaultMaterialB = Resources.Load<Material>("Plastic3");
             
             // ui controller 
-            _errorModalView = GameObject.Find("_ModalViewError");
+            _errorModalView = GameObject.Find("_CanvasModalViewError");
+            _loadingModalView = GameObject.Find("_CanvasModalViewLoading").GetComponent<LoadingViewController>();
+        }
+
+        void Start()
+        {
+            // set buffer size
+            _buffer = new byte[_maxBufferSize];
         }
 
         void Update()
@@ -317,11 +322,10 @@ namespace raisimUnity
             ulong configurationNumber = BitIO.GetData<ulong>(ref _buffer, ref offset);
 
             ulong numObjects = BitIO.GetData<ulong>(ref _buffer, ref offset);
-
+            
             for (ulong i = 0; i < numObjects; i++)
             {
                 ulong objectIndex = BitIO.GetData<ulong>(ref _buffer, ref offset);
-                
                 RsObejctType objectType = BitIO.GetData<RsObejctType>(ref _buffer, ref offset);
                 
                 // get name and find corresponding appearance from XML

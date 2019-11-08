@@ -45,7 +45,7 @@ namespace raisimUnity
         private const string _ToggleContactForcesName = "_ToggleContactForces";
         
         // Modal view
-        private const string _ErrorModalViewName = "_ModalViewError";
+        private const string _ErrorModalViewName = "_CanvasModalViewError";
         private const string _ErrorModalViewMessageName = "_TextErrorMessage";
 
         // Backgrounds
@@ -73,7 +73,7 @@ namespace raisimUnity
             // modal view
             {
                 var modal = GameObject.Find(_ErrorModalViewName).GetComponent<Canvas>();
-                modal.enabled = false;
+                modal.enabled = true;
                 var okButton = modal.GetComponentInChildren<Button>();
                 okButton.onClick.AddListener(() => { modal.enabled = false;});
             }
