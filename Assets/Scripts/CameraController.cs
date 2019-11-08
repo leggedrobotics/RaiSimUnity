@@ -36,8 +36,10 @@ public class CameraController : MonoBehaviour
     // Public Properties
     public int maxFrames; // maximum number of frames you want to record in one video
     public int frameRate = 30; // number of frames to capture per second
+    public bool videoAvailable = false;
 
     // The Encoder Thread
+    private int _saverExitCode = 0;
     private Thread _saverThread;
 
     // Texture Readback Objects
@@ -57,8 +59,8 @@ public class CameraController : MonoBehaviour
     private bool threadIsProcessing;
     
     // Video name
-    private string outputName = "out";
-    private int outputIdx = 1;
+    private string _outputName = "out";
+    private int _outputIdx = 1;
     
     public bool ThreadIsProcessing
     {
@@ -68,8 +70,13 @@ public class CameraController : MonoBehaviour
     private void Awake()
     {
         cam = GetComponent<Camera>();
+        
+        // Check if FFMPEG available
+        int ffmpegExitCode = FFMPEGTest();
+        if (ffmpegExitCode == 0)
+            videoAvailable = true;
     }
-    
+
     void Start () 
     {
         // Set target frame rate (optional)
@@ -88,9 +95,6 @@ public class CameraController : MonoBehaviour
         captureFrameTime = 1.0f / (float)frameRate;
         lastFrameTime = Time.time;
         
-        // Check if FFMPEG available
-        // TODO
-
         // Kill the encoder thread if running from a previous execution
         if (_saverThread != null && (threadIsProcessing || _saverThread.IsAlive)) {
             threadIsProcessing = false;
@@ -139,10 +143,6 @@ public class CameraController : MonoBehaviour
                     }
                 
                     _selected = hit.transform.parent.gameObject;
-//                    var meshscale = new List<float>();
-//                    meshscale.Add(_selected.transform.localScale.x);
-//                    meshscale.Add(_selected.transform.localScale.y);
-//                    meshscale.Add(_selected.transform.localScale.z);
 
                     foreach (var ren in _selected.GetComponentsInChildren<Renderer>())
                     {
@@ -286,13 +286,69 @@ public class CameraController : MonoBehaviour
         // Terminate thread after it saves
         terminateThreadWhenDone = true;
     }
-	
+
+    private int FFMPEGTest()
+    {
+        // to check ffmpeg works 
+        using (var ffmpegProc = new Process())
+        {
+            if (Application.platform == RuntimePlatform.LinuxEditor ||
+                Application.platform == RuntimePlatform.LinuxPlayer)
+            {
+                // Linux
+                ffmpegProc.StartInfo.FileName = "/bin/sh";
+            }
+            else if (Application.platform == RuntimePlatform.OSXEditor ||
+                     Application.platform == RuntimePlatform.OSXPlayer)
+            {
+                // Mac
+                throw new NotImplementedException();
+            }
+            else
+            {
+                // Else...
+                throw new NotImplementedException();
+            }
+
+            ffmpegProc.StartInfo.UseShellExecute = false;
+            ffmpegProc.StartInfo.CreateNoWindow = true;
+            ffmpegProc.StartInfo.RedirectStandardInput = true;
+            ffmpegProc.StartInfo.RedirectStandardOutput = true;
+            ffmpegProc.StartInfo.RedirectStandardError = true;
+            ffmpegProc.StartInfo.Arguments =
+                "-c \"" +
+                "ffmpeg \"";
+
+            ffmpegProc.OutputDataReceived += new DataReceivedEventHandler((s, e) =>
+            {
+                // print(e.Data);    // this is for debugging 
+            });
+            ffmpegProc.ErrorDataReceived += new DataReceivedEventHandler((s, e) =>
+            {
+                // print(e.Data);     // this is for debugging
+            });
+
+            // Start ffmpeg
+            ffmpegProc.Start();
+            ffmpegProc.BeginErrorReadLine();
+            ffmpegProc.BeginOutputReadLine();
+
+            if (ffmpegProc.HasExited)
+            {
+                // check exit code
+                return ffmpegProc.ExitCode;
+            }
+        }
+
+        return -1;
+    }
+
     private void SaveVideo()
     {
         print ("SCREENRECORDER IO THREAD STARTED");
 
         // Generate file path
-        string path = outputName + outputIdx++.ToString() + ".mp4";
+        string path = _outputName + _outputIdx++.ToString() + ".mp4";
 
         using (var ffmpegProc = new Process())
         {
@@ -328,11 +384,11 @@ public class CameraController : MonoBehaviour
         
             ffmpegProc.OutputDataReceived += new DataReceivedEventHandler((s, e) => 
             { 
-//                print(e.Data);    // this is for debugging 
+                // print(e.Data);    // this is for debugging 
             });
             ffmpegProc.ErrorDataReceived += new DataReceivedEventHandler((s, e) =>
             {
-//                print(e.Data);     // this is for debugging
+                // print(e.Data);     // this is for debugging
             });
 
             // Start ffmpeg
@@ -346,7 +402,7 @@ public class CameraController : MonoBehaviour
                 int result = ffmpegProc.ExitCode;
                 if (result == 127)
                 {
-                    throw new RsuFfmepgException("ffmpeg command is not found. Install ffmpeg to record video");
+                    // TODO error ffmpeg is not exist
                 }
             }
 
@@ -383,14 +439,14 @@ public class CameraController : MonoBehaviour
                 int result = ffmpegProc.ExitCode;
                 if (result != 0)
                 {
-                    throw new RsuFfmepgException("something wrong while saving video by ffmpeg...");
+                    // TODO error
                 }
             }
         }
         
         terminateThreadWhenDone = false;
         threadIsProcessing = false;
-
+        
         print ("SCREENRECORDER IO THREAD FINISHED");
     }
 }

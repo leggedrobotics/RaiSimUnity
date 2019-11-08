@@ -152,13 +152,21 @@ namespace raisimUnity
                 var screenshotButton = GameObject.Find(_ButtonScreenshotName).GetComponent<Button>();
                 screenshotButton.onClick.AddListener(() =>
                 {
-                    if (!File.Exists("Screenshot"))
-                        Directory.CreateDirectory("Screenshot");
-                    var filename = "Screenshot/Screenshot " + DateTime.Now.ToString("yyyy-MM-d hh-mm-ss") + ".png";
+                    string dirName = Path.Combine(Application.dataPath, "../Screenshot");
+                    
+                    if (!File.Exists(dirName))
+                        Directory.CreateDirectory(dirName);
+                    var filename = Path.Combine(
+                        dirName,
+                        "Screenshot " + DateTime.Now.ToString("yyyy-MM-d hh-mm-ss") + ".png");
                     ScreenCapture.CaptureScreenshot(filename);
                 });
                 
                 var recordButton = GameObject.Find(_ButtonRecordName).GetComponent<Button>();
+                
+                if (!_camera.videoAvailable) recordButton.interactable = false;
+                else recordButton.interactable = true;
+                
                 recordButton.onClick.AddListener(() =>
                 {
                     if (_camera.IsRecording)
@@ -317,14 +325,17 @@ namespace raisimUnity
                 recordButton.GetComponentInChildren<Text>().text = "Record Video";
             }
 
-            if (!_camera.IsRecording && _camera.ThreadIsProcessing)
+            if (_camera.videoAvailable)
             {
-                recordButton.GetComponent<Button>().interactable = false;
-                recordButton.GetComponentInChildren<Text>().text = "Saving Video...";
-            }
-            else
-            {
-                recordButton.GetComponent<Button>().interactable = true;
+                if (!_camera.IsRecording && _camera.ThreadIsProcessing)
+                {
+                    recordButton.GetComponent<Button>().interactable = false;
+                    recordButton.GetComponentInChildren<Text>().text = "Saving Video...";
+                }
+                else
+                {
+                    recordButton.GetComponent<Button>().interactable = true;
+                }
             }
         }
     }
