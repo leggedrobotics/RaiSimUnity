@@ -13,7 +13,9 @@ The project was tested on Ubuntu 18.04 LST.
 - [RaiSimLib](https://github.com/leggedrobotics/raisimLib)
 - (optional for developement) Unity Editor >= 2019.2.9f1 (linux version is available on [here](https://forum.unity.com/threads/unity-hub-v-1-6-0-is-now-available.640792/))
 
-- Add the following line in your simulation code: see [Example code](https://github.com/leggedrobotics/raisimUnity/tree/master/Examples/src)
+### RaiSimUnity 
+
+1. Add the following line in your simulation code: see [Example code](https://github.com/leggedrobotics/raisimUnity/tree/master/Examples/src)
 ```cpp
   /// launch raisim servear
   raisim::RaisimServer server(&world);
@@ -26,34 +28,33 @@ The project was tested on Ubuntu 18.04 LST.
 
   server.killServer();
 ```
-- Run your simulation. 
-- Run RaiSimUnity
-
+2. Run your simulation. 
+3. Run RaiSimUnity application.
 ![](https://github.com/leggedrobotics/raisimUnity/blob/master/Images/step1.png)
+4. Add your resource directory that contains your mesh, material etc.
 ![](https://github.com/leggedrobotics/raisimUnity/blob/master/Images/step2.png)
+5. Tap *Connect* button after specify TCP address and port.
 ![](https://github.com/leggedrobotics/raisimUnity/blob/master/Images/step3.png)
+6. You can change background by *Background* dropdown menu in run time.
 ![](https://github.com/leggedrobotics/raisimUnity/blob/master/Images/step4.png)
 
-### Development
+## Development
 
-Clone this repository with git and [git-lfs](https://git-lfs.github.com/): we use git-lfs for large files such as materials, meshes, texture images etc.
+1. Clone this repository with git and [git-lfs](https://git-lfs.github.com/): we use git-lfs for large files such as materials, meshes, texture images etc.
 
 ```sh
 $ git clone https://github.com/eastskykang/raisimUnity.git
 ```
 
-Once you cloned source code, get lfs files by 
-
+2. Once you cloned source code, get lfs files by 
 ```sh
 $ git lfs pull origin
 ```
-
 You should see texture JPEG files properly from ```Assets/Resources/texture/cc0/```. 
 
-We strongly recommend to use JetBrain's Rider IDE and Unity Rider Editor package >= 1.1.2 for development. 
-
-- See [Wiki doc](https://github.com/leggedrobotics/raisimUnity/wiki/Unity-with-Rider) for more details.
-- See [Wiki doc](https://github.com/leggedrobotics/raisimUnity/wiki/Creating-a-material-from-texture-files) to create new material from texture files.
+3. We strongly recommend to use JetBrain's Rider IDE and Unity Rider Editor package >= 1.1.2 for development. 
+    - See [Wiki doc](https://github.com/leggedrobotics/raisimUnity/wiki/Unity-with-Rider) for more details.
+    - See [Wiki doc](https://github.com/leggedrobotics/raisimUnity/wiki/Creating-a-material-from-texture-files) to create new material from texture files.
 
 ## Dependencies
 
