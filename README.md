@@ -14,7 +14,28 @@ The project was tested on Ubuntu 18.04 LST.
 - [RaiSimLib](https://github.com/leggedrobotics/raisimLib)
 - (optional for developement) Unity Editor >= 2019.2.9f1 (linux version is available on [here](https://forum.unity.com/threads/unity-hub-v-1-6-0-is-now-available.640792/))
 
-### Quick start
+- Add the following line in your simulation code: see [Example code](https://github.com/leggedrobotics/raisimUnity/tree/master/Examples/src)
+```cpp
+  /// launch raisim servear
+  raisim::RaisimServer server(&world);
+  server.launchServer();
+
+  while(1) {
+    raisim::MSLEEP(2);
+    server.integrateWorldThreadSafe();
+  }
+
+  server.killServer();
+```
+- Run your simulation. 
+- Run RaiSimUnity
+
+![](https://github.com/leggedrobotics/raisimUnity/blob/master/Images/step1.png)
+![](https://github.com/leggedrobotics/raisimUnity/blob/master/Images/step2.png)
+![](https://github.com/leggedrobotics/raisimUnity/blob/master/Images/step3.png)
+![](https://github.com/leggedrobotics/raisimUnity/blob/master/Images/step4.png)
+
+### Development
 
 Clone this repository with git and [git-lfs](https://git-lfs.github.com/): we use git-lfs for large files such as materials, meshes, texture images etc.
 
@@ -30,12 +51,10 @@ $ git lfs pull origin
 
 You should see texture JPEG files properly from ```Assets/Resources/texture/cc0/```. 
 
-### Development
-
 We strongly recommend to use JetBrain's Rider IDE and Unity Rider Editor package >= 1.1.2 for development. 
 
-- See [Wiki doc](https://github.com/eastskykang/raisimUnity/wiki/Unity-with-Rider) for more details.
-- See [Wiki doc](https://github.com/eastskykang/raisimUnity/wiki/Creating-a-material-from-texture-files) to create new material from texture files.
+- See [Wiki doc](https://github.com/leggedrobotics/raisimUnity/wiki/Unity-with-Rider) for more details.
+- See [Wiki doc](https://github.com/leggedrobotics/raisimUnity/wiki/Creating-a-material-from-texture-files) to create new material from texture files.
 
 ## Dependencies
 
