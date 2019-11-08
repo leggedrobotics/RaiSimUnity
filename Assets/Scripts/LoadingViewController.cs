@@ -16,7 +16,7 @@ namespace raisimUnity
         {
             _progressBar = GameObject.Find("_FillbarForeground");
             _title = GameObject.Find("_TextLoadingTitle");
-            _message = GameObject.Find("_TextErrorMessage");
+            _message = GameObject.Find("_TextLoadingMessage");
             
             Vector2 anchorMax = _progressBar.GetComponent<RectTransform>().anchorMax;
             Vector2 anchorMin = _progressBar.GetComponent<RectTransform>().anchorMin;

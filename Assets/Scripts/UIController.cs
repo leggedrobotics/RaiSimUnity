@@ -337,6 +337,10 @@ namespace raisimUnity
                     recordButton.GetComponent<Button>().interactable = true;
                 }
             }
+            
+            // escape
+            if(Input.GetKey("escape"))
+                Application.Quit();
         }
     }
 }

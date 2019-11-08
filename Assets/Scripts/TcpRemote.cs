@@ -135,6 +135,8 @@ namespace raisimUnity
         
         // status
         private bool _tcpTryConnect = false;
+        private bool _initializing = false;
+        private bool _initializingModal = false;
         private bool _showVisualBody = true;
         private bool _showCollisionBody = false;
         private bool _showContactPoints = false;
@@ -220,22 +222,70 @@ namespace raisimUnity
             {
                 try
                 {
-                    // update object position
-                    if (UpdatePosition() != 0)
+                    if (_initializing)
                     {
-                        // TODO error
-                    }
+                        // initialization
+                        if (_initializingModal)
+                        {
+                            _loadingModalView.Show(true);
+                            _loadingModalView.SetTitle("Initializing");
+                            _loadingModalView.SetMessage("Loading resources...");
+                            _initializingModal = false;
+                        }
+                        else
+                        {
+                            // Read XML string
+                            if (ReadXMLString() != 0)
+                            {
+                                // TODO error
+                            }
 
-                    // update contacts
-                    if (UpdateContacts() != 0)
-                    {
-                        // TODO error
-                    }
+                            // initialize scene from data 
+                            if (InitializeScene() != 0)
+                            {
+                                // TODO error
+                            }
                     
-                    // update visuals
-                    if (UpdateVisualsPosition() != 0)
+                            // initialize visuals from data
+                            if (InitializeVisuals() != 0)
+                            {
+                                // TODO error
+                            }
+                    
+                            // disable other cameras than main camera
+                            foreach (var cam in Camera.allCameras)
+                            {
+                                if (cam == Camera.main) continue;
+                                cam.enabled = false;
+                            }
+                    
+                            // show / hide objects
+                            ShowOrHideObjects();
+                        
+                            // done 
+                            _initializing = false;
+                            _loadingModalView.Show(false);
+                        }
+                    }
+                    else
                     {
-                        // TODO error
+                        // update object position
+                        if (UpdatePosition() != 0)
+                        {
+                            // TODO error
+                        }
+
+                        // update contacts
+                        if (UpdateContacts() != 0)
+                        {
+                            // TODO error
+                        }
+
+                        // update visuals
+                        if (UpdateVisualsPosition() != 0)
+                        {
+                            // TODO error
+                        }
                     }
                 }
                 catch (Exception e)
@@ -250,10 +300,6 @@ namespace raisimUnity
                     CloseConnection();
                 }
             }
-            
-            // escape
-            if(Input.GetKey("escape"))
-                Application.Quit();
         }
 
         private void ClearScene()
@@ -286,6 +332,9 @@ namespace raisimUnity
             // clear appearances
             if(_xmlReader != null)
                 _xmlReader.ClearAppearanceMap();
+            
+            // clear modal view
+            _loadingModalView.Show(false);
         }
 
         private void ClearContacts()
@@ -962,44 +1011,11 @@ namespace raisimUnity
                 throw new RsuTcpConnectionException(e.Message);
             }
 
-            try
+            // initialize scene when connection available
+            if (_client != null && _client.Connected && _stream != null)
             {
-                // initialize scene when connection available
-                if (_client != null && _client.Connected && _stream != null)
-                {
-                    // Read XML string
-                    if (ReadXMLString() != 0)
-                    {
-                        // TODO error
-                    }
-
-                    // initialize scene from data 
-                    if (InitializeScene() != 0)
-                    {
-                        // TODO error
-                    }
-                    
-                    // initialize visuals from data
-                    if (InitializeVisuals() != 0)
-                    {
-                        // TODO error
-                    }
-                    
-                    // disable other cameras than main camera
-                    foreach (var cam in Camera.allCameras)
-                    {
-                        if (cam == Camera.main) continue;
-                        cam.enabled = false;
-                    }
-                    
-                    // show / hide objects
-                    ShowOrHideObjects();
-                }
-            }
-            catch (Exception e)
-            {
-                // connection cannot be established
-                throw new RsuInitException(e.Message);
+                _initializing = true;
+                _initializingModal = true;
             }
         }
 
