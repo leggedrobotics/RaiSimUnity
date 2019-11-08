@@ -1,6 +1,6 @@
 # RaisimUnity
 
-![raisimunity gif](https://github.com/eastskykang/raisimUnity/blob/master/Images/raisimunity.gif)
+![raisimunity gif](https://github.com/leggedrobotics/raisimUnity/blob/master/Images/raisimunity.gif)
  
 raisimUnity is a visualizer for raisim based on [Unity](https://unity.com/). 
 The visualizer gets the simulation data from raisim server application via TCP/IP.
@@ -28,13 +28,7 @@ Once you cloned source code, get lfs files by
 $ git lfs pull origin
 ```
 
-You should see texture JPEG files properly from ```Assets/Resources/texture/cc0/```.
-
-### Default objects
-
-- Stanford Bunny mesh object (.obj)
-- Monkey mesh object (.obj)
-- [ANYmal B](https://rsl.ethz.ch/robots-media/anymal.html) URDF and mesh files (.urdf and .dae)
+You should see texture JPEG files properly from ```Assets/Resources/texture/cc0/```. 
 
 ### Development
 
@@ -52,3 +46,19 @@ This is just for listing the source.
 - C# Collada model 
 - [OBJImport](https://assetstore.unity.com/packages/tools/modeling/runtime-obj-importer-49547)
 - [SimpleFileBrowser](https://assetstore.unity.com/packages/tools/gui/runtime-file-browser-113006)
+
+## Default Material List
+
+- Bricks1
+- Concrete1
+- Fabric1
+- Ground1
+- Leather1
+- Metal1
+- Metal2
+- Metal3
+- Metal4
+- PavingStones1
+- PavingStones2
+- Planks1
+- ... see [this](https://github.com/leggedrobotics/raisimUnity/tree/master/Assets/Resources/materials/Resources)
