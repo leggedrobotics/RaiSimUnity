@@ -1,9 +1,8 @@
-# RaisimUnity
+# RaisimUnity (NOT COMPLETED) 
 
 ![raisimunity gif](https://github.com/leggedrobotics/raisimUnity/blob/master/Images/raisimunity.gif)
  
-raisimUnity is a visualizer for raisim based on [Unity](https://unity.com/). 
-The visualizer gets the simulation data from raisim server application via TCP/IP.
+raisimUnity is a visualizer for raisim based on [Unity](https://unity.com/). It gets the simulation data from raisim server application via TCP/IP.
 
 The project was tested on Ubuntu 18.04 LST.
 
