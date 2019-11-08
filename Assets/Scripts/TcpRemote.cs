@@ -169,7 +169,7 @@ namespace raisimUnity
         private ResourceLoader _loader;
         
         // modal view
-        private GameObject _errorModalView;
+        private ErrorViewController _errorModalView;
         private LoadingViewController _loadingModalView;
 
         void Awake()
@@ -195,7 +195,7 @@ namespace raisimUnity
             _defaultMaterialB = Resources.Load<Material>("Plastic3");
             
             // ui controller 
-            _errorModalView = GameObject.Find("_CanvasModalViewError");
+            _errorModalView = GameObject.Find("_CanvasModalViewError").GetComponent<ErrorViewController>();
             _loadingModalView = GameObject.Find("_CanvasModalViewLoading").GetComponent<LoadingViewController>();
         }
 
@@ -210,7 +210,6 @@ namespace raisimUnity
             // broken connection: clear
             if( !CheckConnection() )
             {
-                // TODO connection lost popup
                 ClearScene();
                 
                 _client = null;
@@ -235,22 +234,13 @@ namespace raisimUnity
                         else
                         {
                             // Read XML string
-                            if (ReadXMLString() != 0)
-                            {
-                                // TODO error
-                            }
+                            ReadXMLString();
 
                             // initialize scene from data 
-                            if (InitializeScene() != 0)
-                            {
-                                // TODO error
-                            }
+                            InitializeScene();
                     
                             // initialize visuals from data
-                            if (InitializeVisuals() != 0)
-                            {
-                                // TODO error
-                            }
+                            InitializeVisuals();
                     
                             // disable other cameras than main camera
                             foreach (var cam in Camera.allCameras)
@@ -291,10 +281,8 @@ namespace raisimUnity
                 catch (Exception e)
                 {
                     // modal view
-                    var modal = _errorModalView.GetComponent<Canvas>();
-                    modal.enabled = true;
-//                    var message = modal.transform.Find("Message").GetComponentInChildren<Text>();
-//                    message.text = e.Message;
+                    _errorModalView.Show(true);
+                    _errorModalView.SetMessage(e.Message);
 
                     // close connection
                     CloseConnection();
@@ -352,21 +340,21 @@ namespace raisimUnity
             }
         }
 
-        private int InitializeScene()
+        private void InitializeScene()
         {
             int offset = 0;
             
             WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestInitialization));
             if (ReadData() == 0)
-                return -1;
+                throw new RsuInitSceneException("Cannot read data from TCP");
 
             ServerStatus state = BitIO.GetData<ServerStatus>(ref _buffer, ref offset);
             if (state == ServerStatus.StatusTerminating)
-                return 0;
+                throw new RsuInitSceneException("Server is terminating");
 
             ServerMessageType messageType = BitIO.GetData<ServerMessageType>(ref _buffer, ref offset);
             if (messageType != ServerMessageType.Initialization)
-                return -1;
+                throw new RsuInitSceneException("Server gives wrong message");
 
             ulong configurationNumber = BitIO.GetData<ulong>(ref _buffer, ref offset);
 
@@ -420,7 +408,7 @@ namespace raisimUnity
                                 string meshFilePathInResourceDir = _loader.RetrieveMeshPath(urdfDirPathInServer, meshFile);
                                 if (meshFilePathInResourceDir == null)
                                 {
-                                    throw new RsuInitException("Cannot find mesh from resource directories: " + meshFile);
+                                    throw new RsuInitSceneException("Cannot find mesh from resource directories = " + meshFile);
                                 }
                                 
                                 var mesh = _objectController.CreateMesh(objFrame, meshFilePathInResourceDir, (float)sx, (float)sy, (float)sz, meshFileExtension != ".dae");
@@ -697,7 +685,7 @@ namespace raisimUnity
                                 }
                                     break;
                                 default:
-                                    throw new NotImplementedException("Not Implemented Appearance Shape");
+                                    throw new RsuInitSceneException("Not Implemented Appearance Shape");
                             }
                         }
                     }
@@ -712,24 +700,23 @@ namespace raisimUnity
             }
             
             Array.Clear(_buffer, 0, _maxBufferSize);
-            return 0;
         }
 
-        private int InitializeVisuals()
+        private void InitializeVisuals()
         {
             int offset = 0;
             
             WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestInitializeVisuals));
             if (ReadData() == 0)
-                return -1;
+                throw new RsuInitVisualsException("Cannot read data from TCP");
 
             ServerStatus state = BitIO.GetData<ServerStatus>(ref _buffer, ref offset);
             if (state == ServerStatus.StatusTerminating)
-                return 0;
+                throw new RsuInitVisualsException("Server is terminating");
 
             ServerMessageType messageType = BitIO.GetData<ServerMessageType>(ref _buffer, ref offset);
             if (messageType != ServerMessageType.VisualInitialization)
-                return -1;
+                throw new RsuInitVisualsException("Server gives wrong message");
             
             ulong numObjects = BitIO.GetData<ulong>(ref _buffer, ref offset);
 
@@ -819,8 +806,6 @@ namespace raisimUnity
                     visual.GetComponentInChildren<Renderer>().shadowCastingMode = ShadowCastingMode.Off;
                 }
             }
-
-            return 0;
         }
         
         private int UpdatePosition()
@@ -1019,27 +1004,26 @@ namespace raisimUnity
             }
         }
 
-        private int ReadXMLString()
+        private void ReadXMLString()
         {
             int offset = 0;
             
             WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestConfigXML));
             if (ReadData() == 0)
-                return -1;
+                throw new RsuReadXMLException("Cannot read data from TCP");
             
             ServerStatus state = BitIO.GetData<ServerStatus>(ref _buffer, ref offset);
             
             if (state == ServerStatus.StatusTerminating)
-                return 0;
+                throw new RsuReadXMLException("Server is terminating");
 
             ServerMessageType messageType = BitIO.GetData<ServerMessageType>(ref _buffer, ref offset);
             if (messageType == ServerMessageType.NoMessage)
+                // No XML 
+                return;
+            if (messageType != ServerMessageType.ConfigXml)
             {
-                return 0;
-            }
-            else if (messageType != ServerMessageType.ConfigXml)
-            {
-                return -1;
+                throw new RsuReadXMLException("Server gives wrong message");
             }
 
             string xmlString = BitIO.GetData<string>(ref _buffer, ref offset);
@@ -1047,8 +1031,6 @@ namespace raisimUnity
             XmlDocument xmlDoc = new XmlDocument();
             xmlDoc.LoadXml(xmlString);
             _xmlReader.CreateApperanceMap(xmlDoc);
-
-            return 0;
         }
 
         public void CloseConnection()
@@ -1071,7 +1053,7 @@ namespace raisimUnity
                     _client = null;
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
             }
         }

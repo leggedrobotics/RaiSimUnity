@@ -73,7 +73,6 @@ namespace raisimUnity
             // modal view
             {
                 var modal = GameObject.Find(_ErrorModalViewName).GetComponent<Canvas>();
-                modal.enabled = true;
                 var okButton = modal.GetComponentInChildren<Button>();
                 okButton.onClick.AddListener(() => { modal.enabled = false;});
             }
@@ -127,10 +126,9 @@ namespace raisimUnity
                         }
                         catch (Exception e)
                         {
-                            var modal = GameObject.Find(_ErrorModalViewName).GetComponent<Canvas>();
-                            modal.enabled = true;
-                            var message = GameObject.Find(_ErrorModalViewMessageName).GetComponentInChildren<Text>();
-                            message.text = e.Message;
+                            var modal = GameObject.Find(_ErrorModalViewName).GetComponent<ErrorViewController>();
+                            modal.Show(true);
+                            modal.SetMessage(e.Message);
                         }
                     }
                     else

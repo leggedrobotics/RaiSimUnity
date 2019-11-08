@@ -7,8 +7,18 @@ namespace raisimUnity
         }
     }
     
-    public class RsuInitException: Exception {
-        public RsuInitException(string message): base(message) {
+    public class RsuReadXMLException: Exception {
+        public RsuReadXMLException(string message): base("Cannot Read XML: " + message) {
+        }
+    }
+    
+    public class RsuInitSceneException: Exception {
+        public RsuInitSceneException(string message): base("Cannot Initialize Scene: " + message) {
+        }
+    }
+    
+    public class RsuInitVisualsException: Exception {
+        public RsuInitVisualsException(string message): base("Cannot Initialize Visuals: " + message) {
         }
     }
 
