@@ -219,7 +219,10 @@ public class CameraController : MonoBehaviour
             // Add the required number of copies to the queue
             for (int i = 0; i < framesToCapture; ++i)
             {
-                _frameQueue.Enqueue(_tempTexture2D.GetRawTextureData());
+                var data = _tempTexture2D.GetRawTextureData();
+                if(data == null) continue;
+                
+                _frameQueue.Enqueue(data);
                 frameNumber++;
             }
 
@@ -317,7 +320,7 @@ public class CameraController : MonoBehaviour
             ffmpegProc.StartInfo.RedirectStandardError = true;
             ffmpegProc.StartInfo.Arguments =
                 "-c \"" +
-                "ffmpeg \"";
+                "ffmpeg -version\"";
 
             ffmpegProc.OutputDataReceived += new DataReceivedEventHandler((s, e) =>
             {
@@ -333,11 +336,10 @@ public class CameraController : MonoBehaviour
             ffmpegProc.BeginErrorReadLine();
             ffmpegProc.BeginOutputReadLine();
 
-            if (ffmpegProc.HasExited)
-            {
-                // check exit code
-                return ffmpegProc.ExitCode;
-            }
+            while (!ffmpegProc.HasExited) {}
+            
+            // check exit code
+            return ffmpegProc.ExitCode;
         }
 
         return -1;
