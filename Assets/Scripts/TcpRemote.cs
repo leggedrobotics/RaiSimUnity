@@ -323,6 +323,9 @@ namespace raisimUnity
             
             // clear modal view
             _loadingModalView.Show(false);
+            
+            // clear mesh cache
+            _objectController.ClearMeshCache();
         }
 
         private void ClearContacts()
