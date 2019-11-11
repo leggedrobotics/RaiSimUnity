@@ -11,6 +11,11 @@ The project was tested on Ubuntu 18.04 LST.
 ### Prerequisites
 
 - [RaiSimLib](https://github.com/leggedrobotics/raisimLib)
+- (optional for video recording) [ffmpeg](https://www.ffmpeg.org/)
+    - Install by 
+    ```sh
+    $ sudo apt install ffmpeg
+    ``` 
 - (optional for developement) Unity Editor >= 2019.2.9f1 (linux version is available on [here](https://forum.unity.com/threads/unity-hub-v-1-6-0-is-now-available.640792/))
 
 ### RaiSimUnity 

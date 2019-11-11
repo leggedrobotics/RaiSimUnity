@@ -3,7 +3,6 @@
  */
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using Collada141;
 using Dummiesman;
@@ -21,19 +20,26 @@ namespace raisimUnity
         private ColladaLoader _colladaLoader;
         private StlLoader _stlLoader;
 
+        private GameObject _objectCache;
         private Dictionary<string, GameObject> _meshCache;
         
-        public ObjectController()
+        public ObjectController(GameObject cache)
         {
+            _objectCache = cache;
+            
             _objLoader = new OBJLoader(); 
             _colladaLoader = new ColladaLoader();
             _stlLoader = new StlLoader();
             _meshCache = new Dictionary<string, GameObject>();
         }
 
-        public void ClearMeshCache()
+        public void ClearCache()
         {
             _meshCache.Clear();
+            foreach (Transform objT in _objectCache.transform)
+            {
+                GameObject.Destroy(objT.gameObject);
+            }
         }
 
         public GameObject CreateSphere(GameObject root, float radius)
@@ -246,10 +252,7 @@ namespace raisimUnity
             // sx, sy, sz is scale 
             GameObject mesh = null;
             
-            if (_meshCache.ContainsKey(meshFile))
-            {
-                mesh = GameObject.Instantiate(_meshCache[meshFile]);
-            }
+            if (_meshCache.ContainsKey(meshFile) && _meshCache[meshFile] != null) {}
             else
             {
                 if (!File.Exists(meshFile))
@@ -257,31 +260,40 @@ namespace raisimUnity
                     throw new RsuResourceException("Cannot find mesh file: " + meshFile);
                 }
 
+                GameObject loadedMesh = null;
+
                 string fileExtension = Path.GetExtension(meshFile);
                 switch (fileExtension)
                 {
                     case ".dae" : 
-                        mesh = _colladaLoader.Load(meshFile);
+                        loadedMesh = _colladaLoader.Load(meshFile);
                         break;
                     case ".obj" :
-                        mesh = _objLoader.Load(meshFile);
+                        loadedMesh = _objLoader.Load(meshFile);
                         break;
                     case ".stl" :
-                        mesh = _stlLoader.Load(meshFile);
+                        loadedMesh = _stlLoader.Load(meshFile);
                         break;
                     default :
                         // TODO Notsupported Mesh type 
                         break;
                 }
                 
-                _meshCache.Add(meshFile, mesh);
+                // save to cache
+                loadedMesh.name = meshFile;
+                loadedMesh.transform.SetParent(_objectCache.transform);
+                loadedMesh.SetActive(false);
+                _meshCache.Add(meshFile, loadedMesh);
             }
-
+            
+            mesh = GameObject.Instantiate(_meshCache[meshFile]);
             if (mesh == null)
             {
                 throw new RsuResourceException("Cannot load mesh file: " + meshFile);
             }
-//            var mesh = GameObject.Instantiate(meshRes);
+            
+            mesh.SetActive(true);
+            mesh.name = "mesh";
             mesh.transform.SetParent(root.transform, true);
             mesh.transform.localScale = new Vector3((float)sx, (float)sy, (float)sz);
             if(flipYz)
