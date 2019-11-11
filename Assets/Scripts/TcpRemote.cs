@@ -127,9 +127,9 @@ namespace raisimUnity
         
         // buffer
         // TODO get buffer spec from raisim?
-        private const int _maxBufferSize = 33554432;
-        private const int _maxPacketSize = 4096;
-        private const int _footerSize = sizeof(Byte);
+        private const int MaxBufferSize = 33554432;
+        private const int MaxPacketSize = 4096;
+        private const int FooterSize = sizeof(Byte);
         
         private byte[] _buffer;
         
@@ -147,6 +147,7 @@ namespace raisimUnity
         private GameObject _visualsRoot;
         private GameObject _contactPointsRoot;
         private GameObject _contactForcesRoot;
+        private GameObject _objectCache;
         
         // object controller 
         private ObjectController _objectController;
@@ -171,17 +172,21 @@ namespace raisimUnity
         // modal view
         private ErrorViewController _errorModalView;
         private LoadingViewController _loadingModalView;
+        
+        // configuration number (should be always matched with server)
+        private ulong _configurationNumber = 0; 
 
         void Awake()
         {
             // object roots
             _objectsRoot = GameObject.Find("Objects");
+            _objectCache = GameObject.Find("ObjectCache");
             _visualsRoot = GameObject.Find("Visuals");
             _contactPointsRoot = GameObject.Find("ContactPoints");
             _contactForcesRoot = GameObject.Find("ContactForces");
-            
+
             // object controller 
-            _objectController = new ObjectController();
+            _objectController = new ObjectController(_objectCache);
 
             // shaders
             _standardShader = Shader.Find("Standard");
@@ -202,7 +207,7 @@ namespace raisimUnity
         void Start()
         {
             // set buffer size
-            _buffer = new byte[_maxBufferSize];
+            _buffer = new byte[MaxBufferSize];
         }
 
         void Update()
@@ -234,7 +239,7 @@ namespace raisimUnity
                         else
                         {
                             // Read XML string
-                            ReadXMLString();
+                            ReadXmlString();
 
                             // initialize scene from data 
                             InitializeScene();
@@ -260,19 +265,13 @@ namespace raisimUnity
                     else
                     {
                         // update object position
-                        if (UpdatePosition() != 0)
-                        {
-                            // TODO error
-                        }
-
-                        // update contacts
-                        if (UpdateContacts() != 0)
-                        {
-                            // TODO error
-                        }
+                        UpdateObjectsPosition();
 
                         // update visuals
-                        if (UpdateVisualsPosition() != 0)
+                        UpdateVisualsPosition();
+                        
+                        // update contacts
+                        if (UpdateContacts() != 0)
                         {
                             // TODO error
                         }
@@ -292,7 +291,6 @@ namespace raisimUnity
 
         private void ClearScene()
         {
-            // TODO maybe we can just clear RSUnity children?
             // objects
             foreach (Transform objT in _objectsRoot.transform)
             {
@@ -324,8 +322,8 @@ namespace raisimUnity
             // clear modal view
             _loadingModalView.Show(false);
             
-            // clear mesh cache
-            _objectController.ClearMeshCache();
+            // clear object cache
+            _objectController.ClearCache();
         }
 
         private void ClearContacts()
@@ -359,7 +357,7 @@ namespace raisimUnity
             if (messageType != ServerMessageType.Initialization)
                 throw new RsuInitSceneException("Server gives wrong message");
 
-            ulong configurationNumber = BitIO.GetData<ulong>(ref _buffer, ref offset);
+            _configurationNumber = BitIO.GetData<ulong>(ref _buffer, ref offset);
 
             ulong numObjects = BitIO.GetData<ulong>(ref _buffer, ref offset);
             
@@ -702,7 +700,26 @@ namespace raisimUnity
                 }
             }
             
-            Array.Clear(_buffer, 0, _maxBufferSize);
+            Array.Clear(_buffer, 0, MaxBufferSize);
+        }
+
+        private void ReinitializeScene()
+        {
+            // clear objects first
+            foreach (Transform objT in _objectsRoot.transform)
+            {
+                Destroy(objT.gameObject);
+            }
+            
+            // initialize scene from data
+            InitializeScene();
+            
+            // disable other cameras than main camera
+            foreach (var cam in Camera.allCameras)
+            {
+                if (cam == Camera.main) continue;
+                cam.enabled = false;
+            }
         }
 
         private void InitializeVisuals()
@@ -728,7 +745,7 @@ namespace raisimUnity
                 RsVisualType objectType = BitIO.GetData<RsVisualType>(ref _buffer, ref offset);
                 
                 // get name and find corresponding appearance from XML
-                string name = BitIO.GetData<string>(ref _buffer, ref offset);
+                string objectName = BitIO.GetData<string>(ref _buffer, ref offset);
                 
                 float colorR = BitIO.GetData<float>(ref _buffer, ref offset);
                 float colorG = BitIO.GetData<float>(ref _buffer, ref offset);
@@ -747,7 +764,7 @@ namespace raisimUnity
                         float radius = BitIO.GetData<float>(ref _buffer, ref offset);
                         visual =  _objectController.CreateSphere(_visualsRoot, radius);
                         visual.tag = VisualTag.Visual;
-                        visual.name = name;
+                        visual.name = objectName;
                     }
                         break;
                     case RsVisualType.RsVisualBox:
@@ -757,7 +774,7 @@ namespace raisimUnity
                         float sz = BitIO.GetData<float>(ref _buffer, ref offset);
                         visual = _objectController.CreateBox(_visualsRoot, sx, sy, sz);
                         visual.tag = VisualTag.Visual;
-                        visual.name = name;
+                        visual.name = objectName;
                     }
                         break;
                     case RsVisualType.RsVisualCylinder:
@@ -766,7 +783,7 @@ namespace raisimUnity
                         float height = BitIO.GetData<float>(ref _buffer, ref offset);
                         visual = _objectController.CreateCylinder(_visualsRoot, radius, height);
                         visual.tag = VisualTag.Visual;
-                        visual.name = name;
+                        visual.name = objectName;
                     }
                         break;
                     case RsVisualType.RsVisualCapsule:
@@ -775,7 +792,7 @@ namespace raisimUnity
                         float height = BitIO.GetData<float>(ref _buffer, ref offset);
                         visual = _objectController.CreateCapsule(_visualsRoot, radius, height);
                         visual.tag = VisualTag.Visual;
-                        visual.name = name;
+                        visual.name = objectName;
                     }
                         break;
                 }
@@ -811,30 +828,30 @@ namespace raisimUnity
             }
         }
         
-        private int UpdatePosition()
+        private void UpdateObjectsPosition()
         {
             int offset = 0;
             
             WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestObjectPosition));
             if (ReadData() == 0)
-                return -1;
+                throw new RsuUpdateObjectsPositionException("Cannot read data from TCP");
 
             ServerStatus state = BitIO.GetData<ServerStatus>(ref _buffer, ref offset);
-            
             if (state == ServerStatus.StatusTerminating)
-                return 0;
+                throw new RsuUpdateObjectsPositionException("Server is terminating");
 
             ServerMessageType messageType = BitIO.GetData<ServerMessageType>(ref _buffer, ref offset);
-            if (messageType == ServerMessageType.NoMessage)
-            {
-                return -1;
-            }
             if (messageType != ServerMessageType.ObjectPositionUpdate)
-            {
-                return -1;
-            }
+                throw new RsuUpdateObjectsPositionException("Server gives wrong message");
             
             ulong configurationNumber = BitIO.GetData<ulong>(ref _buffer, ref offset);
+            if (configurationNumber != _configurationNumber)
+            {
+                // this means the object was added or deleted from server size
+                Array.Clear(_buffer, 0, MaxBufferSize);
+                ReinitializeScene();
+                return;
+            }
 
             ulong numObjects = BitIO.GetData<ulong>(ref _buffer, ref offset);
 
@@ -867,36 +884,34 @@ namespace raisimUnity
                     }
                     else
                     {
-                        throw new RsuTcpConnectionException("update position failed: cannot find unity game object: " + objectName);
+                        throw new RsuUpdateObjectsPositionException("Cannot find unity game object: " + objectName);
                     }
                 }
             }
             
-            Array.Clear(_buffer, 0, _maxBufferSize);
-            return 0;
+            Array.Clear(_buffer, 0, MaxBufferSize);
         }
 
-        private int UpdateVisualsPosition()
+        private void UpdateVisualsPosition()
         {
             int offset = 0;
             
             WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestVisualPosition));
             if (ReadData() == 0)
-                return -1;
+                throw new RsuUpdateVisualsPositionException("Cannot read data from TCP");
 
             ServerStatus state = BitIO.GetData<ServerStatus>(ref _buffer, ref offset);
-            
             if (state == ServerStatus.StatusTerminating)
-                return 0;
+                throw new RsuUpdateVisualsPositionException("Server is terminating");
 
             ServerMessageType messageType = BitIO.GetData<ServerMessageType>(ref _buffer, ref offset);
             if (messageType == ServerMessageType.NoMessage)
             {
-                return -1;
+                throw new RsuUpdateVisualsPositionException("Server gives wrong message");
             }
             if (messageType != ServerMessageType.VisualPositionUpdate)
             {
-                return -1;
+                throw new RsuUpdateVisualsPositionException("Server gives wrong message");
             }
             
             ulong numObjects = BitIO.GetData<ulong>(ref _buffer, ref offset);
@@ -926,11 +941,9 @@ namespace raisimUnity
                 }
                 else
                 {
-                    throw new RsuTcpConnectionException("update position failed: cannot find unity game object: " + visualName);
+                    throw new RsuUpdateVisualsPositionException("Cannot find unity game object: " + visualName);
                 }
             }
-
-            return 0;
         }
 
         private int UpdateContacts()
@@ -1022,7 +1035,7 @@ namespace raisimUnity
             }
         }
 
-        private void ReadXMLString()
+        private void ReadXmlString()
         {
             int offset = 0;
             
@@ -1113,10 +1126,10 @@ namespace raisimUnity
             Byte footer = Convert.ToByte('c');
             while (footer == Convert.ToByte('c'))
             {
-                int valread = _stream.Read(_buffer, offset, _maxPacketSize);
+                int valread = _stream.Read(_buffer, offset, MaxPacketSize);
                 if (valread == 0) break;
-                footer = _buffer[offset + _maxPacketSize - _footerSize];
-                offset += valread - _footerSize;
+                footer = _buffer[offset + MaxPacketSize - FooterSize];
+                offset += valread - FooterSize;
             }
             return offset;
         }
@@ -1170,21 +1183,23 @@ namespace raisimUnity
             // collision body
             foreach (var obj in GameObject.FindGameObjectsWithTag(VisualTag.Collision))
             {
-                foreach (var collider in obj.GetComponentsInChildren<Collider>())
-                    collider.enabled = _showCollisionBody;
-                foreach (var renderer in obj.GetComponentsInChildren<Renderer>())
+                foreach (var col in obj.GetComponentsInChildren<Collider>())
+                    col.enabled = _showCollisionBody;
+                foreach (var ren in obj.GetComponentsInChildren<Renderer>())
                 {
-                    renderer.enabled = _showCollisionBody;
-                    Color temp = renderer.material.color;
+                    ren.enabled = _showCollisionBody;
+                    Color temp = ren.material.color;
                     if (_showContactForces || _showContactPoints)
                     {
-                        renderer.material.shader = _transparentShader;
-                        renderer.material.color = new Color(temp.r, temp.g, temp.b, 0.5f);
+                        Material mat = ren.material;
+                        mat.shader = _transparentShader;
+                        mat.color = new Color(temp.r, temp.g, temp.b, 0.5f);
                     }
                     else
                     {
-                        renderer.material.shader = _standardShader;
-                        renderer.material.color = new Color(temp.r, temp.g, temp.b, 1.0f);
+                        Material mat = ren.material;
+                        mat.shader = _standardShader;
+                        mat.color = new Color(temp.r, temp.g, temp.b, 1.0f);
                     }
                 }
             }
