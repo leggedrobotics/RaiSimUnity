@@ -957,23 +957,38 @@ namespace raisimUnity
             ClearContacts();
 
             // create contact marker
+            List<Tuple<Vector3, Vector3>> contactList = new List<Tuple<Vector3, Vector3>>();
+            float forceMaxNorm = 0;
+
             for (ulong i = 0; i < numContacts; i++)
             {
                 double posX = BitIO.GetData<double>(ref _buffer, ref offset);
                 double posY = BitIO.GetData<double>(ref _buffer, ref offset);
                 double posZ = BitIO.GetData<double>(ref _buffer, ref offset);
-                
-                if(_showContactPoints)
-                    _objectController.CreateContactMarker(_contactPointsRoot, (int)i, new Vector3((float)posX, (float)posY, (float)posZ));
-                
+
                 double forceX = BitIO.GetData<double>(ref _buffer, ref offset);
                 double forceY = BitIO.GetData<double>(ref _buffer, ref offset);
                 double forceZ = BitIO.GetData<double>(ref _buffer, ref offset);
+                var force = new Vector3((float) forceX, (float) forceY, (float) forceZ);
                 
-                if(_showContactForces)
-                    _objectController.CreateContactForceMarker(_contactForcesRoot, (int)i, 
-                        new Vector3((float)posX, (float)posY, (float)posZ), 
-                        new Vector3((float)forceX, (float)forceY, (float)forceZ));
+                contactList.Add(new Tuple<Vector3, Vector3>(
+                    new Vector3((float) posX, (float) posY, (float) posZ), force
+                ));
+                
+                forceMaxNorm = Math.Max(forceMaxNorm, force.magnitude);
+            }
+            
+            for (ulong i = 0; i < numContacts; i++)
+            {
+                if(_showContactPoints)
+                    _objectController.CreateContactMarker(
+                        _contactPointsRoot, (int)i, contactList[(int)i].Item1);
+
+                if (_showContactForces)
+                {
+                    _objectController.CreateContactForceMarker(
+                        _contactForcesRoot, (int) i, contactList[(int)i].Item1, contactList[(int)i].Item2 / forceMaxNorm);
+                }
             }
 
             return 0;
