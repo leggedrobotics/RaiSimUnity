@@ -720,6 +720,9 @@ namespace raisimUnity
                 if (cam == Camera.main) continue;
                 cam.enabled = false;
             }
+            
+            // show / hide objects
+            ShowOrHideObjects();
         }
 
         private void InitializeVisuals()
