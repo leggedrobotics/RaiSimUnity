@@ -24,13 +24,19 @@ namespace raisimUnity
 
     public class RsuUpdateObjectsPositionException : Exception
     {
-        public RsuUpdateObjectsPositionException(string message): base("Cannot update position" + message) {
+        public RsuUpdateObjectsPositionException(string message): base("Cannot update position: " + message) {
         }
     }
     
     public class RsuUpdateVisualsPositionException : Exception
     {
-        public RsuUpdateVisualsPositionException(string message): base("Cannot update visual position" + message) {
+        public RsuUpdateVisualsPositionException(string message): base("Cannot update visual position: " + message) {
+        }
+    }
+    
+    public class RsuUpdateContactsException : Exception
+    {
+        public RsuUpdateContactsException(string message): base("Cannot update contacts: " + message) {
         }
     }
 

@@ -175,6 +175,9 @@ namespace raisimUnity
         
         // configuration number (should be always matched with server)
         private ulong _configurationNumber = 0; 
+        
+        // read data timer
+        private float readDataTime = 0;
 
         void Awake()
         {
@@ -271,10 +274,7 @@ namespace raisimUnity
                         UpdateVisualsPosition();
                         
                         // update contacts
-                        if (UpdateContacts() != 0)
-                        {
-                            // TODO error
-                        }
+                        UpdateContacts();
                     }
                 }
                 catch (Exception e)
@@ -346,7 +346,7 @@ namespace raisimUnity
             int offset = 0;
             
             WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestInitialization));
-            if (ReadData() == 0)
+            if (ReadData() <= 0)
                 throw new RsuInitSceneException("Cannot read data from TCP");
 
             ServerStatus state = BitIO.GetData<ServerStatus>(ref _buffer, ref offset);
@@ -730,7 +730,7 @@ namespace raisimUnity
             int offset = 0;
             
             WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestInitializeVisuals));
-            if (ReadData() == 0)
+            if (ReadData() <= 0)
                 throw new RsuInitVisualsException("Cannot read data from TCP");
 
             ServerStatus state = BitIO.GetData<ServerStatus>(ref _buffer, ref offset);
@@ -836,7 +836,7 @@ namespace raisimUnity
             int offset = 0;
             
             WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestObjectPosition));
-            if (ReadData() == 0)
+            if (ReadData() <= 0)
                 throw new RsuUpdateObjectsPositionException("Cannot read data from TCP");
 
             ServerStatus state = BitIO.GetData<ServerStatus>(ref _buffer, ref offset);
@@ -900,7 +900,7 @@ namespace raisimUnity
             int offset = 0;
             
             WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestVisualPosition));
-            if (ReadData() == 0)
+            if (ReadData() <= 0)
                 throw new RsuUpdateVisualsPositionException("Cannot read data from TCP");
 
             ServerStatus state = BitIO.GetData<ServerStatus>(ref _buffer, ref offset);
@@ -949,23 +949,22 @@ namespace raisimUnity
             }
         }
 
-        private int UpdateContacts()
+        private void UpdateContacts()
         {
             int offset = 0;
             
             WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestContactInfos));
-            if (ReadData() == 0)
-                return -1;
+            if (ReadData() <= 0)
+                throw new RsuUpdateContactsException("Cannot read data from TCP");
             
             ServerStatus state = BitIO.GetData<ServerStatus>(ref _buffer, ref offset);
-            
             if (state == ServerStatus.StatusTerminating)
-                return 0;
+                throw new RsuUpdateContactsException("Server is terminating");
 
             ServerMessageType messageType = BitIO.GetData<ServerMessageType>(ref _buffer, ref offset);
             if (messageType != ServerMessageType.ContactInfoUpdate)
             {
-                return -1;
+                throw new RsuUpdateContactsException("Server gives wrong message");
             }
             
             ulong configurationNumber = BitIO.GetData<ulong>(ref _buffer, ref offset);
@@ -1009,8 +1008,6 @@ namespace raisimUnity
                         _contactForcesRoot, (int) i, contactList[(int)i].Item1, contactList[(int)i].Item2 / forceMaxNorm);
                 }
             }
-
-            return 0;
         }
 
         public void EstablishConnection()
@@ -1043,7 +1040,7 @@ namespace raisimUnity
             int offset = 0;
             
             WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestConfigXML));
-            if (ReadData() == 0)
+            if (ReadData() <= 0)
                 throw new RsuReadXMLException("Cannot read data from TCP");
             
             ServerStatus state = BitIO.GetData<ServerStatus>(ref _buffer, ref offset);
@@ -1119,10 +1116,14 @@ namespace raisimUnity
         
         private int ReadData()
         {
+            readDataTime = Time.realtimeSinceStartup;
             while (!_stream.DataAvailable)
             {
-                // wait until stream data is available
-                // TODO what to do when it is stucked here....
+                // wait until stream data is available 
+
+                if (Time.realtimeSinceStartup - readDataTime > 5.0f)
+                    // if data is not available until timeout, return error
+                    return -1;
             }
             
             int offset = 0;
