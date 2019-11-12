@@ -75,16 +75,18 @@ int main() {
 
   /// throw balls
   int interval = 600;
-  int numBalls = 10;
+  int numBalls = 20;
+  int j = 0;
 
   for(int i = 0;; i++) {
     raisim::MSLEEP(dt*1000);
 
-    if(i % interval == 0)
+    if(i % interval == 0 and j < numBalls)
     {
       auto *ball = world.addSphere(0.1, 1.0);
-      ball->setPosition(0, -1, 1);
-      ball->setVelocity(0, 1, 0, 0, 0, 0);
+      ball->setPosition(0, -2, 0.8);
+      ball->setVelocity(0, 10, 0, 0, 0, 0);
+      j++;
     }
 
     server.integrateWorldThreadSafe();

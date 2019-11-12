@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using raisimUnity;
 using UnityEngine;
 using UnityEngine.UI;
@@ -414,6 +415,9 @@ namespace Collada141
                     {
                         foreach (var node in vis.node)
                         {
+                            if (node.instance_geometry == null)
+                                continue;
+                            
                             Quaternion quat = Quaternion.identity;
                             Vector3 pos = Vector3.zero;
 
@@ -451,7 +455,7 @@ namespace Collada141
                                 quat = Quaternion.LookRotation(unityMatrix.GetColumn(2), unityMatrix.GetColumn(1));
                                 pos = unityMatrix.GetColumn(3);
                             }
-                            
+
                             foreach (var geom in node.instance_geometry)
                             {
                                 var url = geom.url.Substring(1);
