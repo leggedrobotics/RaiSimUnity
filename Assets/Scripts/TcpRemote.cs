@@ -411,9 +411,17 @@ namespace raisimUnity
                                 {
                                     throw new RsuInitSceneException("Cannot find mesh from resource directories = " + meshFile);
                                 }
-                                
-                                var mesh = _objectController.CreateMesh(objFrame, meshFilePathInResourceDir, (float)sx, (float)sy, (float)sz, meshFileExtension != ".dae");
-                                mesh.tag = tag;
+
+                                try
+                                {
+                                    var mesh = _objectController.CreateMesh(objFrame, meshFilePathInResourceDir, (float)sx, (float)sy, (float)sz, meshFileExtension != ".dae");
+                                    mesh.tag = tag;
+                                }
+                                catch (Exception e)
+                                {
+                                    throw new RsuInitSceneException("Cannot create mesh: " + e.Message);
+                                    throw;
+                                }
                             }
                             else
                             {
@@ -429,14 +437,14 @@ namespace raisimUnity
                                 {
                                     case RsShapeType.RsBoxShape:
                                     {
-                                        if (visParam.Count != 3) throw new Exception("Box Mesh error");
+                                        if (visParam.Count != 3) throw new RsuInitSceneException("Box Mesh error");
                                         var box = _objectController.CreateBox(objFrame, (float) visParam[0], (float) visParam[1], (float) visParam[2]);
                                         box.tag = tag;
                                     }
                                         break;
                                     case RsShapeType.RsCapsuleShape:
                                     {
-                                        if (visParam.Count != 2) throw new Exception("Capsule Mesh error");
+                                        if (visParam.Count != 2) throw new RsuInitSceneException("Capsule Mesh error");
                                         var capsule = _objectController.CreateCapsule(objFrame, (float)visParam[0], (float)visParam[1]);
                                         capsule.tag = tag;
                                     }
@@ -448,14 +456,14 @@ namespace raisimUnity
                                         break;
                                     case RsShapeType.RsCylinderShape:
                                     {
-                                        if (visParam.Count != 2) throw new Exception("Cylinder Mesh error");
+                                        if (visParam.Count != 2) throw new RsuInitSceneException("Cylinder Mesh error");
                                         var cylinder = _objectController.CreateCylinder(objFrame, (float)visParam[0], (float)visParam[1]);
                                         cylinder.tag = tag;
                                     }
                                         break;
                                     case RsShapeType.RsSphereShape:
                                     {
-                                        if (visParam.Count != 1) throw new Exception("Sphere Mesh error");
+                                        if (visParam.Count != 1) throw new RsuInitSceneException("Sphere Mesh error");
                                         var sphere = _objectController.CreateSphere(objFrame, (float)visParam[0]);
                                         sphere.tag = tag;
                                     }
@@ -1049,9 +1057,8 @@ namespace raisimUnity
                 throw new RsuReadXMLException("Server is terminating");
 
             ServerMessageType messageType = BitIO.GetData<ServerMessageType>(ref _buffer, ref offset);
-            if (messageType == ServerMessageType.NoMessage)
-                // No XML 
-                return;
+            if (messageType == ServerMessageType.NoMessage) return; // No XML
+                
             if (messageType != ServerMessageType.ConfigXml)
             {
                 throw new RsuReadXMLException("Server gives wrong message");
@@ -1060,8 +1067,11 @@ namespace raisimUnity
             string xmlString = BitIO.GetData<string>(ref _buffer, ref offset);
 
             XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.LoadXml(xmlString);
-            _xmlReader.CreateApperanceMap(xmlDoc);
+            if (xmlDoc != null)
+            {
+                xmlDoc.LoadXml(xmlString);
+                _xmlReader.CreateApperanceMap(xmlDoc);
+            }
         }
 
         public void CloseConnection()

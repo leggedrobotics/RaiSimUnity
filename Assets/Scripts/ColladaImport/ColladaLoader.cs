@@ -74,7 +74,7 @@ namespace Collada141
                 {
                     // effect libraries -> effectDict
                     var lib_effect = item as library_effects;
-                    if(lib_effect == null)
+                    if(lib_effect == null || lib_effect.effect == null)
                         continue;
                     
                     foreach (var eff in lib_effect.effect)
@@ -159,9 +159,9 @@ namespace Collada141
                 {
                     // material libraries -> materialDict
                     var material = item as library_materials;
-                    if(material == null)
+                    if(material == null || material.material == null)
                         continue;
-
+                    
                     foreach (var mat in material.material)
                     {
                         materialDict.Add(mat.id, mat.instance_effect.url.Substring(1));
@@ -171,7 +171,7 @@ namespace Collada141
                 {
                     // geometry libraries -> geomDict
                     var geometries = item as library_geometries;
-                    if (geometries== null)
+                    if (geometries== null || geometries.geometry == null)
                         continue;
 
                     // Dictionary stores source arrays
@@ -334,7 +334,29 @@ namespace Collada141
 
                                 if (model.asset.up_axis == UpAxisType.Y_UP)
                                 {
-                                    throw new NotImplementedException();
+                                    vertexList.Add(new Vector3(
+                                        -(float)positionFloatArray[posIndex*3],
+                                        (float)positionFloatArray[posIndex*3+1],
+                                        (float)positionFloatArray[posIndex*3+2]
+                                    ));
+                                    
+                                    if (normalFloatArray.Count > 0 && (normalFloatArray.Count > normalIndex))
+                                    {
+                                        normalList.Add(new Vector3(
+                                            -(float)normalFloatArray[normalIndex*3],
+                                            (float)normalFloatArray[normalIndex*3+1],
+                                            (float)normalFloatArray[normalIndex*3+2]
+                                        ));  
+                                    }
+                                    else
+                                    {
+                                        // Add dummy normal for debugging
+                                        normalList.Add(new Vector3(
+                                            0,
+                                            0,
+                                            0
+                                        ));
+                                    }
                                 }
                                 else if (model.asset.up_axis == UpAxisType.Z_UP)
                                 {
@@ -361,14 +383,14 @@ namespace Collada141
                                             0
                                         ));
                                     }
-
-                                    if (uvFloatArray.Count > 0)
-                                    {
-                                        uvList.Add(new Vector2(
-                                            (float)uvFloatArray[uvIndex*2],
-                                            (float)uvFloatArray[uvIndex*2+1]
-                                        ));
-                                    }
+                                }
+                                
+                                if (uvFloatArray.Count > 0)
+                                {
+                                    uvList.Add(new Vector2(
+                                        (float)uvFloatArray[uvIndex*2],
+                                        (float)uvFloatArray[uvIndex*2+1]
+                                    ));
                                 }
                             }
 
@@ -421,39 +443,42 @@ namespace Collada141
                             Quaternion quat = Quaternion.identity;
                             Vector3 pos = Vector3.zero;
 
-                            foreach (var item2 in node.Items)
+                            if (node.Items != null)
                             {
-                                var matrix = item2 as matrix;
-                                if(matrix == null) continue;
+                                foreach (var item2 in node.Items)
+                                {
+                                    var matrix = item2 as matrix;
+                                    if(matrix == null) continue;
                                 
-                                Matrix4x4 unityMatrix = new Matrix4x4();
-                                unityMatrix.SetColumn(0, new Vector4(
-                                    (float)matrix.Values[0], 
-                                    (float)matrix.Values[4],
-                                    (float)matrix.Values[8],
-                                    (float)matrix.Values[12]
-                                ));
-                                unityMatrix.SetColumn(1, new Vector4(
-                                    (float)matrix.Values[1], 
-                                    (float)matrix.Values[5],
-                                    (float)matrix.Values[9],
-                                    (float)matrix.Values[13]
-                                ));
-                                unityMatrix.SetColumn(2, new Vector4(
-                                    (float)matrix.Values[2], 
-                                    (float)matrix.Values[6],
-                                    (float)matrix.Values[10],
-                                    (float)matrix.Values[14]
-                                ));
-                                unityMatrix.SetColumn(3, new Vector4(
-                                    (float)matrix.Values[3], 
-                                    (float)matrix.Values[7],
-                                    (float)matrix.Values[11],
-                                    (float)matrix.Values[15]
-                                ));
+                                    Matrix4x4 unityMatrix = new Matrix4x4();
+                                    unityMatrix.SetColumn(0, new Vector4(
+                                        (float)matrix.Values[0], 
+                                        (float)matrix.Values[4],
+                                        (float)matrix.Values[8],
+                                        (float)matrix.Values[12]
+                                    ));
+                                    unityMatrix.SetColumn(1, new Vector4(
+                                        (float)matrix.Values[1], 
+                                        (float)matrix.Values[5],
+                                        (float)matrix.Values[9],
+                                        (float)matrix.Values[13]
+                                    ));
+                                    unityMatrix.SetColumn(2, new Vector4(
+                                        (float)matrix.Values[2], 
+                                        (float)matrix.Values[6],
+                                        (float)matrix.Values[10],
+                                        (float)matrix.Values[14]
+                                    ));
+                                    unityMatrix.SetColumn(3, new Vector4(
+                                        (float)matrix.Values[3], 
+                                        (float)matrix.Values[7],
+                                        (float)matrix.Values[11],
+                                        (float)matrix.Values[15]
+                                    ));
 
-                                quat = Quaternion.LookRotation(unityMatrix.GetColumn(2), unityMatrix.GetColumn(1));
-                                pos = unityMatrix.GetColumn(3);
+                                    quat = Quaternion.LookRotation(unityMatrix.GetColumn(2), unityMatrix.GetColumn(1));
+                                    pos = unityMatrix.GetColumn(3);
+                                }
                             }
 
                             foreach (var geom in node.instance_geometry)

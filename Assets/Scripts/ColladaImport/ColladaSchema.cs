@@ -144,6 +144,7 @@ namespace Collada141
         }
 
         /// <remarks />
+        [XmlIgnore]
         public DateTime created
         {
             get { return createdField; }
@@ -158,6 +159,7 @@ namespace Collada141
         }
 
         /// <remarks />
+        [XmlIgnore]
         public DateTime modified
         {
             get { return modifiedField; }
@@ -9947,7 +9949,7 @@ namespace Collada141
 
         public static COLLADA Load(Stream stream)
         {
-            StreamReader str = new StreamReader(stream);
+            StreamReader str = new StreamReader(stream, Encoding.UTF8, true);
             XmlSerializer xSerializer = new XmlSerializer(typeof(COLLADA));
 
             return (COLLADA)xSerializer.Deserialize(str);            
