@@ -296,8 +296,7 @@ namespace raisimUnity
             mesh.name = "mesh";
             mesh.transform.SetParent(root.transform, true);
             mesh.transform.localScale = new Vector3((float)sx, (float)sy, (float)sz);
-            if(flipYz)
-                mesh.transform.localRotation = new Quaternion(-0.7071f, 0, 0, 0.7071f);
+            mesh.transform.localRotation = new Quaternion(-0.7071f, 0, 0, 0.7071f);
             
             // add collider to children
             foreach (Transform children in mesh.transform)

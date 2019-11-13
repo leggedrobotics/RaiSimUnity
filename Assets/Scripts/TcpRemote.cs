@@ -414,7 +414,7 @@ namespace raisimUnity
 
                                 try
                                 {
-                                    var mesh = _objectController.CreateMesh(objFrame, meshFilePathInResourceDir, (float)sx, (float)sy, (float)sz, meshFileExtension != ".dae");
+                                    var mesh = _objectController.CreateMesh(objFrame, meshFilePathInResourceDir, (float)sx, (float)sy, (float)sz);
                                     mesh.tag = tag;
                                 }
                                 catch (Exception e)
@@ -633,7 +633,7 @@ namespace raisimUnity
                             string meshFilePathInResourceDir = _loader.RetrieveMeshPath(Path.GetDirectoryName(meshFile), meshFileName);
                             
                             collisionObject = _objectController.CreateMesh(objFrame, meshFilePathInResourceDir, 
-                                scale, scale, scale, meshFileExtension != ".dae");
+                                scale, scale, scale);
                             collisionObject.tag = VisualTag.Collision;
                         }
                             break;
@@ -688,7 +688,7 @@ namespace raisimUnity
                                     string meshFilePathInResourceDir = _loader.RetrieveMeshPath(Path.GetDirectoryName(subapp.fileName), meshFileName);
                             
                                     visualObject = _objectController.CreateMesh(objFrame, meshFilePathInResourceDir, 
-                                        subapp.dimension.x, subapp.dimension.y, subapp.dimension.z, meshFileExtension != ".dae");
+                                        subapp.dimension.x, subapp.dimension.y, subapp.dimension.z);
                                     visualObject.GetComponentInChildren<Renderer>().material = material;
                                     visualObject.tag = VisualTag.Visual;
                                 }
