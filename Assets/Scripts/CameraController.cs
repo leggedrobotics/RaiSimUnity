@@ -20,8 +20,9 @@ public class CameraController : MonoBehaviour
     private float sensitivity = 0.5f;
  
     private Camera cam;
-    private Vector3 anchorPoint;
-    private Quaternion anchorRot;
+    private Vector3 _anchorPoint;
+    private Quaternion _anchorRot;
+    private Vector3 _relVector;
 
     // object selection
     private GameObject _selected; 
@@ -102,8 +103,8 @@ public class CameraController : MonoBehaviour
         }
     }
 
-    void FixedUpdate()
-    {
+    void Update() {
+        
         // move by keyboard
         if (_selected == null)
         {
@@ -123,7 +124,8 @@ public class CameraController : MonoBehaviour
             transform.Translate(move);
         }
         
-        if (!EventSystem.current.IsPointerOverGameObject ()) {
+        if (!EventSystem.current.IsPointerOverGameObject ()) 
+        {
             // only do this if mouse pointer is not on the GUI
             
             // select object by left click
@@ -143,6 +145,7 @@ public class CameraController : MonoBehaviour
                     }
                 
                     _selected = hit.transform.parent.gameObject;
+                    _relVector = _selected.transform.position - gameObject.transform.position;
 
                     foreach (var ren in _selected.GetComponentsInChildren<Renderer>())
                     {
@@ -154,8 +157,8 @@ public class CameraController : MonoBehaviour
             // change camera orientation by right drag 
             if (Input.GetMouseButtonDown(1))
             {
-                anchorPoint = new Vector3(Input.mousePosition.y, -Input.mousePosition.x);
-                anchorRot = transform.rotation;
+                _anchorPoint = new Vector3(Input.mousePosition.y, -Input.mousePosition.x);
+                _anchorRot = transform.rotation;
 
                 // deselect object by right click
                 if (_selected != null)
@@ -168,21 +171,36 @@ public class CameraController : MonoBehaviour
             
                 _selected = null;
             }
+            
             if (Input.GetMouseButton(1))
             {
-                Quaternion rot = anchorRot;
-                Vector3 dif = anchorPoint - new Vector3(Input.mousePosition.y, -Input.mousePosition.x);
+                Quaternion rot = _anchorRot;
+                Vector3 dif = _anchorPoint - new Vector3(Input.mousePosition.y, -Input.mousePosition.x);
                 rot.eulerAngles += dif * sensitivity;
                 transform.rotation = rot;
             }   
+            
+            // orbiting around selected object  
+//            if (Input.GetMouseButtonDown(0) && _selected != null)
+//            {
+//                var distance = (_selected.transform.position - gameObject.transform.position).magnitude;
+//                anchorPoint = new Vector3(Input.mousePosition.y, -Input.mousePosition.x);
+//                anchorRot = transform.rotation;
+//            }
+//            
+//            if (Input.GetMouseButton(0) && _selected != null)
+//            {
+//                Quaternion rot = anchorRot;
+//                Vector3 dif = anchorPoint - new Vector3(Input.mousePosition.y, -Input.mousePosition.x);
+//                rot.eulerAngles += dif * sensitivity;
+//                transform.rotation = rot;
+//            }
         }
-    }
-    
-    void Update() {
         
-        // follow selected object 
+        // follow and orbiting around selected object  
         if (_selected != null)
         {
+            gameObject.transform.position = _selected.transform.position - _relVector;
             gameObject.transform.rotation =
                 Quaternion.LookRotation(_selected.transform.position - gameObject.transform.position);
         }
