@@ -2,6 +2,7 @@
  * Author: Dongho Kang (kangd@ethz.ch)
  */
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Collada141;
@@ -14,6 +15,13 @@ using Vector3 = UnityEngine.Vector3;
 
 namespace raisimUnity
 {
+    public enum MeshUpAxis: int
+    {
+        YUp = 0,    // this is the default for most cases
+        ZUp,
+        XUp,
+    }
+    
     public class ObjectController
     {
         private OBJLoader _objLoader;
@@ -21,7 +29,7 @@ namespace raisimUnity
         private StlLoader _stlLoader;
 
         private GameObject _objectCache;
-        private Dictionary<string, GameObject> _meshCache;
+        private Dictionary<string, Tuple<GameObject, MeshUpAxis>> _meshCache;
         
         public ObjectController(GameObject cache)
         {
@@ -30,7 +38,7 @@ namespace raisimUnity
             _objLoader = new OBJLoader(); 
             _colladaLoader = new ColladaLoader();
             _stlLoader = new StlLoader();
-            _meshCache = new Dictionary<string, GameObject>();
+            _meshCache = new Dictionary<string, Tuple<GameObject, MeshUpAxis>>();
         }
 
         public void ClearCache()
@@ -250,6 +258,7 @@ namespace raisimUnity
         {
             // meshFile is file name without file extension related to Resources directory
             // sx, sy, sz is scale 
+            MeshUpAxis meshUpAxis = MeshUpAxis.YUp;
             GameObject mesh = null;
             
             if (_meshCache.ContainsKey(meshFile) && _meshCache[meshFile] != null) {}
@@ -266,7 +275,11 @@ namespace raisimUnity
                 switch (fileExtension)
                 {
                     case ".dae" : 
-                        loadedMesh = _colladaLoader.Load(meshFile);
+                    {
+                        var collada = _colladaLoader.Load(meshFile);
+                        loadedMesh = collada.Item1;
+                        meshUpAxis = collada.Item2;
+                    }
                         break;
                     case ".obj" :
                         loadedMesh = _objLoader.Load(meshFile);
@@ -283,10 +296,11 @@ namespace raisimUnity
                 loadedMesh.name = meshFile;
                 loadedMesh.transform.SetParent(_objectCache.transform);
                 loadedMesh.SetActive(false);
-                _meshCache.Add(meshFile, loadedMesh);
+                _meshCache.Add(meshFile, new Tuple<GameObject, MeshUpAxis>(loadedMesh, meshUpAxis));
             }
-            
-            mesh = GameObject.Instantiate(_meshCache[meshFile]);
+
+            var cachedMesh = _meshCache[meshFile];
+            mesh = GameObject.Instantiate(cachedMesh.Item1);
             if (mesh == null)
             {
                 throw new RsuResourceException("Cannot load mesh file: " + meshFile);
@@ -296,7 +310,18 @@ namespace raisimUnity
             mesh.name = "mesh";
             mesh.transform.SetParent(root.transform, true);
             mesh.transform.localScale = new Vector3((float)sx, (float)sy, (float)sz);
-            mesh.transform.localRotation = new Quaternion(-0.7071f, 0, 0, 0.7071f);
+
+            if (cachedMesh.Item2 == MeshUpAxis.YUp)
+            {
+                mesh.transform.localRotation = new Quaternion(-0.7071f, 0, 0, 0.7071f);
+            }
+            else if (cachedMesh.Item2 == MeshUpAxis.ZUp)
+            {
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
             
             // add collider to children
             foreach (Transform children in mesh.transform)

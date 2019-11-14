@@ -20,10 +20,10 @@ namespace Collada141
         public string positionId;
         public string normalId;
     }
-    
+
     public class ColladaLoader
     {
-        public GameObject Load(string inputFile)
+        public Tuple<GameObject, MeshUpAxis> Load(string inputFile)
         {
             COLLADA model = COLLADA.Load(inputFile);
             
@@ -498,8 +498,6 @@ namespace Collada141
                                     
                                     // local transform
                                     unitySubObj.transform.SetParent(unityObj.transform, true);
-                                    if(model.asset.up_axis == UpAxisType.Z_UP)
-                                        unitySubObj.transform.localRotation = new Quaternion(0.7071f, 0, 0, 0.7071f);
                                     ObjectController.SetTransform(unitySubObj, pos, quat);
                                     
                                     // material
@@ -524,7 +522,27 @@ namespace Collada141
                 }
             }
 
-            return unityObj;
+            MeshUpAxis meshUpAxis = MeshUpAxis.ZUp;
+            if (model.asset.up_axis != null)
+            {
+                switch (model.asset.up_axis)
+                {
+                    case UpAxisType.X_UP:
+                        meshUpAxis = MeshUpAxis.XUp;
+                        break;
+                    case UpAxisType.Y_UP:
+                        meshUpAxis = MeshUpAxis.YUp;
+                        break;
+                    case UpAxisType.Z_UP:
+                        meshUpAxis = MeshUpAxis.ZUp;
+                        break;
+                    default:
+                        meshUpAxis = MeshUpAxis.ZUp;
+                        break;
+                }
+            }
+
+            return new Tuple<GameObject, MeshUpAxis>(unityObj, meshUpAxis);
         }
     }
 }
