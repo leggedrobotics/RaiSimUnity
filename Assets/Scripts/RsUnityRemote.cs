@@ -772,17 +772,7 @@ namespace raisimUnity
             }
             
             // initialize scene from data
-            PartiallyInitializeScene();
-            
-            // disable other cameras than main camera
-            foreach (var cam in Camera.allCameras)
-            {
-                if (cam == Camera.main) continue;
-                cam.enabled = false;
-            }
-            
-            // show / hide objects
-            ShowOrHideObjects();
+            _clientStatus = ClientStatus.InitializeObjectsStart;
         }
 
         private void PartiallyInitializeVisuals()
