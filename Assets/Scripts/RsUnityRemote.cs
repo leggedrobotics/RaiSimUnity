@@ -130,11 +130,14 @@ namespace raisimUnity
         void Awake()
         {
             // object roots
-            _objectsRoot = GameObject.Find("Objects");
-            _objectCache = GameObject.Find("ObjectCache");
-            _visualsRoot = GameObject.Find("Visuals");
-            _contactPointsRoot = GameObject.Find("ContactPoints");
-            _contactForcesRoot = GameObject.Find("ContactForces");
+            _objectsRoot = new GameObject("RsObjects");
+            _objectsRoot.transform.SetParent(transform);
+            _objectCache = new GameObject("VisualObjects");
+            _objectCache.transform.SetParent(transform);
+            _contactPointsRoot = new GameObject("ContactPoints");
+            _contactPointsRoot.transform.SetParent(transform);
+            _contactForcesRoot = new GameObject("ContactForces");
+            _contactForcesRoot.transform.SetParent(transform);
 
             // object controller 
             _objectController = new ObjectController(_objectCache);
