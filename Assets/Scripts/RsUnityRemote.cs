@@ -18,8 +18,10 @@ namespace raisimUnity
     enum ClientStatus : int
     {
         Idle = 0,
-        Initialization,
-        InitializeScene,
+        InitializeObjectsStart,        // start 
+        InitializingObjects,
+        InitializeVisualsStart,        // start
+        InitializingVisuals,
         UpdateScene,
     }
     
@@ -109,8 +111,10 @@ namespace raisimUnity
         // object controller 
         private ObjectController _objectController;
         private ulong _numInitializedObjects;
-        private ulong _numObjectsInSimulation; 
-
+        private ulong _numWorldObjects; 
+        private ulong _numInitializedVisuals;
+        private ulong _numWorldVisuals;
+        
         // shaders
         private Shader _transparentShader;
         private Shader _standardShader;
@@ -170,7 +174,7 @@ namespace raisimUnity
         public void EstablishConnection()
         {
             _tcpHelper.EstablishConnection();
-            _clientStatus = ClientStatus.Initialization;
+            _clientStatus = ClientStatus.InitializeObjectsStart;
         }
 
         public void CloseConnection()
@@ -196,19 +200,27 @@ namespace raisimUnity
                 {
                     switch (_clientStatus)
                     {
+                        //**********************************************************************************************
+                        // Step 0
+                        //**********************************************************************************************
                         case ClientStatus.Idle:
                         {
                             break;
                         }
-                        case ClientStatus.Initialization:
+                        //**********************************************************************************************
+                        // Step 1
+                        //**********************************************************************************************
+                        case ClientStatus.InitializeObjectsStart:
                         {
                             _loadingModalView.Show(true);
-                            _loadingModalView.SetTitle("Initializing");
+                            _loadingModalView.SetTitle("Initializing RaiSim Objects");
                             _loadingModalView.SetMessage("Loading resources...");
-                            
+                            _loadingModalView.SetProgress(0);
+
                             // Read XML string
                             ReadXmlString();
                             
+                            // Start initialization
                             _tcpHelper.WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestInitialization));
                             if (_tcpHelper.ReadData() <= 0)
                                 throw new RsuInitSceneException("Cannot read data from TCP");
@@ -222,39 +234,28 @@ namespace raisimUnity
                                 throw new RsuInitSceneException("Server gives wrong message");
 
                             _configurationNumber = _tcpHelper.GetData<ulong>();
-                            _numObjectsInSimulation = _tcpHelper.GetData<ulong>();
+                            _numWorldObjects = _tcpHelper.GetData<ulong>();
                             _numInitializedObjects = 0;
-                            _clientStatus = ClientStatus.InitializeScene;
+                            _clientStatus = ClientStatus.InitializingObjects;
                             break;
                         }
-                        case ClientStatus.InitializeScene:
+                        //**********************************************************************************************
+                        // Step 2
+                        //**********************************************************************************************
+                        case ClientStatus.InitializingObjects:
                         {
-                            // Initialize scene from data
-                            // If the function call time is > 0.01 sec, rest of objects are initialized in next Update iteration
-                            InitializeScene();
-
-                            if (_numInitializedObjects == _numObjectsInSimulation)
+                            if (_numInitializedObjects < _numWorldObjects)
                             {
-                                // initialize visuals from data
-                                InitializeVisuals();
-
-                                // disable other cameras than main camera
-                                foreach (var cam in Camera.allCameras)
-                                {
-                                    if (cam == Camera.main) continue;
-                                    cam.enabled = false;
-                                }
-
-                                // show / hide objects
-                                ShowOrHideObjects();
-
+                                // Initialize objects from data
+                                // If the function call time is > 0.1 sec, rest of objects are initialized in next Update iteration
+                                PartiallyInitializeScene();
+                                _loadingModalView.SetProgress((float) _numInitializedObjects / _numWorldObjects);
+                            }
+                            else if (_numInitializedObjects == _numWorldObjects)
+                            {
                                 // Initialization done 
                                 _loadingModalView.Show(false);
-                                _clientStatus = ClientStatus.UpdateScene;
-                            }
-                            else if (_numInitializedObjects < _numObjectsInSimulation)
-                            {
-                                _loadingModalView.SetProgress((float)_numInitializedObjects/_numObjectsInSimulation);
+                                _clientStatus = ClientStatus.InitializeVisualsStart;
                             }
                             else
                             {
@@ -263,6 +264,72 @@ namespace raisimUnity
 
                             break;
                         }
+                        //**********************************************************************************************
+                        // Step 3
+                        //**********************************************************************************************
+                        case ClientStatus.InitializeVisualsStart:
+                        {
+                            _loadingModalView.Show(true);
+                            _loadingModalView.SetTitle("Initializing Visuals");
+                            _loadingModalView.SetMessage("Loading resources...");
+                            _loadingModalView.SetProgress(0);
+                            
+                            // Start initialization
+                            _tcpHelper.WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestInitializeVisuals));
+                            if (_tcpHelper.ReadData() <= 0)
+                                throw new RsuInitVisualsException("Cannot read data from TCP");
+
+                            ServerStatus state = _tcpHelper.GetData<ServerStatus>();
+                            if (state == ServerStatus.StatusTerminating)
+                                throw new RsuInitVisualsException("Server is terminating");
+
+                            ServerMessageType messageType = _tcpHelper.GetData<ServerMessageType>();
+                            if (messageType != ServerMessageType.VisualInitialization)
+                                throw new RsuInitVisualsException("Server gives wrong message");
+
+                            _numWorldVisuals = _tcpHelper.GetData<ulong>();
+                            _numInitializedVisuals = 0;
+                            _clientStatus = ClientStatus.InitializingVisuals;
+                            break;
+                        }
+                        //**********************************************************************************************
+                        // Step 4
+                        //**********************************************************************************************
+                        case ClientStatus.InitializingVisuals:
+                        {
+                            if (_numInitializedVisuals < _numWorldVisuals)
+                            {
+                                // Initialize visuals from data
+                                // If the function call time is > 0.1 sec, rest of objects are initialized in next Update iteration
+                                PartiallyInitializeVisuals();
+                                _loadingModalView.SetProgress((float) _numInitializedObjects / _numWorldObjects);
+                            }
+                            else if (_numInitializedVisuals == _numWorldVisuals)
+                            {
+                                // Initialization done 
+                                _loadingModalView.Show(false);
+                                
+                                // Disable other cameras than main camera
+                                foreach (var cam in Camera.allCameras)
+                                {
+                                    if (cam == Camera.main) continue;
+                                    cam.enabled = false;
+                                }
+
+                                // Show / hide objects
+                                ShowOrHideObjects();
+                                
+                                _clientStatus = ClientStatus.UpdateScene;
+                            }
+                            else
+                            {
+                                // TODO error
+                            }
+                            break;
+                        }
+                        //**********************************************************************************************
+                        // Step 5
+                        //**********************************************************************************************
                         case ClientStatus.UpdateScene:
                         {
                             // update object position
@@ -341,9 +408,9 @@ namespace raisimUnity
             }
         }
 
-        private void InitializeScene()
+        private void PartiallyInitializeScene()
         {
-            while (_numInitializedObjects < _numObjectsInSimulation)
+            while (_numInitializedObjects < _numWorldObjects)
             {
                 ulong objectIndex = _tcpHelper.GetData<ulong>();
                 RsObejctType objectType = _tcpHelper.GetData<RsObejctType>();
@@ -690,7 +757,6 @@ namespace raisimUnity
                 }
 
                 _numInitializedObjects++;
-
                 if (Time.deltaTime > 0.03f)
                     // If initialization takes too much time, do the rest in next iteration (to prevent freezing GUI(
                     break;
@@ -706,7 +772,7 @@ namespace raisimUnity
             }
             
             // initialize scene from data
-            InitializeScene();
+            PartiallyInitializeScene();
             
             // disable other cameras than main camera
             foreach (var cam in Camera.allCameras)
@@ -719,23 +785,9 @@ namespace raisimUnity
             ShowOrHideObjects();
         }
 
-        private void InitializeVisuals()
+        private void PartiallyInitializeVisuals()
         {
-            _tcpHelper.WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestInitializeVisuals));
-            if (_tcpHelper.ReadData() <= 0)
-                throw new RsuInitVisualsException("Cannot read data from TCP");
-
-            ServerStatus state = _tcpHelper.GetData<ServerStatus>();
-            if (state == ServerStatus.StatusTerminating)
-                throw new RsuInitVisualsException("Server is terminating");
-
-            ServerMessageType messageType = _tcpHelper.GetData<ServerMessageType>();
-            if (messageType != ServerMessageType.VisualInitialization)
-                throw new RsuInitVisualsException("Server gives wrong message");
-            
-            ulong numObjects = _tcpHelper.GetData<ulong>();
-
-            for (ulong i = 0; i < numObjects; i++)
+            while (_numInitializedVisuals < _numWorldVisuals)
             {
                 RsVisualType objectType = _tcpHelper.GetData<RsVisualType>();
                 
@@ -750,6 +802,9 @@ namespace raisimUnity
                 bool glow = _tcpHelper.GetData<bool>();
                 bool shadow = _tcpHelper.GetData<bool>();
 
+                var visFrame = new GameObject(objectName);
+                visFrame.transform.SetParent(_visualsRoot.transform, false);
+                
                 GameObject visual = null;
                     
                 switch (objectType)
@@ -757,9 +812,8 @@ namespace raisimUnity
                     case RsVisualType.RsVisualSphere :
                     {
                         float radius = _tcpHelper.GetData<float>();
-                        visual =  _objectController.CreateSphere(_visualsRoot, radius);
+                        visual =  _objectController.CreateSphere(visFrame, radius);
                         visual.tag = VisualTag.Visual;
-                        visual.name = objectName;
                     }
                         break;
                     case RsVisualType.RsVisualBox:
@@ -767,27 +821,24 @@ namespace raisimUnity
                         float sx = _tcpHelper.GetData<float>();
                         float sy = _tcpHelper.GetData<float>();
                         float sz = _tcpHelper.GetData<float>();
-                        visual = _objectController.CreateBox(_visualsRoot, sx, sy, sz);
+                        visual = _objectController.CreateBox(visFrame, sx, sy, sz);
                         visual.tag = VisualTag.Visual;
-                        visual.name = objectName;
                     }
                         break;
                     case RsVisualType.RsVisualCylinder:
                     {
                         float radius = _tcpHelper.GetData<float>();
                         float height = _tcpHelper.GetData<float>();
-                        visual = _objectController.CreateCylinder(_visualsRoot, radius, height);
+                        visual = _objectController.CreateCylinder(visFrame, radius, height);
                         visual.tag = VisualTag.Visual;
-                        visual.name = objectName;
                     }
                         break;
                     case RsVisualType.RsVisualCapsule:
                     {
                         float radius = _tcpHelper.GetData<float>();
                         float height = _tcpHelper.GetData<float>();
-                        visual = _objectController.CreateCapsule(_visualsRoot, radius, height);
+                        visual = _objectController.CreateCapsule(visFrame, radius, height);
                         visual.tag = VisualTag.Visual;
-                        visual.name = objectName;
                     }
                         break;
                 }
@@ -820,6 +871,11 @@ namespace raisimUnity
                 {
                     visual.GetComponentInChildren<Renderer>().shadowCastingMode = ShadowCastingMode.Off;
                 }
+
+                _numInitializedVisuals++;
+                if (Time.deltaTime > 0.03f)
+                    // If initialization takes too much time, do the rest in next iteration (to prevent freezing GUI(
+                    break;
             }
         }
         
