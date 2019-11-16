@@ -15,7 +15,7 @@ namespace raisimUnity
 {
     public class UIController : MonoBehaviour
     {
-        private TcpRemote _remote = null;
+        private RsUnityRemote _remote = null;
         private CameraController _camera = null;
         
         static GUIStyle _style = null;
@@ -57,7 +57,7 @@ namespace raisimUnity
         
         private void Awake()
         {
-            _remote = GameObject.Find("RaiSimUnity").GetComponent<TcpRemote>();
+            _remote = GameObject.Find("RaiSimUnity").GetComponent<RsUnityRemote>();
             _camera = GameObject.Find("Main Camera").GetComponent<CameraController>();
 
             if (_remote == null)

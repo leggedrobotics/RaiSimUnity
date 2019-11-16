@@ -62,29 +62,29 @@ namespace raisimUnity
         public const string Collision = "collision";
     }
 
-    public class TcpRemote : MonoBehaviour
+    public class RsUnityRemote : MonoBehaviour
     {
         // Prevent repeated instances
-        private static TcpRemote instance;
+        private static RsUnityRemote instance;
         
         private XmlReader _xmlReader;
         private ResourceLoader _loader;
         private TcpHelper _tcpHelper;
         
-        private TcpRemote()
+        private RsUnityRemote()
         {
             _tcpHelper = new TcpHelper();
             _xmlReader = new XmlReader();
             _loader = new ResourceLoader();
         }
         
-        public static TcpRemote Instance
+        public static RsUnityRemote Instance
         {
             get 
             {
                 if( instance==null )
                 {
-                    instance = new TcpRemote();
+                    instance = new RsUnityRemote();
                     return instance;
                 }
                 else
@@ -92,7 +92,7 @@ namespace raisimUnity
             }
         }
         
-        // status
+        // Status
         private ClientStatus _clientStatus;
         private bool _showVisualBody = true;
         private bool _showCollisionBody = false;
