@@ -301,6 +301,68 @@ namespace Collada141
                                 // Increment submesh count 
                                 numSubmesh += 1;
                             }
+                            else if (meshItem is polylist)
+                            {
+                                var polylist = meshItem as polylist;
+                                var inputs = polylist.input;
+                                
+                                int count = (int)polylist.count;
+
+                                foreach (var input in inputs)
+                                {
+                                    // offset
+                                    int offset = (int)input.offset;
+                                    if (offset + 1 > indexStride)
+                                        indexStride = offset + 1;
+                                    
+                                    // source 
+                                    string sourceName = input.source.Substring(1);
+                                    
+                                    if (input.semantic == "VERTEX")
+                                    {
+                                        VertexSources vs = vertexSourceDict[sourceName];
+                                        if (!string.IsNullOrEmpty(vs.positionId))
+                                        {
+                                            positionSourceName = vs.positionId;
+                                            posOffset = offset;
+                                        }
+                                        else if (string.IsNullOrEmpty(vs.normalId))
+                                        {
+                                            normalSourceName = vs.normalId;
+                                            normalOffset = offset;
+                                        }
+                                    }
+                                    else if (input.semantic == "NORMAL")
+                                    {
+                                        normalSourceName = sourceName;
+                                        normalOffset = offset;
+                                    }
+                                    else if (input.semantic == "TEXCOORD")
+                                    {
+                                        uvSourceName = sourceName;
+                                        uvOffset = offset;
+                                    }
+                                }
+                                
+                                numIndices = count * 3;
+                                
+                                // parse index from p
+                                currIdxList = polylist.p.Split(' ').Select(Int32.Parse).ToList();
+                                
+                                // material
+                                string materialName = polylist.material;
+                                if (!string.IsNullOrEmpty(materialName) && materialDict.ContainsKey(materialName))
+                                {
+                                    subMaterials.Add(materialName);
+                                }
+                                
+                                // Increment submesh count 
+                                numSubmesh += 1;
+                            }
+                            else
+                            {
+//                                throw new NotImplementedException();
+                            }
 
                             // vertex
                             List<double> positionFloatArray = new List<double>();

@@ -15,41 +15,14 @@ using Vector3 = UnityEngine.Vector3;
 
 namespace raisimUnity
 {
-    // socket commands from client
-    enum ServerMessageType : int
+    enum ClientStatus : int
     {
-        Initialization = 0,
-        ObjectPositionUpdate,
-        Status,
-        NoMessage,
-        ContactInfoUpdate,
-        ConfigXml,
-        VisualInitialization,
-        VisualPositionUpdate,
+        Idle = 0,
+        Initialization,
+        InitializeScene,
+        UpdateScene,
     }
-
-    enum ClientMessageType : int
-    {    
-        RequestObjectPosition = 0,
-        RequestInitialization,
-        RequestResource,                 // request mesh, texture. etc files
-        RequestChangeRealtimeFactor,
-        RequestContactSolverDetails,
-        RequestPause,
-        RequestResume,
-        RequestContactInfos,
-        RequestConfigXML,
-        RequestInitializeVisuals,
-        RequestVisualPosition,
-    }
-
-    enum ServerStatus : int
-    {
-        StatusRendering = 0,
-        StatusHibernating,
-        StatusTerminating,
-    }
-
+    
     enum RsObejctType : int
     {
         RsSphereObject = 0, 
@@ -91,15 +64,17 @@ namespace raisimUnity
 
     public class TcpRemote : MonoBehaviour
     {
-        // prevent repeated instances
+        // Prevent repeated instances
         private static TcpRemote instance;
-
+        
+        private XmlReader _xmlReader;
+        private ResourceLoader _loader;
+        private TcpHelper _tcpHelper;
+        
         private TcpRemote()
         {
-            // xml 
+            _tcpHelper = new TcpHelper();
             _xmlReader = new XmlReader();
-            
-            // resource loader
             _loader = new ResourceLoader();
         }
         
@@ -117,26 +92,8 @@ namespace raisimUnity
             }
         }
         
-        // script options
-        private string _tcpAddress = "127.0.0.1";
-        private int _tcpPort = 8080;
-
-        // tcp client and stream
-        private TcpClient _client = null;
-        private NetworkStream _stream = null;
-        
-        // buffer
-        // TODO get buffer spec from raisim?
-        private const int MaxBufferSize = 33554432;
-        private const int MaxPacketSize = 4096;
-        private const int FooterSize = sizeof(Byte);
-        
-        private byte[] _buffer;
-        
         // status
-        private bool _tcpTryConnect = false;
-        private bool _initializing = false;
-        private bool _initializingModal = false;
+        private ClientStatus _clientStatus;
         private bool _showVisualBody = true;
         private bool _showCollisionBody = false;
         private bool _showContactPoints = false;
@@ -162,13 +119,7 @@ namespace raisimUnity
         private Material _defaultMaterialR;
         private Material _defaultMaterialG;
         private Material _defaultMaterialB;
-        
-        // xml document
-        private XmlReader _xmlReader;
-        
-        // resource loader
-        private ResourceLoader _loader;
-        
+
         // modal view
         private ErrorViewController _errorModalView;
         private LoadingViewController _loadingModalView;
@@ -176,9 +127,6 @@ namespace raisimUnity
         // configuration number (should be always matched with server)
         private ulong _configurationNumber = 0; 
         
-        // read data timer
-        private float readDataTime = 0;
-
         void Awake()
         {
             // object roots
@@ -209,37 +157,51 @@ namespace raisimUnity
 
         void Start()
         {
-            // set buffer size
-            _buffer = new byte[MaxBufferSize];
+            _clientStatus = ClientStatus.Idle;
+        }
+
+        public void EstablishConnection()
+        {
+            _tcpHelper.EstablishConnection();
+            _clientStatus = ClientStatus.Initialization;
+        }
+
+        public void CloseConnection()
+        {
+            ClearScene();
+            
+            _tcpHelper.CloseConnection();
+            _clientStatus = ClientStatus.Idle;
         }
 
         void Update()
         {
             // broken connection: clear
-            if( !CheckConnection() )
+            if( !_tcpHelper.CheckConnection() )
             {
-                ClearScene();
-                
-                _client = null;
-                _stream = null;
+                CloseConnection();
             }
 
             // data available: handle communication
-            if (_client != null && _client.Connected && _stream != null)
+            if (_tcpHelper.DataAvailable)
             {
                 try
                 {
-                    if (_initializing)
+                    switch (_clientStatus)
                     {
-                        // initialization
-                        if (_initializingModal)
+                        case ClientStatus.Idle:
+                        {
+                            break;
+                        }
+                        case ClientStatus.Initialization:
                         {
                             _loadingModalView.Show(true);
                             _loadingModalView.SetTitle("Initializing");
                             _loadingModalView.SetMessage("Loading resources...");
-                            _initializingModal = false;
+                            _clientStatus = ClientStatus.InitializeScene;
+                            break;
                         }
-                        else
+                        case ClientStatus.InitializeScene:
                         {
                             // Read XML string
                             ReadXmlString();
@@ -260,21 +222,23 @@ namespace raisimUnity
                             // show / hide objects
                             ShowOrHideObjects();
                         
-                            // done 
-                            _initializing = false;
+                            // Initialization done 
                             _loadingModalView.Show(false);
+                            _clientStatus = ClientStatus.UpdateScene;
+                            break;
                         }
-                    }
-                    else
-                    {
-                        // update object position
-                        UpdateObjectsPosition();
+                        case ClientStatus.UpdateScene:
+                        {
+                            // update object position
+                            UpdateObjectsPosition();
 
-                        // update visuals
-                        UpdateVisualsPosition();
+                            // update visuals
+                            UpdateVisualsPosition();
                         
-                        // update contacts
-                        UpdateContacts();
+                            // update contacts
+                            UpdateContacts();
+                            break;
+                        }
                     }
                 }
                 catch (Exception e)
@@ -284,7 +248,7 @@ namespace raisimUnity
                     _errorModalView.SetMessage(e.Message);
 
                     // close connection
-                    CloseConnection();
+                    _tcpHelper.CloseConnection();
                 }
             }
         }
@@ -343,48 +307,46 @@ namespace raisimUnity
 
         private void InitializeScene()
         {
-            int offset = 0;
-            
-            WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestInitialization));
-            if (ReadData() <= 0)
+            _tcpHelper.WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestInitialization));
+            if (_tcpHelper.ReadData() <= 0)
                 throw new RsuInitSceneException("Cannot read data from TCP");
 
-            ServerStatus state = BitIO.GetData<ServerStatus>(ref _buffer, ref offset);
+            ServerStatus state = _tcpHelper.GetData<ServerStatus>();
             if (state == ServerStatus.StatusTerminating)
                 throw new RsuInitSceneException("Server is terminating");
 
-            ServerMessageType messageType = BitIO.GetData<ServerMessageType>(ref _buffer, ref offset);
+            ServerMessageType messageType = _tcpHelper.GetData<ServerMessageType>();
             if (messageType != ServerMessageType.Initialization)
                 throw new RsuInitSceneException("Server gives wrong message");
 
-            _configurationNumber = BitIO.GetData<ulong>(ref _buffer, ref offset);
+            _configurationNumber = _tcpHelper.GetData<ulong>();
 
-            ulong numObjects = BitIO.GetData<ulong>(ref _buffer, ref offset);
+            ulong numObjects = _tcpHelper.GetData<ulong>();
             
             for (ulong i = 0; i < numObjects; i++)
             {
-                ulong objectIndex = BitIO.GetData<ulong>(ref _buffer, ref offset);
-                RsObejctType objectType = BitIO.GetData<RsObejctType>(ref _buffer, ref offset);
+                ulong objectIndex = _tcpHelper.GetData<ulong>();
+                RsObejctType objectType = _tcpHelper.GetData<RsObejctType>();
                 
                 // get name and find corresponding appearance from XML
-                string name = BitIO.GetData<string>(ref _buffer, ref offset);
+                string name = _tcpHelper.GetData<string>();
                 Appearances? appearances = _xmlReader.FindApperancesFromObjectName(name);
                 
                 if (objectType == RsObejctType.RsArticulatedSystemObject)
                 {
-                    string urdfDirPathInServer = BitIO.GetData<string>(ref _buffer, ref offset); 
+                    string urdfDirPathInServer = _tcpHelper.GetData<string>(); 
 
                     // visItem = 0 (visuals)
                     // visItem = 1 (collisions)
                     for (int visItem = 0; visItem < 2; visItem++)
                     {
-                        ulong numberOfVisObjects = BitIO.GetData<ulong>(ref _buffer, ref offset);
+                        ulong numberOfVisObjects = _tcpHelper.GetData<ulong>();
 
                         for (ulong j = 0; j < numberOfVisObjects; j++)
                         {
-                            RsShapeType shapeType = BitIO.GetData<RsShapeType>(ref _buffer, ref offset);
+                            RsShapeType shapeType = _tcpHelper.GetData<RsShapeType>();
                                 
-                            ulong group = BitIO.GetData<ulong>(ref _buffer, ref offset);
+                            ulong group = _tcpHelper.GetData<ulong>();
 
                             string subName = Path.Combine(objectIndex.ToString(), visItem.ToString(), j.ToString());
                             
@@ -399,12 +361,12 @@ namespace raisimUnity
 
                             if (shapeType == RsShapeType.RsMeshShape)
                             {
-                                string meshFile = BitIO.GetData<string>(ref _buffer, ref offset);
+                                string meshFile = _tcpHelper.GetData<string>();
                                 string meshFileExtension = Path.GetExtension(meshFile);
 
-                                double sx = BitIO.GetData<double>(ref _buffer, ref offset);
-                                double sy = BitIO.GetData<double>(ref _buffer, ref offset);
-                                double sz = BitIO.GetData<double>(ref _buffer, ref offset);
+                                double sx = _tcpHelper.GetData<double>();
+                                double sy = _tcpHelper.GetData<double>();
+                                double sz = _tcpHelper.GetData<double>();
 
                                 string meshFilePathInResourceDir = _loader.RetrieveMeshPath(urdfDirPathInServer, meshFile);
                                 if (meshFilePathInResourceDir == null)
@@ -425,12 +387,12 @@ namespace raisimUnity
                             }
                             else
                             {
-                                ulong size = BitIO.GetData<ulong>(ref _buffer, ref offset);
+                                ulong size = _tcpHelper.GetData<ulong>();
                                     
                                 var visParam = new List<double>();
                                 for (ulong k = 0; k < size; k++)
                                 {
-                                    double visSize = BitIO.GetData<double>(ref _buffer, ref offset);
+                                    double visSize = _tcpHelper.GetData<double>();
                                     visParam.Add(visSize);
                                 }
                                 switch (shapeType)
@@ -487,7 +449,7 @@ namespace raisimUnity
                         material = _planeMaterial;
                     }
                     
-                    float height = BitIO.GetData<float>(ref _buffer, ref offset);
+                    float height = _tcpHelper.GetData<float>();
                     var objFrame = new GameObject(objectIndex.ToString());
                     objFrame.transform.SetParent(_objectsRoot.transform, false);
                     var plane = _objectController.CreateHalfSpace(objFrame, height);
@@ -517,15 +479,15 @@ namespace raisimUnity
                     }
                     
                     // center
-                    float centerX = BitIO.GetData<float>(ref _buffer, ref offset);
-                    float centerY = BitIO.GetData<float>(ref _buffer, ref offset);
+                    float centerX = _tcpHelper.GetData<float>();
+                    float centerY = _tcpHelper.GetData<float>();
                     // size
-                    float sizeX = BitIO.GetData<float>(ref _buffer, ref offset);
-                    float sizeY = BitIO.GetData<float>(ref _buffer, ref offset);
+                    float sizeX = _tcpHelper.GetData<float>();
+                    float sizeY = _tcpHelper.GetData<float>();
                     // num samples
-                    ulong numSampleX = BitIO.GetData<ulong>(ref _buffer, ref offset);
-                    ulong numSampleY = BitIO.GetData<ulong>(ref _buffer, ref offset);
-                    ulong numSample = BitIO.GetData<ulong>(ref _buffer, ref offset);
+                    ulong numSampleX = _tcpHelper.GetData<ulong>();
+                    ulong numSampleY = _tcpHelper.GetData<ulong>();
+                    ulong numSample = _tcpHelper.GetData<ulong>();
                         
                     // height values 
                     float[,] heights = new float[numSampleY, numSampleX];
@@ -533,7 +495,7 @@ namespace raisimUnity
                     {
                         for (ulong k = 0; k < numSampleX; k++)
                         {
-                            float height = BitIO.GetData<float>(ref _buffer, ref offset);
+                            float height = _tcpHelper.GetData<float>();
                             heights[j, k] = height;
                         }
                     }
@@ -591,7 +553,7 @@ namespace raisimUnity
                     {
                         case RsObejctType.RsSphereObject :
                         {
-                            float radius = BitIO.GetData<float>(ref _buffer, ref offset);
+                            float radius = _tcpHelper.GetData<float>();
                             collisionObject =  _objectController.CreateSphere(objFrame, radius);
                             collisionObject.tag = VisualTag.Collision;
                         }
@@ -599,33 +561,33 @@ namespace raisimUnity
 
                         case RsObejctType.RsBoxObject :
                         {
-                            float sx = BitIO.GetData<float>(ref _buffer, ref offset);
-                            float sy = BitIO.GetData<float>(ref _buffer, ref offset);
-                            float sz = BitIO.GetData<float>(ref _buffer, ref offset);
+                            float sx = _tcpHelper.GetData<float>();
+                            float sy = _tcpHelper.GetData<float>();
+                            float sz = _tcpHelper.GetData<float>();
                             collisionObject = _objectController.CreateBox(objFrame, sx, sy, sz);
                             collisionObject.tag = VisualTag.Collision;
                         }
                             break;
                         case RsObejctType.RsCylinderObject:
                         {
-                            float radius = BitIO.GetData<float>(ref _buffer, ref offset);
-                            float height = BitIO.GetData<float>(ref _buffer, ref offset);
+                            float radius = _tcpHelper.GetData<float>();
+                            float height = _tcpHelper.GetData<float>();
                             collisionObject = _objectController.CreateCylinder(objFrame, radius, height);
                             collisionObject.tag = VisualTag.Collision;
                         }
                             break;
                         case RsObejctType.RsCapsuleObject:
                         {
-                            float radius = BitIO.GetData<float>(ref _buffer, ref offset);
-                            float height = BitIO.GetData<float>(ref _buffer, ref offset);
+                            float radius = _tcpHelper.GetData<float>();
+                            float height = _tcpHelper.GetData<float>();
                             collisionObject = _objectController.CreateCapsule(objFrame, radius, height);
                             collisionObject.tag = VisualTag.Collision;
                         }
                             break;
                         case RsObejctType.RsMeshObject:
                         {
-                            string meshFile = BitIO.GetData<string>(ref _buffer, ref offset);
-                            float scale = BitIO.GetData<float>(ref _buffer, ref offset);
+                            string meshFile = _tcpHelper.GetData<string>();
+                            float scale = _tcpHelper.GetData<float>();
                             
                             string meshFileName = Path.GetFileName(meshFile);       
                             string meshFileExtension = Path.GetExtension(meshFile);
@@ -707,8 +669,6 @@ namespace raisimUnity
                     }
                 }
             }
-            
-            Array.Clear(_buffer, 0, MaxBufferSize);
         }
 
         private void ReinitializeScene()
@@ -735,36 +695,34 @@ namespace raisimUnity
 
         private void InitializeVisuals()
         {
-            int offset = 0;
-            
-            WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestInitializeVisuals));
-            if (ReadData() <= 0)
+            _tcpHelper.WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestInitializeVisuals));
+            if (_tcpHelper.ReadData() <= 0)
                 throw new RsuInitVisualsException("Cannot read data from TCP");
 
-            ServerStatus state = BitIO.GetData<ServerStatus>(ref _buffer, ref offset);
+            ServerStatus state = _tcpHelper.GetData<ServerStatus>();
             if (state == ServerStatus.StatusTerminating)
                 throw new RsuInitVisualsException("Server is terminating");
 
-            ServerMessageType messageType = BitIO.GetData<ServerMessageType>(ref _buffer, ref offset);
+            ServerMessageType messageType = _tcpHelper.GetData<ServerMessageType>();
             if (messageType != ServerMessageType.VisualInitialization)
                 throw new RsuInitVisualsException("Server gives wrong message");
             
-            ulong numObjects = BitIO.GetData<ulong>(ref _buffer, ref offset);
+            ulong numObjects = _tcpHelper.GetData<ulong>();
 
             for (ulong i = 0; i < numObjects; i++)
             {
-                RsVisualType objectType = BitIO.GetData<RsVisualType>(ref _buffer, ref offset);
+                RsVisualType objectType = _tcpHelper.GetData<RsVisualType>();
                 
                 // get name and find corresponding appearance from XML
-                string objectName = BitIO.GetData<string>(ref _buffer, ref offset);
+                string objectName = _tcpHelper.GetData<string>();
                 
-                float colorR = BitIO.GetData<float>(ref _buffer, ref offset);
-                float colorG = BitIO.GetData<float>(ref _buffer, ref offset);
-                float colorB = BitIO.GetData<float>(ref _buffer, ref offset);
-                float colorA = BitIO.GetData<float>(ref _buffer, ref offset);
-                string materialName = BitIO.GetData<string>(ref _buffer, ref offset);
-                bool glow = BitIO.GetData<bool>(ref _buffer, ref offset);
-                bool shadow = BitIO.GetData<bool>(ref _buffer, ref offset);
+                float colorR = _tcpHelper.GetData<float>();
+                float colorG = _tcpHelper.GetData<float>();
+                float colorB = _tcpHelper.GetData<float>();
+                float colorA = _tcpHelper.GetData<float>();
+                string materialName = _tcpHelper.GetData<string>();
+                bool glow = _tcpHelper.GetData<bool>();
+                bool shadow = _tcpHelper.GetData<bool>();
 
                 GameObject visual = null;
                     
@@ -772,7 +730,7 @@ namespace raisimUnity
                 {
                     case RsVisualType.RsVisualSphere :
                     {
-                        float radius = BitIO.GetData<float>(ref _buffer, ref offset);
+                        float radius = _tcpHelper.GetData<float>();
                         visual =  _objectController.CreateSphere(_visualsRoot, radius);
                         visual.tag = VisualTag.Visual;
                         visual.name = objectName;
@@ -780,9 +738,9 @@ namespace raisimUnity
                         break;
                     case RsVisualType.RsVisualBox:
                     {
-                        float sx = BitIO.GetData<float>(ref _buffer, ref offset);
-                        float sy = BitIO.GetData<float>(ref _buffer, ref offset);
-                        float sz = BitIO.GetData<float>(ref _buffer, ref offset);
+                        float sx = _tcpHelper.GetData<float>();
+                        float sy = _tcpHelper.GetData<float>();
+                        float sz = _tcpHelper.GetData<float>();
                         visual = _objectController.CreateBox(_visualsRoot, sx, sy, sz);
                         visual.tag = VisualTag.Visual;
                         visual.name = objectName;
@@ -790,8 +748,8 @@ namespace raisimUnity
                         break;
                     case RsVisualType.RsVisualCylinder:
                     {
-                        float radius = BitIO.GetData<float>(ref _buffer, ref offset);
-                        float height = BitIO.GetData<float>(ref _buffer, ref offset);
+                        float radius = _tcpHelper.GetData<float>();
+                        float height = _tcpHelper.GetData<float>();
                         visual = _objectController.CreateCylinder(_visualsRoot, radius, height);
                         visual.tag = VisualTag.Visual;
                         visual.name = objectName;
@@ -799,8 +757,8 @@ namespace raisimUnity
                         break;
                     case RsVisualType.RsVisualCapsule:
                     {
-                        float radius = BitIO.GetData<float>(ref _buffer, ref offset);
-                        float height = BitIO.GetData<float>(ref _buffer, ref offset);
+                        float radius = _tcpHelper.GetData<float>();
+                        float height = _tcpHelper.GetData<float>();
                         visual = _objectController.CreateCapsule(_visualsRoot, radius, height);
                         visual.tag = VisualTag.Visual;
                         visual.name = objectName;
@@ -841,47 +799,44 @@ namespace raisimUnity
         
         private void UpdateObjectsPosition()
         {
-            int offset = 0;
-            
-            WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestObjectPosition));
-            if (ReadData() <= 0)
+            _tcpHelper.WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestObjectPosition));
+            if (_tcpHelper.ReadData() <= 0)
                 throw new RsuUpdateObjectsPositionException("Cannot read data from TCP");
 
-            ServerStatus state = BitIO.GetData<ServerStatus>(ref _buffer, ref offset);
+            ServerStatus state = _tcpHelper.GetData<ServerStatus>();
             if (state == ServerStatus.StatusTerminating)
                 throw new RsuUpdateObjectsPositionException("Server is terminating");
 
-            ServerMessageType messageType = BitIO.GetData<ServerMessageType>(ref _buffer, ref offset);
+            ServerMessageType messageType = _tcpHelper.GetData<ServerMessageType>();
             if (messageType != ServerMessageType.ObjectPositionUpdate)
                 throw new RsuUpdateObjectsPositionException("Server gives wrong message");
             
-            ulong configurationNumber = BitIO.GetData<ulong>(ref _buffer, ref offset);
+            ulong configurationNumber = _tcpHelper.GetData<ulong>();
             if (configurationNumber != _configurationNumber)
             {
                 // this means the object was added or deleted from server size
-                Array.Clear(_buffer, 0, MaxBufferSize);
                 ReinitializeScene();
                 return;
             }
 
-            ulong numObjects = BitIO.GetData<ulong>(ref _buffer, ref offset);
+            ulong numObjects = _tcpHelper.GetData<ulong>();
 
             for (ulong i = 0; i < numObjects; i++)
             {
-                ulong localIndexSize = BitIO.GetData<ulong>(ref _buffer, ref offset);
+                ulong localIndexSize = _tcpHelper.GetData<ulong>();
 
                 for (ulong j = 0; j < localIndexSize; j++)
                 {
-                    string objectName = BitIO.GetData<string>(ref _buffer, ref offset);
+                    string objectName = _tcpHelper.GetData<string>();
                     
-                    double posX = BitIO.GetData<double>(ref _buffer, ref offset);
-                    double posY = BitIO.GetData<double>(ref _buffer, ref offset);
-                    double posZ = BitIO.GetData<double>(ref _buffer, ref offset);
+                    double posX = _tcpHelper.GetData<double>();
+                    double posY = _tcpHelper.GetData<double>();
+                    double posZ = _tcpHelper.GetData<double>();
                     
-                    double quatW = BitIO.GetData<double>(ref _buffer, ref offset);
-                    double quatX = BitIO.GetData<double>(ref _buffer, ref offset);
-                    double quatY = BitIO.GetData<double>(ref _buffer, ref offset);
-                    double quatZ = BitIO.GetData<double>(ref _buffer, ref offset);
+                    double quatW = _tcpHelper.GetData<double>();
+                    double quatX = _tcpHelper.GetData<double>();
+                    double quatY = _tcpHelper.GetData<double>();
+                    double quatZ = _tcpHelper.GetData<double>();
 
                     GameObject localObject = GameObject.Find(objectName);
 
@@ -899,23 +854,19 @@ namespace raisimUnity
                     }
                 }
             }
-            
-            Array.Clear(_buffer, 0, MaxBufferSize);
         }
 
         private void UpdateVisualsPosition()
         {
-            int offset = 0;
-            
-            WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestVisualPosition));
-            if (ReadData() <= 0)
+            _tcpHelper.WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestVisualPosition));
+            if (_tcpHelper.ReadData() <= 0)
                 throw new RsuUpdateVisualsPositionException("Cannot read data from TCP");
 
-            ServerStatus state = BitIO.GetData<ServerStatus>(ref _buffer, ref offset);
+            ServerStatus state = _tcpHelper.GetData<ServerStatus>();
             if (state == ServerStatus.StatusTerminating)
                 throw new RsuUpdateVisualsPositionException("Server is terminating");
 
-            ServerMessageType messageType = BitIO.GetData<ServerMessageType>(ref _buffer, ref offset);
+            ServerMessageType messageType = _tcpHelper.GetData<ServerMessageType>();
             if (messageType == ServerMessageType.NoMessage)
             {
                 throw new RsuUpdateVisualsPositionException("Server gives wrong message");
@@ -925,20 +876,20 @@ namespace raisimUnity
                 throw new RsuUpdateVisualsPositionException("Server gives wrong message");
             }
             
-            ulong numObjects = BitIO.GetData<ulong>(ref _buffer, ref offset);
+            ulong numObjects = _tcpHelper.GetData<ulong>();
 
             for (ulong i = 0; i < numObjects; i++)
             {
-                string visualName = BitIO.GetData<string>(ref _buffer, ref offset);
+                string visualName = _tcpHelper.GetData<string>();
                 
-                double posX = BitIO.GetData<double>(ref _buffer, ref offset);
-                double posY = BitIO.GetData<double>(ref _buffer, ref offset);
-                double posZ = BitIO.GetData<double>(ref _buffer, ref offset);
+                double posX = _tcpHelper.GetData<double>();
+                double posY = _tcpHelper.GetData<double>();
+                double posZ = _tcpHelper.GetData<double>();
                     
-                double quatW = BitIO.GetData<double>(ref _buffer, ref offset);
-                double quatX = BitIO.GetData<double>(ref _buffer, ref offset);
-                double quatY = BitIO.GetData<double>(ref _buffer, ref offset);
-                double quatZ = BitIO.GetData<double>(ref _buffer, ref offset);
+                double quatW = _tcpHelper.GetData<double>();
+                double quatX = _tcpHelper.GetData<double>();
+                double quatY = _tcpHelper.GetData<double>();
+                double quatZ = _tcpHelper.GetData<double>();
 
                 GameObject localObject = GameObject.Find(visualName);
 
@@ -959,25 +910,23 @@ namespace raisimUnity
 
         private void UpdateContacts()
         {
-            int offset = 0;
-            
-            WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestContactInfos));
-            if (ReadData() <= 0)
+            _tcpHelper.WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestContactInfos));
+            if (_tcpHelper.ReadData() <= 0)
                 throw new RsuUpdateContactsException("Cannot read data from TCP");
             
-            ServerStatus state = BitIO.GetData<ServerStatus>(ref _buffer, ref offset);
+            ServerStatus state = _tcpHelper.GetData<ServerStatus>();
             if (state == ServerStatus.StatusTerminating)
                 throw new RsuUpdateContactsException("Server is terminating");
 
-            ServerMessageType messageType = BitIO.GetData<ServerMessageType>(ref _buffer, ref offset);
+            ServerMessageType messageType = _tcpHelper.GetData<ServerMessageType>();
             if (messageType != ServerMessageType.ContactInfoUpdate)
             {
                 throw new RsuUpdateContactsException("Server gives wrong message");
             }
             
-            ulong configurationNumber = BitIO.GetData<ulong>(ref _buffer, ref offset);
+            ulong configurationNumber = _tcpHelper.GetData<ulong>();
 
-            ulong numContacts = BitIO.GetData<ulong>(ref _buffer, ref offset);
+            ulong numContacts = _tcpHelper.GetData<ulong>();
 
             // clear contacts 
             ClearContacts();
@@ -988,13 +937,13 @@ namespace raisimUnity
 
             for (ulong i = 0; i < numContacts; i++)
             {
-                double posX = BitIO.GetData<double>(ref _buffer, ref offset);
-                double posY = BitIO.GetData<double>(ref _buffer, ref offset);
-                double posZ = BitIO.GetData<double>(ref _buffer, ref offset);
+                double posX = _tcpHelper.GetData<double>();
+                double posY = _tcpHelper.GetData<double>();
+                double posZ = _tcpHelper.GetData<double>();
 
-                double forceX = BitIO.GetData<double>(ref _buffer, ref offset);
-                double forceY = BitIO.GetData<double>(ref _buffer, ref offset);
-                double forceZ = BitIO.GetData<double>(ref _buffer, ref offset);
+                double forceX = _tcpHelper.GetData<double>();
+                double forceY = _tcpHelper.GetData<double>();
+                double forceZ = _tcpHelper.GetData<double>();
                 var force = new Vector3((float) forceX, (float) forceY, (float) forceZ);
                 
                 contactList.Add(new Tuple<Vector3, Vector3>(
@@ -1017,46 +966,19 @@ namespace raisimUnity
                 }
             }
         }
-
-        public void EstablishConnection()
-        {
-            try
-            {
-                // create tcp client and stream
-                if (_client == null || !_client.Connected)
-                {
-                    _client = new TcpClient(_tcpAddress, _tcpPort);
-                    _stream = _client.GetStream();
-                }
-            }
-            catch (Exception e)
-            {
-                // connection cannot be established
-                throw new RsuTcpConnectionException(e.Message);
-            }
-
-            // initialize scene when connection available
-            if (_client != null && _client.Connected && _stream != null)
-            {
-                _initializing = true;
-                _initializingModal = true;
-            }
-        }
-
+        
         private void ReadXmlString()
         {
-            int offset = 0;
-            
-            WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestConfigXML));
-            if (ReadData() <= 0)
+            _tcpHelper.WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestConfigXML));
+            if (_tcpHelper.ReadData() <= 0)
                 throw new RsuReadXMLException("Cannot read data from TCP");
             
-            ServerStatus state = BitIO.GetData<ServerStatus>(ref _buffer, ref offset);
+            ServerStatus state = _tcpHelper.GetData<ServerStatus>();
             
             if (state == ServerStatus.StatusTerminating)
                 throw new RsuReadXMLException("Server is terminating");
 
-            ServerMessageType messageType = BitIO.GetData<ServerMessageType>(ref _buffer, ref offset);
+            ServerMessageType messageType = _tcpHelper.GetData<ServerMessageType>();
             if (messageType == ServerMessageType.NoMessage) return; // No XML
                 
             if (messageType != ServerMessageType.ConfigXml)
@@ -1064,7 +986,7 @@ namespace raisimUnity
                 throw new RsuReadXMLException("Server gives wrong message");
             }
 
-            string xmlString = BitIO.GetData<string>(ref _buffer, ref offset);
+            string xmlString = _tcpHelper.GetData<string>();
 
             XmlDocument xmlDoc = new XmlDocument();
             if (xmlDoc != null)
@@ -1074,97 +996,12 @@ namespace raisimUnity
             }
         }
 
-        public void CloseConnection()
-        {
-            try
-            {
-                // clear scene
-                ClearScene();
-                
-                // clear tcp stream and client
-                if (_stream != null)
-                {
-                    _stream.Close();
-                    _stream = null;
-                }
-
-                if (_client != null)
-                {
-                    _client.Close();
-                    _client = null;
-                }
-            }
-            catch (Exception e)
-            {
-            }
-        }
-        
-        private bool CheckConnection()
-        {
-            try
-            {
-                if( _client!=null && _client.Client!=null && _client.Client.Connected )
-                {
-                    if( _client.Client.Poll(0, SelectMode.SelectRead) )
-                    {
-                        if( _client.Client.Receive(_buffer, SocketFlags.Peek)==0 )
-                            return false;
-                        else
-                            return true;
-                    }
-                    else
-                        return true;
-                }
-                else
-                    return false;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-        
-        private int ReadData()
-        {
-            readDataTime = Time.realtimeSinceStartup;
-            while (!_stream.DataAvailable)
-            {
-                // wait until stream data is available 
-
-                if (Time.realtimeSinceStartup - readDataTime > 5.0f)
-                    // if data is not available until timeout, return error
-                    return -1;
-            }
-            
-            int offset = 0;
-            Byte footer = Convert.ToByte('c');
-            while (footer == Convert.ToByte('c'))
-            {
-                int valread = _stream.Read(_buffer, offset, MaxPacketSize);
-                if (valread == 0) break;
-                footer = _buffer[offset + MaxPacketSize - FooterSize];
-                offset += valread - FooterSize;
-            }
-            return offset;
-        }
-
-        private int WriteData(Byte[] data)
-        {
-            while (!_stream.CanWrite)
-            {
-                // wait until stream can write
-                // TODO what to do when it is stucked here....
-            }
-            
-            _stream.Write(data, 0, data.Length);
-            return 0;
-        }
-        
         void OnApplicationQuit()
         {
             // close tcp client
-            if (_stream != null) _stream.Close();
-            if (_client != null) _client.Close();
+//            if (_stream != null) _stream.Close();
+//            if (_client != null) _client.Close();
+            _tcpHelper.CloseConnection();
             
             // save preference
             _loader.SaveToPref();
@@ -1231,7 +1068,10 @@ namespace raisimUnity
             }
         }
 
-        // getters and setters
+        //**************************************************************************************************************
+        //  Getter and Setters 
+        //**************************************************************************************************************
+        
         public bool ShowVisualBody
         {
             get => _showVisualBody;
@@ -1258,25 +1098,19 @@ namespace raisimUnity
 
         public string TcpAddress
         {
-            get => _tcpAddress;
-            set => _tcpAddress = value;
+            get => _tcpHelper.TcpAddress;
+            set => _tcpHelper.TcpAddress = value;
         }
 
         public int TcpPort
         {
-            get => _tcpPort;
-            set => _tcpPort = value;
+            get => _tcpHelper.TcpPort;
+            set => _tcpHelper.TcpPort = value;
         }
-
-        public bool TcpTryConnect
-        {
-            get => _tcpTryConnect;
-            set => _tcpTryConnect = value;
-        }
-
+        
         public bool TcpConnected
         {
-            get => _client != null && _client.Connected;
+            get => _tcpHelper.Connected;
         }
 
         public ResourceLoader ResourceLoader
