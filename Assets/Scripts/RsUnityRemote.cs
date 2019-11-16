@@ -108,6 +108,8 @@ namespace raisimUnity
         
         // object controller 
         private ObjectController _objectController;
+        private ulong _numInitializedObjects;
+        private ulong _numObjectsInSimulation; 
 
         // shaders
         private Shader _transparentShader;
@@ -132,8 +134,10 @@ namespace raisimUnity
             // object roots
             _objectsRoot = new GameObject("RsObjects");
             _objectsRoot.transform.SetParent(transform);
-            _objectCache = new GameObject("VisualObjects");
+            _objectCache = new GameObject("ObjectCache");
             _objectCache.transform.SetParent(transform);
+            _visualsRoot = new GameObject("VisualObjects");
+            _visualsRoot.transform.SetParent(transform);
             _contactPointsRoot = new GameObject("ContactPoints");
             _contactPointsRoot.transform.SetParent(transform);
             _contactForcesRoot = new GameObject("ContactForces");
@@ -201,33 +205,62 @@ namespace raisimUnity
                             _loadingModalView.Show(true);
                             _loadingModalView.SetTitle("Initializing");
                             _loadingModalView.SetMessage("Loading resources...");
+                            
+                            // Read XML string
+                            ReadXmlString();
+                            
+                            _tcpHelper.WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestInitialization));
+                            if (_tcpHelper.ReadData() <= 0)
+                                throw new RsuInitSceneException("Cannot read data from TCP");
+
+                            ServerStatus state = _tcpHelper.GetData<ServerStatus>();
+                            if (state == ServerStatus.StatusTerminating)
+                                throw new RsuInitSceneException("Server is terminating");
+
+                            ServerMessageType messageType = _tcpHelper.GetData<ServerMessageType>();
+                            if (messageType != ServerMessageType.Initialization)
+                                throw new RsuInitSceneException("Server gives wrong message");
+
+                            _configurationNumber = _tcpHelper.GetData<ulong>();
+                            _numObjectsInSimulation = _tcpHelper.GetData<ulong>();
+                            _numInitializedObjects = 0;
                             _clientStatus = ClientStatus.InitializeScene;
                             break;
                         }
                         case ClientStatus.InitializeScene:
                         {
-                            // Read XML string
-                            ReadXmlString();
-
-                            // initialize scene from data 
+                            // Initialize scene from data
+                            // If the function call time is > 0.01 sec, rest of objects are initialized in next Update iteration
                             InitializeScene();
-                    
-                            // initialize visuals from data
-                            InitializeVisuals();
-                    
-                            // disable other cameras than main camera
-                            foreach (var cam in Camera.allCameras)
+
+                            if (_numInitializedObjects == _numObjectsInSimulation)
                             {
-                                if (cam == Camera.main) continue;
-                                cam.enabled = false;
+                                // initialize visuals from data
+                                InitializeVisuals();
+
+                                // disable other cameras than main camera
+                                foreach (var cam in Camera.allCameras)
+                                {
+                                    if (cam == Camera.main) continue;
+                                    cam.enabled = false;
+                                }
+
+                                // show / hide objects
+                                ShowOrHideObjects();
+
+                                // Initialization done 
+                                _loadingModalView.Show(false);
+                                _clientStatus = ClientStatus.UpdateScene;
                             }
-                    
-                            // show / hide objects
-                            ShowOrHideObjects();
-                        
-                            // Initialization done 
-                            _loadingModalView.Show(false);
-                            _clientStatus = ClientStatus.UpdateScene;
+                            else if (_numInitializedObjects < _numObjectsInSimulation)
+                            {
+                                _loadingModalView.SetProgress((float)_numInitializedObjects/_numObjectsInSimulation);
+                            }
+                            else
+                            {
+                                // TODO error
+                            }
+
                             break;
                         }
                         case ClientStatus.UpdateScene:
@@ -310,23 +343,7 @@ namespace raisimUnity
 
         private void InitializeScene()
         {
-            _tcpHelper.WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestInitialization));
-            if (_tcpHelper.ReadData() <= 0)
-                throw new RsuInitSceneException("Cannot read data from TCP");
-
-            ServerStatus state = _tcpHelper.GetData<ServerStatus>();
-            if (state == ServerStatus.StatusTerminating)
-                throw new RsuInitSceneException("Server is terminating");
-
-            ServerMessageType messageType = _tcpHelper.GetData<ServerMessageType>();
-            if (messageType != ServerMessageType.Initialization)
-                throw new RsuInitSceneException("Server gives wrong message");
-
-            _configurationNumber = _tcpHelper.GetData<ulong>();
-
-            ulong numObjects = _tcpHelper.GetData<ulong>();
-            
-            for (ulong i = 0; i < numObjects; i++)
+            while (_numInitializedObjects < _numObjectsInSimulation)
             {
                 ulong objectIndex = _tcpHelper.GetData<ulong>();
                 RsObejctType objectType = _tcpHelper.GetData<RsObejctType>();
@@ -532,7 +549,7 @@ namespace raisimUnity
                     else
                     {
                         // default material
-                        switch (i % 3)
+                        switch (_numInitializedObjects % 3)
                         {
                             case 0:
                                 material = _defaultMaterialR;
@@ -671,6 +688,12 @@ namespace raisimUnity
                         visualObject.tag = VisualTag.Visual;
                     }
                 }
+
+                _numInitializedObjects++;
+
+                if (Time.deltaTime > 0.03f)
+                    // If initialization takes too much time, do the rest in next iteration (to prevent freezing GUI(
+                    break;
             }
         }
 
@@ -1002,8 +1025,6 @@ namespace raisimUnity
         void OnApplicationQuit()
         {
             // close tcp client
-//            if (_stream != null) _stream.Close();
-//            if (_client != null) _client.Close();
             _tcpHelper.CloseConnection();
             
             // save preference
