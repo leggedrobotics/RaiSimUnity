@@ -1,6 +1,6 @@
 # RaisimUnity (NOT COMPLETED) 
 
-![raisimunity gif](https://github.com/leggedrobotics/raisimUnity/blob/master/Images/raisimunity.gif)
+![raisimunity gif](Images/raisimunity.gif)
  
 raisimUnity is a visualizer for raisim based on [Unity](https://unity.com/). It gets the simulation data from raisim server application via TCP/IP.
 
@@ -18,9 +18,9 @@ The project was tested on Ubuntu 18.04 LST.
     ``` 
 - (optional for developement) Unity Editor >= 2019.2.9f1 (linux version is available on [here](https://forum.unity.com/threads/unity-hub-v-1-6-0-is-now-available.640792/))
 
-### RaiSimUnity 
+### Quickstart with RaiSim
 
-1. Add the following line in your simulation code: see [Example code](https://github.com/leggedrobotics/raisimUnity/tree/master/Examples/src)
+1. Add the following line in your RaiSim simulation code: see [Example code](https://github.com/leggedrobotics/raisimUnity/tree/master/Examples/src)
 ```cpp
   /// launch raisim servear
   raisim::RaisimServer server(&world);
@@ -35,22 +35,20 @@ The project was tested on Ubuntu 18.04 LST.
 ```
 2. Run your simulation. 
 3. Run RaiSimUnity application.
-![](https://github.com/leggedrobotics/raisimUnity/blob/master/Images/step1.png)
+![](Images/step1.png)
 4. Add your resource directory that contains your mesh, material etc.
-![](https://github.com/leggedrobotics/raisimUnity/blob/master/Images/step2.png)
+![](Images/step2.png)
 5. Tap *Connect* button after specify TCP address and port.
-![](https://github.com/leggedrobotics/raisimUnity/blob/master/Images/step3.png)
+![](Images/step3.png)
 6. You can change background by *Background* dropdown menu in run time.
-![](https://github.com/leggedrobotics/raisimUnity/blob/master/Images/step4.png)
+![](Images/step4.png)
 
 ## Development
 
 1. Clone this repository with git and [git-lfs](https://git-lfs.github.com/): we use git-lfs for large files such as materials, meshes, texture images etc.
-
 ```sh
 $ git clone https://github.com/eastskykang/raisimUnity.git
 ```
-
 2. Once you cloned source code, get lfs files by 
 ```sh
 $ git lfs pull origin
@@ -65,11 +63,9 @@ You should see texture JPEG files properly from ```Assets/Resources/texture/cc0/
 
 3rd party libraries, packages and assets are already included in the project. 
 This is just for listing the source.
-
-- [pb_Stl](https://github.com/karl-/pb_Stl)
-- C# Collada model 
-- [OBJImport](https://assetstore.unity.com/packages/tools/modeling/runtime-obj-importer-49547)
+ 
 - [SimpleFileBrowser](https://assetstore.unity.com/packages/tools/gui/runtime-file-browser-113006)
+- [AssimpNet](https://bitbucket.org/Starnick/assimpnet/src)
 
 ## Default Material List
 

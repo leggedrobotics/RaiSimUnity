@@ -5,9 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Collada141;
-using Dummiesman;
-using raisimUnity.STLImport;
+using System.Xml;
 using UnityEngine;
 using UnityEngine.Rendering;
 using Quaternion = UnityEngine.Quaternion;
@@ -24,20 +22,12 @@ namespace raisimUnity
     
     public class ObjectController
     {
-        private OBJLoader _objLoader;
-        private ColladaLoader _colladaLoader;
-        private StlLoader _stlLoader;
-
         private GameObject _objectCache;
         private Dictionary<string, Tuple<GameObject, MeshUpAxis>> _meshCache;
         
         public ObjectController(GameObject cache)
         {
             _objectCache = cache;
-            
-            _objLoader = new OBJLoader(); 
-            _colladaLoader = new ColladaLoader();
-            _stlLoader = new StlLoader();
             _meshCache = new Dictionary<string, Tuple<GameObject, MeshUpAxis>>();
         }
 
@@ -269,32 +259,33 @@ namespace raisimUnity
                     throw new RsuResourceException("Cannot find mesh file: " + meshFile);
                 }
 
-                GameObject loadedMesh = null;
-
                 string fileExtension = Path.GetExtension(meshFile);
-                switch (fileExtension)
+                var loadedMesh = MeshImporter.Load(meshFile);
+                
+                // check up axis (for dae) 
+                if (fileExtension == ".dae")
                 {
-                    case ".dae" : 
+                    XmlDocument xmlDoc = new XmlDocument();
+                    if (xmlDoc != null)
                     {
-                        var collada = _colladaLoader.Load(meshFile);
-                        loadedMesh = collada.Item1;
-                        meshUpAxis = collada.Item2;
+                        xmlDoc.Load(meshFile);
+                        var upAxisNode = xmlDoc.DocumentElement.SelectSingleNode("//*[contains(local-name(), 'up_axis')]").LastChild;
+
+                        if (upAxisNode != null && !string.IsNullOrEmpty(upAxisNode.Value))
+                        {
+                            if (upAxisNode.Value == "Z_UP")
+                                meshUpAxis = MeshUpAxis.ZUp;
+                            else if (upAxisNode.Value == "Y_UP")
+                                meshUpAxis = MeshUpAxis.YUp;
+                            else
+                                meshUpAxis = MeshUpAxis.XUp;
+                        }
                     }
-                        break;
-                    case ".obj" :
-                        loadedMesh = _objLoader.Load(meshFile);
-                        break;
-                    case ".stl" :
-                        loadedMesh = _stlLoader.Load(meshFile);
-                        break;
-                    default :
-                        // TODO Notsupported Mesh type 
-                        break;
                 }
                 
                 // save to cache
                 loadedMesh.name = meshFile;
-                loadedMesh.transform.SetParent(_objectCache.transform);
+                loadedMesh.transform.SetParent(_objectCache.transform, false);
                 loadedMesh.SetActive(false);
                 _meshCache.Add(meshFile, new Tuple<GameObject, MeshUpAxis>(loadedMesh, meshUpAxis));
             }
@@ -308,20 +299,14 @@ namespace raisimUnity
             
             mesh.SetActive(true);
             mesh.name = "mesh";
-            mesh.transform.SetParent(root.transform, true);
+            mesh.transform.SetParent(root.transform, false);
             mesh.transform.localScale = new Vector3((float)sx, (float)sy, (float)sz);
-
-            if (cachedMesh.Item2 == MeshUpAxis.YUp)
-            {
-                mesh.transform.localRotation = new Quaternion(-0.7071f, 0, 0, 0.7071f);
-            }
-            else if (cachedMesh.Item2 == MeshUpAxis.ZUp)
-            {
-            }
-            else
-            {
-                throw new NotImplementedException();
-            }
+            
+            if(cachedMesh.Item2 == MeshUpAxis.ZUp) {}
+            else if(cachedMesh.Item2 == MeshUpAxis.YUp)
+                mesh.transform.localRotation = new Quaternion(-0.7071f, 0, 0, 0.7071f) * mesh.transform.localRotation;
+            else if(cachedMesh.Item2 == MeshUpAxis.XUp)
+                mesh.transform.localRotation = new Quaternion(0, 0, 0.7071f, 0.7071f) * mesh.transform.localRotation;
             
             // add collider to children
             foreach (Transform children in mesh.transform)

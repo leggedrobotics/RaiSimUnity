@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.IO;
-using Collada141;
 using UnityEngine;
 
 namespace raisimUnity
