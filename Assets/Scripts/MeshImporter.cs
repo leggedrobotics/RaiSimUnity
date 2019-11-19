@@ -75,6 +75,12 @@ namespace raisimUnity
                         uMaterial.EnableKeyword("_EMISSION");
                     }
                     
+                    // Reflectivity
+                    if (m.HasReflectivity)
+                    {
+                        uMaterial.SetFloat("_Glossiness", m.Reflectivity);
+                    }
+                    
                     // Texture
                     if (m.HasTextureDiffuse)
                     {
@@ -209,8 +215,10 @@ namespace raisimUnity
                     node.Transform.D4
                 ));
 
+                var euler = uTransform.rotation.eulerAngles;
                 uOb.transform.localPosition = uTransform.GetColumn(3);
-                uOb.transform.localRotation = UnityEngine.Quaternion.LookRotation(uTransform.GetColumn(2), uTransform.GetColumn(1));
+                uOb.transform.localRotation = UnityEngine.Quaternion.Euler(euler.x, -euler.y, euler.z);
+//                uOb.transform.localRotation = UnityEngine.Quaternion.LookRotation(uTransform.GetColumn(2), uTransform.GetColumn(1));
             
                 if (node.HasChildren)
                 {
