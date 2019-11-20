@@ -82,6 +82,7 @@ namespace raisimUnity
             plane.transform.SetParent(root.transform, true);
             plane.transform.localPosition = new Vector3(0, height, 0);
             plane.transform.localScale = new Vector3(5, 1, 5);
+            GameObject.DestroyImmediate(plane.GetComponent<Collider>());
             return plane;
         }
         
@@ -237,7 +238,9 @@ namespace raisimUnity
 
             terrain.GetComponent<MeshFilter>().mesh = mesh;
             terrain.GetComponent<MeshRenderer>().material =  temp.GetComponent<MeshRenderer>().sharedMaterial;
-            terrain.AddComponent<MeshCollider>();
+
+                // Do not allow to select terrain 
+//            terrain.AddComponent<MeshCollider>();
 
             // destroy temp 
             GameObject.DestroyImmediate(temp);
