@@ -8,32 +8,37 @@ The project was tested on Ubuntu 18.04 LST.
 
 ## How to 
 
-### Prerequisites
+### Dependencies
 
-- [RaiSimLib](https://github.com/leggedrobotics/raisimLib)
-- (optional for video recording) [ffmpeg](https://www.ffmpeg.org/)
-    - Install by 
-    ```sh
-    $ sudo apt install ffmpeg
-    ``` 
-- (optional for developement) Unity Editor >= 2019.2.9f1 (linux version is available on [here](https://forum.unity.com/threads/unity-hub-v-1-6-0-is-now-available.640792/))
+The following Unity plugins are already included in the project.                
+- [SimpleFileBrowser](https://assetstore.unity.com/packages/tools/gui/runtime-file-browser-113006)
+
+The following Unity package dependencies are imported by [Packages/manifest.json](Packages/manifest.json).
+- [UnityMeshImporter](https://github.com/eastskykang/UnityMeshImporter)
+
+The followings are optional dependencies
+- [ffmpeg](https://www.ffmpeg.org/) for video recording
+    - You can install ffmpeg by 
+        ```sh
+        $ sudo apt install ffmpeg
+        ``` 
 
 ### Quickstart with RaiSim
 
 1. Add the following line in your RaiSim simulation code: see [Example code](https://github.com/leggedrobotics/raisimUnity/tree/master/Examples/src)
-```cpp
-  /// launch raisim servear
-  raisim::RaisimServer server(&world);
-  server.launchServer();
-
-  while(1) {
-    raisim::MSLEEP(2);
-    server.integrateWorldThreadSafe();
-  }
-
-  server.killServer();
-```
-2. Run your simulation. 
+    ```cpp
+      /// launch raisim servear
+      raisim::RaisimServer server(&world);
+      server.launchServer();
+    
+      while(1) {
+        raisim::MSLEEP(2);
+        server.integrateWorldThreadSafe();
+      }
+    
+      server.killServer();
+    ```
+2. Run your RaiSim simulation. 
 3. Run RaiSimUnity application.
 ![](Images/step1.png)
 4. Add your resource directory that contains your mesh, material etc.
@@ -43,7 +48,7 @@ The project was tested on Ubuntu 18.04 LST.
 6. You can change background by *Background* dropdown menu in run time.
 ![](Images/step4.png)
 
-## Development
+### Development
 
 1. Clone this repository with git and [git-lfs](https://git-lfs.github.com/): we use git-lfs for large files such as materials, meshes, texture images etc.
 ```sh
@@ -54,31 +59,14 @@ $ git clone https://github.com/eastskykang/raisimUnity.git
 $ git lfs pull origin
 ```
 You should see texture JPEG files properly from ```Assets/Resources/texture/cc0/```. 
+3. Open the project by Unity Editor
 
-3. We strongly recommend to use JetBrain's Rider IDE and Unity Rider Editor package >= 1.1.2 for development. 
+4. We strongly recommend to use JetBrain's Rider IDE and Unity Rider Editor package >= 1.1.2 for development. 
     - See [Wiki doc](https://github.com/leggedrobotics/raisimUnity/wiki/Unity-with-Rider) for more details.
     - See [Wiki doc](https://github.com/leggedrobotics/raisimUnity/wiki/Creating-a-material-from-texture-files) to create new material from texture files.
 
-## Dependencies
+## Default Materials
 
-3rd party libraries, packages and assets are already included in the project. 
-This is just for listing the source.
- 
-- [SimpleFileBrowser](https://assetstore.unity.com/packages/tools/gui/runtime-file-browser-113006)
-- [AssimpNet](https://bitbucket.org/Starnick/assimpnet/src)
+raisimUnity has default materials created from [CC0 textures](https://cc0textures.com/) and [Free PBR Materials](https://freepbr.com/) textures.
 
-## Default Material List
-
-- Bricks1
-- Concrete1
-- Fabric1
-- Ground1
-- Leather1
-- Metal1
-- Metal2
-- Metal3
-- Metal4
-- PavingStones1
-- PavingStones2
-- Planks1
-- ... see [this](https://github.com/leggedrobotics/raisimUnity/tree/master/Assets/Resources/materials/Resources)
+See [this](Assets/Resources/materials/Resources)

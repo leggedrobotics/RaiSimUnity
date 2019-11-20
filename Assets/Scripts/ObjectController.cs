@@ -8,6 +8,7 @@ using System.IO;
 using System.Xml;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityMeshImporter;
 using Quaternion = UnityEngine.Quaternion;
 using Vector3 = UnityEngine.Vector3;
 
