@@ -18,11 +18,13 @@ namespace raisimUnity
     enum ClientStatus : int
     {
         Idle = 0,
-        InitializeObjectsStart,        // start 
+        InitializeObjectsStart,      // start 
         InitializingObjects,
-        InitializeVisualsStart,        // start
+        InitializeVisualsStart,      // start
         InitializingVisuals,
         UpdateScene,
+        ReinitializeObjectsStart,    // start  
+        ReinitializingObjects,
     }
     
     enum RsObejctType : int
@@ -340,6 +342,64 @@ namespace raisimUnity
                         
                             // update contacts
                             UpdateContacts();
+                            break;
+                        }
+                        case ClientStatus.ReinitializeObjectsStart:
+                        {
+                            // If server side has been changed, initialize objects
+                            // Clear objects first
+                            foreach (Transform objT in _objectsRoot.transform)
+                            {
+                                Destroy(objT.gameObject);
+                            }
+                            
+                            // Start reinitializing
+                            _tcpHelper.WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestInitialization));
+                            if (_tcpHelper.ReadData() <= 0)
+                                throw new RsuInitSceneException("Cannot read data from TCP");
+
+                            ServerStatus state = _tcpHelper.GetData<ServerStatus>();
+                            if (state == ServerStatus.StatusTerminating)
+                                throw new RsuInitSceneException("Server is terminating");
+
+                            ServerMessageType messageType = _tcpHelper.GetData<ServerMessageType>();
+                            if (messageType != ServerMessageType.Initialization)
+                                throw new RsuInitSceneException("Server gives wrong message");
+
+                            _configurationNumber = _tcpHelper.GetData<ulong>();
+                            _numWorldObjects = _tcpHelper.GetData<ulong>();
+                            _numInitializedObjects = 0;
+                            _clientStatus = ClientStatus.ReinitializingObjects;
+                            break;
+                        }
+                        case ClientStatus.ReinitializingObjects:
+                        {
+                            if (_numInitializedObjects < _numWorldObjects)
+                            {
+                                // Reinitialize objects from data
+                                // If the function call time is > 0.1 sec, rest of objects are initialized in next Update iteration
+                                PartiallyInitializeScene();
+                            }
+                            else if (_numInitializedObjects == _numWorldObjects)
+                            {
+                                // Reinitialization done 
+                                _clientStatus = ClientStatus.UpdateScene;
+                                
+                                // Disable other cameras than main camera
+                                foreach (var cam in Camera.allCameras)
+                                {
+                                    if (cam == Camera.main) continue;
+                                    cam.enabled = false;
+                                }
+
+                                // Show / hide objects
+                                ShowOrHideObjects();
+                            }
+                            else
+                            {
+                                // TODO error
+                            }
+
                             break;
                         }
                     }
@@ -763,18 +823,6 @@ namespace raisimUnity
             }
         }
 
-        private void ReinitializeScene()
-        {
-            // clear objects first
-            foreach (Transform objT in _objectsRoot.transform)
-            {
-                Destroy(objT.gameObject);
-            }
-            
-            // initialize scene from data
-            _clientStatus = ClientStatus.InitializeObjectsStart;
-        }
-
         private void PartiallyInitializeVisuals()
         {
             while (_numInitializedVisuals < _numWorldVisuals)
@@ -887,7 +935,7 @@ namespace raisimUnity
             if (configurationNumber != _configurationNumber)
             {
                 // this means the object was added or deleted from server size
-                ReinitializeScene();
+                _clientStatus = ClientStatus.ReinitializeObjectsStart;
                 return;
             }
 
