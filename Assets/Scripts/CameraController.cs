@@ -21,7 +21,7 @@ public class CameraController : MonoBehaviour
     private Camera cam;
     private Vector3 _anchorPoint;
     private Quaternion _anchorRot;
-    private Vector3 _relVector;
+    private Vector3 _relativePositionB;
 
     // object selection
     private GameObject _selected; 
@@ -125,9 +125,9 @@ public class CameraController : MonoBehaviour
         
         if (!EventSystem.current.IsPointerOverGameObject ()) 
         {
-            // only do this if mouse pointer is not on the GUI
+            // Only do this if mouse pointer is not on the GUI
             
-            // select object by left click
+            // Select object by left click
             if (Input.GetMouseButtonDown(0))
             {
                 Ray ray = cam.ScreenPointToRay(Input.mousePosition);
@@ -136,16 +136,21 @@ public class CameraController : MonoBehaviour
                 {
                     if (_selected != null)
                     {
-                        // former selected object
+                        // Change shader back for previously selected object
                         foreach (var ren in _selected.GetComponentsInChildren<Renderer>())
                         {
                             ren.material.shader = Shader.Find("Standard");
                         }
                     }
                 
+                    // Set selected object
                     _selected = hit.transform.parent.gameObject;
-                    _relVector = _selected.transform.position - gameObject.transform.position;
+                    
+                    // Focus camera on selected object + save relative position of object w.r.t camera
+                    transform.rotation = Quaternion.LookRotation(_selected.transform.position - transform.position);
+                    _relativePositionB = Quaternion.Inverse(transform.rotation) * (_selected.transform.position - transform.position);
 
+                    // Change shader for selected object
                     foreach (var ren in _selected.GetComponentsInChildren<Renderer>())
                     {
                         ren.material.shader = Shader.Find("Outlined/UltimateOutline");
@@ -153,7 +158,7 @@ public class CameraController : MonoBehaviour
                 }
             }
 
-            // change camera orientation by right drag 
+            // Change camera orientation by right drag 
             if (Input.GetMouseButtonDown(1))
             {
                 _anchorPoint = new Vector3(Input.mousePosition.y, -Input.mousePosition.x);
@@ -179,29 +184,26 @@ public class CameraController : MonoBehaviour
                 transform.rotation = rot;
             }   
             
-            // orbiting around selected object  
-//            if (Input.GetMouseButtonDown(0) && _selected != null)
-//            {
-//                var distance = (_selected.transform.position - gameObject.transform.position).magnitude;
-//                anchorPoint = new Vector3(Input.mousePosition.y, -Input.mousePosition.x);
-//                anchorRot = transform.rotation;
-//            }
-//            
-//            if (Input.GetMouseButton(0) && _selected != null)
-//            {
-//                Quaternion rot = anchorRot;
-//                Vector3 dif = anchorPoint - new Vector3(Input.mousePosition.y, -Input.mousePosition.x);
-//                rot.eulerAngles += dif * sensitivity;
-//                transform.rotation = rot;
-//            }
+            // Set anchor for orbiting around selected object  
+            if (Input.GetMouseButtonDown(0) && _selected != null)
+            {
+                _anchorPoint = new Vector3(Input.mousePosition.y, -Input.mousePosition.x);
+                _anchorRot = transform.rotation;
+            }
+            
+            if (Input.GetMouseButton(0) && _selected != null)
+            {
+                Quaternion rot = _anchorRot;
+                Vector3 dif = _anchorPoint - new Vector3(Input.mousePosition.y, -Input.mousePosition.x);
+                rot.eulerAngles += dif * sensitivity;
+                transform.rotation = rot;
+            }
         }
         
-        // follow and orbiting around selected object  
+        // Follow and orbiting around selected object  
         if (_selected != null)
         {
-            gameObject.transform.position = _selected.transform.position - _relVector;
-            gameObject.transform.rotation =
-                Quaternion.LookRotation(_selected.transform.position - gameObject.transform.position);
+            transform.position = _selected.transform.position - transform.rotation * _relativePositionB;
         }
     }
     
