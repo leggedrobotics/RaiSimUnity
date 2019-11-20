@@ -1,4 +1,4 @@
-# RaisimUnity (NOT COMPLETED) 
+# RaiSimUnity (NOT COMPLETED) 
 
 ![raisimunity gif](Images/raisimunity.gif)
  
