@@ -13,7 +13,7 @@ The project was tested on Ubuntu 18.04 LST.
 The following Unity plugins are already included in the project.                
 - [SimpleFileBrowser](https://assetstore.unity.com/packages/tools/gui/runtime-file-browser-113006)
 
-The following Unity package dependencies are imported by [Packages/manifest.json](Packages/manifest.json).
+The following Unity packages are imported by Unity Package Manager automatically: see [Packages/manifest.json](Packages/manifest.json) 
 - [UnityMeshImporter](https://github.com/eastskykang/UnityMeshImporter)
 
 The followings are optional dependencies
@@ -51,22 +51,28 @@ The followings are optional dependencies
 ### Development
 
 1. Clone this repository with git and [git-lfs](https://git-lfs.github.com/): we use git-lfs for large files such as materials, meshes, texture images etc.
-```sh
-$ git clone https://github.com/eastskykang/raisimUnity.git
-```
+    ```sh
+    $ git clone https://github.com/eastskykang/raisimUnity.git
+    ```
 2. Once you cloned source code, get lfs files by 
-```sh
-$ git lfs pull origin
-```
-You should see texture JPEG files properly from ```Assets/Resources/texture/cc0/```. 
-3. Open the project by Unity Editor
+    ```sh
+    $ git lfs pull origin
+    ```
+    You should see texture JPEG files properly from ```Assets/Resources/texture/cc0/```. 
+3. Open the project by Unity Editor >= 2019.2.9
+    - You can get Unity Editor for linux from [Unity Hub for Linux](https://forum.unity.com/threads/unity-hub-v2-0-0-release.677485/?_ga=2.133515342.19804957.1574080929-125858921.1570536365)
+    - Once you open the project, [UnityMeshImporter - com.donghok.meshimporter](https://github.com/eastskykang/UnityMeshImporter) is imported automatically.  
+4. Write or edit Unity project with Unity Editor and your code editor 
+    - We strongly recommend to use JetBrain's Rider IDE and Unity Rider Editor package >= 1.1.2 for programming or debugging. See [Wiki doc](https://github.com/leggedrobotics/raisimUnity/wiki/Unity-with-Rider) for more details.
 
-4. We strongly recommend to use JetBrain's Rider IDE and Unity Rider Editor package >= 1.1.2 for development. 
-    - See [Wiki doc](https://github.com/leggedrobotics/raisimUnity/wiki/Unity-with-Rider) for more details.
-    - See [Wiki doc](https://github.com/leggedrobotics/raisimUnity/wiki/Creating-a-material-from-texture-files) to create new material from texture files.
-
-## Default Materials
+## Material supports
 
 raisimUnity has default materials created from [CC0 textures](https://cc0textures.com/) and [Free PBR Materials](https://freepbr.com/) textures.
+[Default materials](Assets/Resources/materials/Resources) are included as Resources. You can use default materials as follows: 
 
-See [this](Assets/Resources/materials/Resources)
+```cs
+Material material = Resources.Load<Material>(yourMaterialName);
+yourGameObject.GetComponentInChildren<Renderer>().material = material;
+```
+
+If you want to create your own material, see [Wiki doc](https://github.com/leggedrobotics/raisimUnity/wiki/Creating-a-material-from-texture-files).
