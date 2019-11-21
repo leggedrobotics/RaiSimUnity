@@ -2,7 +2,7 @@
 
 ![raisimunity gif](Images/raisimunity.gif)
  
-raisimUnity is a visualizer for raisim based on [Unity](https://unity.com/). It gets the simulation data from raisim server application via TCP/IP.
+RaiSimUnity is a visualizer for RaiSim based on [Unity](https://unity.com/). It gets the simulation data from raisim server application via TCP/IP.
 
 The project was tested on Ubuntu 18.04 LST.
 
@@ -27,7 +27,7 @@ The followings are optional dependencies
 
 1. Add the following line in your RaiSim simulation code: see [Example code](https://github.com/leggedrobotics/raisimUnity/tree/master/Examples/src)
     ```cpp
-      /// launch raisim servear
+      /// launch raisim server
       raisim::RaisimServer server(&world);
       server.launchServer();
     
@@ -52,7 +52,7 @@ The followings are optional dependencies
 
 1. Clone this repository with git and [git-lfs](https://git-lfs.github.com/): we use git-lfs for large files such as materials, meshes, texture images etc.
     ```sh
-    $ git clone https://github.com/eastskykang/raisimUnity.git
+    $ git clone https://github.com/eastskykang/RaiSimUnity.git
     ```
 2. Once you cloned source code, get lfs files by 
     ```sh
@@ -60,14 +60,14 @@ The followings are optional dependencies
     ```
     You should see texture JPEG files properly from ```Assets/Resources/texture/cc0/```. 
 3. Open the project by Unity Editor >= 2019.2.9
-    - You can get Unity Editor for linux from [Unity Hub for Linux](https://forum.unity.com/threads/unity-hub-v2-0-0-release.677485/?_ga=2.133515342.19804957.1574080929-125858921.1570536365)
+    - You can get Unity Editor for Linux from [Unity Hub for Linux](https://forum.unity.com/threads/unity-hub-v2-0-0-release.677485/?_ga=2.133515342.19804957.1574080929-125858921.1570536365)
     - Once you open the project, [UnityMeshImporter - com.donghok.meshimporter](https://github.com/eastskykang/UnityMeshImporter) is imported automatically.  
 4. Write or edit Unity project with Unity Editor and your code editor 
     - We strongly recommend to use JetBrain's Rider IDE and Unity Rider Editor package >= 1.1.2 for programming or debugging. See [Wiki doc](https://github.com/leggedrobotics/raisimUnity/wiki/Unity-with-Rider) for more details.
 
 ## Material supports
 
-raisimUnity has default materials created from [CC0 textures](https://cc0textures.com/) and [Free PBR Materials](https://freepbr.com/) textures.
+RaiSimUnity has default materials created from [CC0 textures](https://cc0textures.com/) and [Free PBR Materials](https://freepbr.com/) textures.
 [Default materials](Assets/Resources/materials/Resources) are included as Resources. You can use default materials as follows: 
 
 ```cs
