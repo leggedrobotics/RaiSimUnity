@@ -9,6 +9,7 @@ using UnityEngine.Profiling;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
 using Button = UnityEngine.UI.Button;
+using Slider = UnityEngine.UI.Slider;
 using Toggle = UnityEngine.UI.Toggle;
 
 namespace raisimUnity
@@ -43,6 +44,12 @@ namespace raisimUnity
         private const string _ToggleCollisionBodiesName = "_ToggleCollisionBodies";
         private const string _ToggleContactPointsName = "_ToggleContactPoints";
         private const string _ToggleContactForcesName = "_ToggleContactForces";
+        private const string _ToggleBodyFramesName = "_ToggleBodyFrames";
+        
+        // Sliders
+        private const string _SliderBodyFramesName = "_SliderBodyFrames";
+        private const string _SliderContactPointsName = "_SliderContactPoints";
+        private const string _SliderContactForcesName = "_SliderContactForces";
         
         // Modal view
         private const string _ErrorModalViewName = "_CanvasModalViewError";
@@ -91,17 +98,30 @@ namespace raisimUnity
                     _remote.ShowCollisionBody = isSelected;
                     _remote.ShowOrHideObjects();
                 });
+                
+                
+                var sliderContactPoints = GameObject.Find(_SliderContactPointsName).GetComponent<Slider>();
+                sliderContactPoints.onValueChanged.AddListener((value) => { _remote.ContactPointMarkerScale = value; });
                 var toggleContactPoints = GameObject.Find(_ToggleContactPointsName).GetComponent<Toggle>();
                 toggleContactPoints.onValueChanged.AddListener((isSelected) =>
                 {
                     _remote.ShowContactPoints = isSelected;
                     _remote.ShowOrHideObjects();
+
+                    if (isSelected) sliderContactPoints.interactable = true;
+                    else sliderContactPoints.interactable = false;
                 });
+
+                var sliderContactForces = GameObject.Find(_SliderContactForcesName).GetComponent<Slider>();
+                sliderContactForces.onValueChanged.AddListener((value) => { _remote.ContactForceMarkerScale = value; });
                 var toggleContactForces = GameObject.Find(_ToggleContactForcesName).GetComponent<Toggle>();
                 toggleContactForces.onValueChanged.AddListener((isSelected) =>
                 {
                     _remote.ShowContactForces = isSelected;
                     _remote.ShowOrHideObjects();
+                    
+                    if (isSelected) sliderContactForces.interactable = true;
+                    else sliderContactForces.interactable = false;
                 });
             }
             
@@ -282,7 +302,7 @@ namespace raisimUnity
         // GUI
         void OnGUI()
         {
-            // set style once
+            // Set style once
             if( _style==null )
             {
                 _style = GUI.skin.textField;
@@ -297,7 +317,7 @@ namespace raisimUnity
                     _style.fontSize = Mathf.RoundToInt(14 + (Screen.dpi-100.0f)*0.1f);
             }
         
-            // show connected status
+            // Show connected status
             var connectButton = GameObject.Find(_ButtonConnectName).GetComponent<Button>();
 
             if (_remote.TcpConnected)
@@ -311,7 +331,7 @@ namespace raisimUnity
                 connectButton.GetComponentInChildren<Text>().text = "Connect";
             }
             
-            // show recording status
+            // Show recording status
             var recordButton = GameObject.Find(_ButtonRecordName);
             
             if (_camera.IsRecording)
@@ -335,8 +355,8 @@ namespace raisimUnity
                     recordButton.GetComponent<Button>().interactable = true;
                 }
             }
-            
-            // escape
+
+            // Escape
             if(Input.GetKey("escape"))
                 Application.Quit();
         }

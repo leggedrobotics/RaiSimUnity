@@ -98,41 +98,45 @@ namespace raisimUnity
         
         // Status
         private ClientStatus _clientStatus;
+
+        // Visualization
         private bool _showVisualBody = true;
         private bool _showCollisionBody = false;
         private bool _showContactPoints = false;
         private bool _showContactForces = false;
+        private float _contactPointMarkerScale = 1;
+        private float _contactForceMarkerScale = 1;
         
-        // root objects
+        // Root objects
         private GameObject _objectsRoot;
         private GameObject _visualsRoot;
         private GameObject _contactPointsRoot;
         private GameObject _contactForcesRoot;
         private GameObject _objectCache;
         
-        // object controller 
+        // Object controller 
         private ObjectController _objectController;
         private ulong _numInitializedObjects;
         private ulong _numWorldObjects; 
         private ulong _numInitializedVisuals;
         private ulong _numWorldVisuals;
         
-        // shaders
+        // Shaders
         private Shader _transparentShader;
         private Shader _standardShader;
         
-        // default materials
+        // Default materials
         private Material _planeMaterial;
         private Material _terrainMaterial;
         private Material _defaultMaterialR;
         private Material _defaultMaterialG;
         private Material _defaultMaterialB;
 
-        // modal view
+        // Modal view
         private ErrorViewController _errorModalView;
         private LoadingViewController _loadingModalView;
         
-        // configuration number (should be always matched with server)
+        // Configuration number (should be always matched with server)
         private ulong _configurationNumber = 0; 
         
         void Awake()
@@ -1077,12 +1081,12 @@ namespace raisimUnity
             {
                 if(_showContactPoints)
                     _objectController.CreateContactMarker(
-                        _contactPointsRoot, (int)i, contactList[(int)i].Item1);
+                        _contactPointsRoot, (int)i, contactList[(int)i].Item1, _contactPointMarkerScale);
 
                 if (_showContactForces)
                 {
                     _objectController.CreateContactForceMarker(
-                        _contactForcesRoot, (int) i, contactList[(int)i].Item1, contactList[(int)i].Item2 / forceMaxNorm);
+                        _contactForcesRoot, (int) i, contactList[(int)i].Item1, contactList[(int)i].Item2 / forceMaxNorm, _contactForceMarkerScale);
                 }
             }
         }
@@ -1212,6 +1216,18 @@ namespace raisimUnity
         {
             get => _showContactForces;
             set => _showContactForces = value;
+        }
+
+        public float ContactPointMarkerScale
+        {
+            get => _contactPointMarkerScale;
+            set => _contactPointMarkerScale = value;
+        }
+
+        public float ContactForceMarkerScale
+        {
+            get => _contactForceMarkerScale;
+            set => _contactForceMarkerScale = value;
         }
 
         public string TcpAddress

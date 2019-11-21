@@ -321,11 +321,13 @@ namespace raisimUnity
             return mesh;
         }
 
-        public GameObject CreateContactMarker(GameObject root, int index, Vector3 rsPos)
+        public GameObject CreateContactMarker(GameObject root, int index, Vector3 rsPos, float markerScale = 1)
         {
+            markerScale = Math.Max(Math.Min(10.0f, markerScale), 0.1f);
+            
             var marker = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             marker.transform.SetParent(root.transform, true);
-            marker.transform.localScale = new Vector3(0.06f, 0.06f, 0.06f);
+            marker.transform.localScale = new Vector3(0.06f * markerScale, 0.06f * markerScale, 0.06f * markerScale);
             marker.GetComponent<Collider>().enabled = false;
 
             marker.tag = "contact";
@@ -336,8 +338,10 @@ namespace raisimUnity
             return marker;
         }
         
-        public GameObject CreateContactForceMarker(GameObject root, int index, Vector3 rsPos, Vector3 force)
+        public GameObject CreateContactForceMarker(GameObject root, int index, Vector3 rsPos, Vector3 force, float markerScale = 1)
         {
+            markerScale = Math.Max(Math.Min(10.0f, markerScale), 0.1f);
+
             var meshRes = Resources.Load("others/arrow") as GameObject;
             var marker = GameObject.Instantiate(meshRes);
             marker.GetComponentInChildren<Renderer>().shadowCastingMode = ShadowCastingMode.Off;
@@ -352,7 +356,7 @@ namespace raisimUnity
             
             marker.transform.localPosition = new Vector3(-rsPos.x, rsPos.z, -rsPos.y);
             marker.transform.localRotation = q;
-            marker.transform.localScale = new Vector3(0.3f, 0.3f, 1.0f);
+            marker.transform.localScale = new Vector3(0.3f * markerScale, 0.3f * markerScale, 1.0f * markerScale);
             marker.GetComponentInChildren<Renderer>().material.SetColor("_Color", Color.blue);
             return marker;
         }
