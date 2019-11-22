@@ -6,6 +6,8 @@ This log file is following the guideline of [keep a changelog](https://keepachan
 
 ## [Unreleased]
 
+## [0.2.1] - 2019-11-22
+
 ### Added
 - Contact point markers (red sphere) and contact force arrows (blue arrow) are now scaled by UI sliders.
 
