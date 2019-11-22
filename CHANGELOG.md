@@ -6,6 +6,16 @@ This log file is following the guideline of [keep a changelog](https://keepachan
 
 ## [Unreleased]
 
+### Added
+- Contact point markers (red sphere) and contact force arrows (blue arrow) are now scaled by UI sliders.
+
+### Changed
+- Empty root objects are renamed to start with _ (underbar). 
+- Sidebar UI is aligned by Vertical Layout Group. It is easier to add more UI elements now. 
+
+### Fixed
+- Contact force visualization bug fixed. Contact frame was not considered. This works together with RaiSimServer bug fix 62192fbf67502cc563a338643340ff665a9b536f. 
+
 ## [0.2.0] - 2019-11-20
 
 ### Added 

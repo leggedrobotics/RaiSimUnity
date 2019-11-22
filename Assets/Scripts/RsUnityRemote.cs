@@ -1079,14 +1079,20 @@ namespace raisimUnity
             
             for (ulong i = 0; i < numContacts; i++)
             {
-                if(_showContactPoints)
-                    _objectController.CreateContactMarker(
-                        _contactPointsRoot, (int)i, contactList[(int)i].Item1, _contactPointMarkerScale);
+                var contact = contactList[(int) i];
 
-                if (_showContactForces)
+                if (contact.Item2.magnitude > 0)
                 {
-                    _objectController.CreateContactForceMarker(
-                        _contactForcesRoot, (int) i, contactList[(int)i].Item1, contactList[(int)i].Item2 / forceMaxNorm, _contactForceMarkerScale);
+                    if(_showContactPoints)
+                        _objectController.CreateContactMarker(
+                            _contactPointsRoot, (int)i, contact.Item1, _contactPointMarkerScale);
+
+                    if (_showContactForces)
+                    {
+                        _objectController.CreateContactForceMarker(
+                            _contactForcesRoot, (int) i, contact.Item1, contact.Item2 / forceMaxNorm,
+                            _contactForceMarkerScale);
+                    }
                 }
             }
         }

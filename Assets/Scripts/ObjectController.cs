@@ -23,12 +23,17 @@ namespace raisimUnity
     
     public class ObjectController
     {
+        // Cache
         private GameObject _objectCache;
         private Dictionary<string, Tuple<GameObject, MeshUpAxis>> _meshCache;
+
+        private GameObject _contactForceArrow;
         
         public ObjectController(GameObject cache)
         {
             _objectCache = cache;
+            _contactForceArrow = Resources.Load("others/arrow") as GameObject;
+
             _meshCache = new Dictionary<string, Tuple<GameObject, MeshUpAxis>>();
         }
 
@@ -239,7 +244,7 @@ namespace raisimUnity
             terrain.GetComponent<MeshFilter>().mesh = mesh;
             terrain.GetComponent<MeshRenderer>().material =  temp.GetComponent<MeshRenderer>().sharedMaterial;
 
-                // Do not allow to select terrain 
+            // Do not allow to select terrain 
 //            terrain.AddComponent<MeshCollider>();
 
             // destroy temp 
@@ -342,8 +347,7 @@ namespace raisimUnity
         {
             markerScale = Math.Max(Math.Min(10.0f, markerScale), 0.1f);
 
-            var meshRes = Resources.Load("others/arrow") as GameObject;
-            var marker = GameObject.Instantiate(meshRes);
+            var marker = GameObject.Instantiate(_contactForceArrow);
             marker.GetComponentInChildren<Renderer>().shadowCastingMode = ShadowCastingMode.Off;
             marker.transform.SetParent(root.transform, true);
             marker.tag = "contact";
@@ -356,7 +360,11 @@ namespace raisimUnity
             
             marker.transform.localPosition = new Vector3(-rsPos.x, rsPos.z, -rsPos.y);
             marker.transform.localRotation = q;
-            marker.transform.localScale = new Vector3(0.3f * markerScale, 0.3f * markerScale, 1.0f * markerScale);
+            marker.transform.localScale = new Vector3(
+                0.3f * markerScale * force.magnitude, 
+                0.3f * markerScale * force.magnitude, 
+                1.0f * markerScale * force.magnitude
+            );
             marker.GetComponentInChildren<Renderer>().material.SetColor("_Color", Color.blue);
             return marker;
         }

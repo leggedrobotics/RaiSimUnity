@@ -50,6 +50,8 @@ The followings are optional dependencies
 
 ### Development
 
+#### Getting started
+
 1. Clone this repository with git and [git-lfs](https://git-lfs.github.com/): we use git-lfs for large files such as materials, meshes, texture images etc.
     ```sh
     $ git clone https://github.com/eastskykang/RaiSimUnity.git
@@ -64,6 +66,10 @@ The followings are optional dependencies
     - Once you open the project, [UnityMeshImporter - com.donghok.meshimporter](https://github.com/eastskykang/UnityMeshImporter) is imported automatically.  
 4. Write or edit Unity project with Unity Editor and your code editor 
     - We strongly recommend to use JetBrain's Rider IDE and Unity Rider Editor package >= 1.1.2 for programming or debugging. See [Wiki doc](https://github.com/leggedrobotics/raisimUnity/wiki/Unity-with-Rider) for more details.
+
+#### Contribution guideline
+
+See wiki for a contribution guideline.
 
 ## Material supports
 
