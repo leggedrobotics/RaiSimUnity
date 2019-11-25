@@ -16,7 +16,7 @@ namespace raisimUnity
     enum ClientMessageType : int
     {    
         RequestObjectPosition = 0,
-        RequestInitialization,
+        RequestInitializeObjects,
         RequestResource,                 // request mesh, texture. etc files
         RequestChangeRealtimeFactor,
         RequestContactSolverDetails,

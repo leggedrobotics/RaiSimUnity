@@ -21,9 +21,12 @@ namespace raisimUnity
         InitializingObjects,
         InitializeVisualsStart,      // start
         InitializingVisuals,
-        UpdateScene,
+        UpdateObjectPosition,
         ReinitializeObjectsStart,    // start  
         ReinitializingObjects,
+        UpdateVisualPosition,
+        ReinitializeVisualsStart,    // start  
+        ReinitializingVisuals,
     }
     
     enum RsObejctType : int
@@ -139,7 +142,8 @@ namespace raisimUnity
         private LoadingViewController _loadingModalView;
         
         // Configuration number (should be always matched with server)
-        private ulong _configurationNumber = 0; 
+        private ulong _objectConfiguration = 0; 
+        private ulong _visualConfiguration = 0; 
         
         void Awake()
         {
@@ -229,7 +233,7 @@ namespace raisimUnity
                             ReadXmlString();
                             
                             // Start initialization
-                            _tcpHelper.WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestInitialization));
+                            _tcpHelper.WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestInitializeObjects));
                             if (_tcpHelper.ReadData() <= 0)
                                 throw new RsuInitSceneException("Cannot read data from TCP");
 
@@ -241,7 +245,7 @@ namespace raisimUnity
                             if (messageType != ServerMessageType.Initialization)
                                 throw new RsuInitSceneException("Server gives wrong message");
 
-                            _configurationNumber = _tcpHelper.GetData<ulong>();
+                            _objectConfiguration = _tcpHelper.GetData<ulong>();
                             _numWorldObjects = _tcpHelper.GetData<ulong>();
                             _numInitializedObjects = 0;
                             _clientStatus = ClientStatus.InitializingObjects;
@@ -256,7 +260,7 @@ namespace raisimUnity
                             {
                                 // Initialize objects from data
                                 // If the function call time is > 0.1 sec, rest of objects are initialized in next Update iteration
-                                PartiallyInitializeScene();
+                                PartiallyInitializeObjects();
                                 _loadingModalView.SetProgress((float) _numInitializedObjects / _numWorldObjects);
                             }
                             else if (_numInitializedObjects == _numWorldObjects)
@@ -295,6 +299,7 @@ namespace raisimUnity
                             if (messageType != ServerMessageType.VisualInitialization)
                                 throw new RsuInitVisualsException("Server gives wrong message");
 
+                            _visualConfiguration = _tcpHelper.GetData<ulong>();
                             _numWorldVisuals = _tcpHelper.GetData<ulong>();
                             _numInitializedVisuals = 0;
                             _clientStatus = ClientStatus.InitializingVisuals;
@@ -327,7 +332,7 @@ namespace raisimUnity
                                 // Show / hide objects
                                 ShowOrHideObjects();
                                 
-                                _clientStatus = ClientStatus.UpdateScene;
+                                _clientStatus = ClientStatus.UpdateObjectPosition;
                             }
                             else
                             {
@@ -336,18 +341,15 @@ namespace raisimUnity
                             break;
                         }
                         //**********************************************************************************************
-                        // Step 5
+                        // Step 5-1
                         //**********************************************************************************************
-                        case ClientStatus.UpdateScene:
+                        case ClientStatus.UpdateObjectPosition:
                         {
                             // update object position
                             UpdateObjectsPosition();
-
-                            // update visuals
-                            UpdateVisualsPosition();
-                        
-                            // update contacts
-                            UpdateContacts();
+                            
+                            // If configuration number for visuals doesn't match, _clientStatus is updated to ReinitializeObjectsStart  
+                            // Else clientStatus is updated to UpdateVisualPosition
                             break;
                         }
                         case ClientStatus.ReinitializeObjectsStart:
@@ -360,7 +362,7 @@ namespace raisimUnity
                             }
                             
                             // Start reinitializing
-                            _tcpHelper.WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestInitialization));
+                            _tcpHelper.WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestInitializeObjects));
                             if (_tcpHelper.ReadData() <= 0)
                                 throw new RsuInitSceneException("Cannot read data from TCP");
 
@@ -372,7 +374,7 @@ namespace raisimUnity
                             if (messageType != ServerMessageType.Initialization)
                                 throw new RsuInitSceneException("Server gives wrong message");
 
-                            _configurationNumber = _tcpHelper.GetData<ulong>();
+                            _objectConfiguration = _tcpHelper.GetData<ulong>();
                             _numWorldObjects = _tcpHelper.GetData<ulong>();
                             _numInitializedObjects = 0;
                             _clientStatus = ClientStatus.ReinitializingObjects;
@@ -384,12 +386,85 @@ namespace raisimUnity
                             {
                                 // Reinitialize objects from data
                                 // If the function call time is > 0.1 sec, rest of objects are initialized in next Update iteration
-                                PartiallyInitializeScene();
+                                PartiallyInitializeObjects();
                             }
                             else if (_numInitializedObjects == _numWorldObjects)
                             {
                                 // Reinitialization done 
-                                _clientStatus = ClientStatus.UpdateScene;
+                                _clientStatus = ClientStatus.UpdateObjectPosition;
+                                
+                                // Disable other cameras than main camera
+                                foreach (var cam in Camera.allCameras)
+                                {
+                                    if (cam == Camera.main) continue;
+                                    cam.enabled = false;
+                                }
+
+                                // Show / hide objects
+                                ShowOrHideObjects();
+                            }
+                            else
+                            {
+                                // TODO error
+                            }
+
+                            break;
+                        }
+                        //**********************************************************************************************
+                        // Step 5-2
+                        //**********************************************************************************************
+                        case ClientStatus.UpdateVisualPosition:
+                        {
+                            // Update visuals
+                            UpdateVisualsPosition();
+                        
+                            // Update contacts
+                            UpdateContacts();
+                            
+                            // If configuration number for visuals doesn't match, _clientStatus is updated to ReinitializeVisualsStart  
+                            // Else clientStatus is updated to UpdateObjectPosition
+                            break;
+                        }
+                        case ClientStatus.ReinitializeVisualsStart:
+                        {
+                            // If server side has been changed, initialize visuals
+                            // Clear visuals first
+                            foreach (Transform objT in _visualsRoot.transform)
+                            {
+                                Destroy(objT.gameObject);
+                            }
+                            
+                            // Start reinitializing
+                            _tcpHelper.WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestInitializeVisuals));
+                            if (_tcpHelper.ReadData() <= 0)
+                                throw new RsuInitVisualsException("Cannot read data from TCP");
+
+                            ServerStatus state = _tcpHelper.GetData<ServerStatus>();
+                            if (state == ServerStatus.StatusTerminating)
+                                throw new RsuInitVisualsException("Server is terminating");
+
+                            ServerMessageType messageType = _tcpHelper.GetData<ServerMessageType>();
+                            if (messageType != ServerMessageType.Initialization)
+                                throw new RsuInitVisualsException("Server gives wrong message");
+
+                            _visualConfiguration = _tcpHelper.GetData<ulong>();
+                            _numWorldVisuals = _tcpHelper.GetData<ulong>();
+                            _numInitializedVisuals = 0;
+                            _clientStatus = ClientStatus.ReinitializingVisuals;
+                            break;
+                        }
+                        case ClientStatus.ReinitializingVisuals:
+                        {
+                            if (_numInitializedVisuals < _numWorldVisuals)
+                            {
+                                // Reinitialize objects from data
+                                // If the function call time is > 0.1 sec, rest of objects are initialized in next Update iteration
+                                PartiallyInitializeVisuals();
+                            }
+                            else if (_numInitializedVisuals == _numWorldVisuals)
+                            {
+                                // Reinitialization done 
+                                _clientStatus = ClientStatus.UpdateVisualPosition;
                                 
                                 // Disable other cameras than main camera
                                 foreach (var cam in Camera.allCameras)
@@ -474,7 +549,7 @@ namespace raisimUnity
             }
         }
 
-        private void PartiallyInitializeScene()
+        private void PartiallyInitializeObjects()
         {
             while (_numInitializedObjects < _numWorldObjects)
             {
@@ -932,7 +1007,7 @@ namespace raisimUnity
                 throw new RsuUpdateObjectsPositionException("Server gives wrong message");
             
             ulong configurationNumber = _tcpHelper.GetData<ulong>();
-            if (configurationNumber != _configurationNumber)
+            if (configurationNumber != _objectConfiguration)
             {
                 // this means the object was added or deleted from server size
                 _clientStatus = ClientStatus.ReinitializeObjectsStart;
@@ -974,6 +1049,10 @@ namespace raisimUnity
                     }
                 }
             }
+            
+            // Update object position done.
+            // Go to visual object position update
+            _clientStatus = ClientStatus.UpdateVisualPosition;
         }
 
         private void UpdateVisualsPosition()
@@ -994,6 +1073,14 @@ namespace raisimUnity
             if (messageType != ServerMessageType.VisualPositionUpdate)
             {
                 throw new RsuUpdateVisualsPositionException("Server gives wrong message");
+            }
+            
+            ulong configurationNumber = _tcpHelper.GetData<ulong>();
+            if (configurationNumber != _visualConfiguration)
+            {
+                // this means the object was added or deleted from server size
+                _clientStatus = ClientStatus.ReinitializeVisualsStart;
+                return;
             }
             
             ulong numObjects = _tcpHelper.GetData<ulong>();
@@ -1026,6 +1113,10 @@ namespace raisimUnity
                     throw new RsuUpdateVisualsPositionException("Cannot find unity game object: " + visualName);
                 }
             }
+            
+            // Update object position done.
+            // Go to visual object position update
+            _clientStatus = ClientStatus.UpdateObjectPosition;
         }
 
         private void UpdateContacts()
@@ -1044,8 +1135,6 @@ namespace raisimUnity
                 throw new RsuUpdateContactsException("Server gives wrong message");
             }
             
-            ulong configurationNumber = _tcpHelper.GetData<ulong>();
-
             ulong numContacts = _tcpHelper.GetData<ulong>();
 
             // clear contacts 
