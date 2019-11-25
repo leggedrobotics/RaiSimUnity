@@ -123,6 +123,18 @@ namespace raisimUnity
                     if (isSelected) sliderContactForces.interactable = true;
                     else sliderContactForces.interactable = false;
                 });
+                
+                var sliderBodyFrames = GameObject.Find(_SliderBodyFramesName).GetComponent<Slider>();
+                sliderBodyFrames.onValueChanged.AddListener((value) => { _remote.BodyFrameMarkerScale = value; });
+                var toggleBodyFrames = GameObject.Find(_ToggleBodyFramesName).GetComponent<Toggle>();
+                toggleBodyFrames.onValueChanged.AddListener((isSelected) =>
+                {
+                    _remote.ShowBodyFrames = isSelected;
+                    _remote.ShowOrHideObjects();
+                    
+                    if (isSelected) sliderBodyFrames.interactable = true;
+                    else sliderBodyFrames.interactable = false;
+                });
             }
             
             // connection section

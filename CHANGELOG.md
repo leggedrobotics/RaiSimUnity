@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file.
 This log file is following the guideline of [keep a changelog](https://keepachangelog.com).
 
 ## [Unreleased]
+### Added
+- Added body frame markers (r/g/b arrow). Frame markers are scaled by UI sliders.
 
 ## [0.2.1] - 2019-11-22
 

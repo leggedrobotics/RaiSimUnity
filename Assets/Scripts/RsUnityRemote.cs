@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Sockets;
 using System.Xml;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -64,6 +63,7 @@ namespace raisimUnity
     {
         public const string Visual = "visual";
         public const string Collision = "collision";
+        public const string Frame = "frame";
     }
 
     public class RsUnityRemote : MonoBehaviour
@@ -104,8 +104,10 @@ namespace raisimUnity
         private bool _showCollisionBody = false;
         private bool _showContactPoints = false;
         private bool _showContactForces = false;
+        private bool _showBodyFrames = false;
         private float _contactPointMarkerScale = 1;
         private float _contactForceMarkerScale = 1;
+        private float _bodyFrameMarkerScale = 1;
         
         // Root objects
         private GameObject _objectsRoot;
@@ -500,9 +502,7 @@ namespace raisimUnity
                             ulong group = _tcpHelper.GetData<ulong>();
 
                             string subName = Path.Combine(objectIndex.ToString(), visItem.ToString(), j.ToString());
-                            
-                            var objFrame = new GameObject(subName);
-                            objFrame.transform.SetParent(_objectsRoot.transform, false);
+                            var objFrame = _objectController.CreateRootObject(_objectsRoot, subName);
 
                             string tag = "";
                             if (visItem == 0)
@@ -601,8 +601,7 @@ namespace raisimUnity
                     }
                     
                     float height = _tcpHelper.GetData<float>();
-                    var objFrame = new GameObject(objectIndex.ToString());
-                    objFrame.transform.SetParent(_objectsRoot.transform, false);
+                    var objFrame = _objectController.CreateRootObject(_objectsRoot, objectIndex.ToString());
                     var plane = _objectController.CreateHalfSpace(objFrame, height);
                     plane.tag = VisualTag.Collision;
 
@@ -651,8 +650,7 @@ namespace raisimUnity
                         }
                     }
 
-                    var objFrame = new GameObject(objectIndex.ToString());
-                    objFrame.transform.SetParent(_objectsRoot.transform, false);
+                    var objFrame = _objectController.CreateRootObject(_objectsRoot, objectIndex.ToString());
                     var terrain = _objectController.CreateTerrain(objFrame, numSampleX, sizeX, centerX, numSampleY, sizeY, centerY, heights, false);
                     terrain.tag = VisualTag.Collision;
                     
@@ -670,8 +668,7 @@ namespace raisimUnity
                     // single body object
                     
                     // create base frame of object
-                    var objFrame = new GameObject(objectIndex.ToString());
-                    objFrame.transform.SetParent(_objectsRoot.transform, false);
+                    var objFrame = _objectController.CreateRootObject(_objectsRoot, objectIndex.ToString());
                     
                     // get material
                     Material material;
@@ -844,8 +841,7 @@ namespace raisimUnity
                 bool glow = _tcpHelper.GetData<bool>();
                 bool shadow = _tcpHelper.GetData<bool>();
 
-                var visFrame = new GameObject(objectName);
-                visFrame.transform.SetParent(_visualsRoot.transform, false);
+                var visFrame = _objectController.CreateRootObject(_visualsRoot, objectName);
                 
                 GameObject visual = null;
                     
@@ -1137,7 +1133,7 @@ namespace raisimUnity
 
         public void ShowOrHideObjects()
         {
-            // visual body
+            // Visual body
             foreach (var obj in GameObject.FindGameObjectsWithTag(VisualTag.Visual))
             {
                 foreach (var collider in obj.GetComponentsInChildren<Collider>())
@@ -1146,7 +1142,7 @@ namespace raisimUnity
                 {
                     renderer.enabled = _showVisualBody;
                     Color temp = renderer.material.color;
-                    if (_showContactForces || _showContactPoints)
+                    if (_showContactForces || _showContactPoints || _showBodyFrames)
                     {
                         renderer.material.shader = _transparentShader;
                         renderer.material.color = new Color(temp.r, temp.g, temp.b, 0.8f);
@@ -1159,7 +1155,7 @@ namespace raisimUnity
                 }
             }
 
-            // collision body
+            // Collision body
             foreach (var obj in GameObject.FindGameObjectsWithTag(VisualTag.Collision))
             {
                 foreach (var col in obj.GetComponentsInChildren<Collider>())
@@ -1168,7 +1164,7 @@ namespace raisimUnity
                 {
                     ren.enabled = _showCollisionBody;
                     Color temp = ren.material.color;
-                    if (_showContactForces || _showContactPoints)
+                    if (_showContactForces || _showContactPoints || _showBodyFrames)
                     {
                         Material mat = ren.material;
                         mat.shader = _transparentShader;
@@ -1183,16 +1179,25 @@ namespace raisimUnity
                 }
             }
 
-            // contact points
+            // Contact points
             foreach (Transform contact in _contactPointsRoot.transform)
             {
                 contact.gameObject.GetComponent<Renderer>().enabled = _showContactPoints;
             }
             
-            // contact forces
+            // Contact forces
             foreach (Transform contact in _contactForcesRoot.transform)
             {
                 contact.gameObject.GetComponentInChildren<Renderer>().enabled = _showContactForces;
+            }
+            
+            // Body frames
+            foreach (var obj in GameObject.FindGameObjectsWithTag(VisualTag.Frame))
+            {
+                foreach (var renderer in obj.GetComponentsInChildren<Renderer>())
+                {
+                    renderer.enabled = _showBodyFrames;
+                }
             }
         }
 
@@ -1224,6 +1229,12 @@ namespace raisimUnity
             set => _showContactForces = value;
         }
 
+        public bool ShowBodyFrames
+        {
+            get => _showBodyFrames;
+            set => _showBodyFrames = value;
+        }
+
         public float ContactPointMarkerScale
         {
             get => _contactPointMarkerScale;
@@ -1234,6 +1245,19 @@ namespace raisimUnity
         {
             get => _contactForceMarkerScale;
             set => _contactForceMarkerScale = value;
+        }
+
+        public float BodyFrameMarkerScale
+        {
+            get => _bodyFrameMarkerScale;
+            set
+            {
+                _bodyFrameMarkerScale = value;
+                foreach (var obj in GameObject.FindGameObjectsWithTag(VisualTag.Frame))
+                {
+                    obj.transform.localScale = new Vector3(0.03f * value, 0.03f * value, 0.1f * value);
+                }
+            }
         }
 
         public string TcpAddress

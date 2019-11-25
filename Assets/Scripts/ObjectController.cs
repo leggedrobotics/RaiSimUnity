@@ -27,12 +27,12 @@ namespace raisimUnity
         private GameObject _objectCache;
         private Dictionary<string, Tuple<GameObject, MeshUpAxis>> _meshCache;
 
-        private GameObject _contactForceArrow;
+        private GameObject _arrowMesh;
         
         public ObjectController(GameObject cache)
         {
             _objectCache = cache;
-            _contactForceArrow = Resources.Load("others/arrow") as GameObject;
+            _arrowMesh = Resources.Load("others/arrow") as GameObject;
 
             _meshCache = new Dictionary<string, Tuple<GameObject, MeshUpAxis>>();
         }
@@ -44,6 +44,45 @@ namespace raisimUnity
             {
                 GameObject.Destroy(objT.gameObject);
             }
+        }
+
+        public GameObject CreateRootObject(GameObject root, string name)
+        {
+            var rootObj = new GameObject(name);
+            rootObj.transform.SetParent(root.transform, false);
+            
+            // Frame
+            var bodyFrame = new GameObject("frame");
+            bodyFrame.transform.SetParent(rootObj.transform, false);
+            
+            var xAxisMarker = GameObject.Instantiate(_arrowMesh);
+            xAxisMarker.GetComponentInChildren<Renderer>().shadowCastingMode = ShadowCastingMode.Off;
+            xAxisMarker.transform.SetParent(bodyFrame.transform, false);
+            xAxisMarker.tag = "frame";
+            xAxisMarker.name = "frameX";
+            xAxisMarker.transform.localRotation = Quaternion.LookRotation(new Vector3(-1, 0, 0));
+            xAxisMarker.transform.localScale = new Vector3(0.03f, 0.03f, 0.1f);
+            xAxisMarker.GetComponentInChildren<Renderer>().material.SetColor("_Color", Color.red);
+            
+            var yAxisMarker = GameObject.Instantiate(_arrowMesh);
+            yAxisMarker.GetComponentInChildren<Renderer>().shadowCastingMode = ShadowCastingMode.Off;
+            yAxisMarker.transform.SetParent(bodyFrame.transform, false);
+            yAxisMarker.tag = "frame";
+            yAxisMarker.name = "frameY";
+            yAxisMarker.transform.localRotation = Quaternion.LookRotation(new Vector3(0, 1, 0));
+            yAxisMarker.transform.localScale = new Vector3(0.03f, 0.03f, 0.1f);
+            yAxisMarker.GetComponentInChildren<Renderer>().material.SetColor("_Color", Color.green);
+            
+            var zAxisMarker = GameObject.Instantiate(_arrowMesh);
+            zAxisMarker.GetComponentInChildren<Renderer>().shadowCastingMode = ShadowCastingMode.Off;
+            zAxisMarker.transform.SetParent(bodyFrame.transform, false);
+            zAxisMarker.tag = "frame";
+            zAxisMarker.name = "frameZ";
+            zAxisMarker.transform.localRotation = Quaternion.LookRotation(new Vector3(0, 0, -1));
+            zAxisMarker.transform.localScale = new Vector3(0.03f, 0.03f, 0.1f);
+            zAxisMarker.GetComponentInChildren<Renderer>().material.SetColor("_Color", Color.blue);
+            
+            return rootObj;
         }
 
         public GameObject CreateSphere(GameObject root, float radius)
@@ -347,7 +386,7 @@ namespace raisimUnity
         {
             markerScale = Math.Max(Math.Min(10.0f, markerScale), 0.1f);
 
-            var marker = GameObject.Instantiate(_contactForceArrow);
+            var marker = GameObject.Instantiate(_arrowMesh);
             marker.GetComponentInChildren<Renderer>().shadowCastingMode = ShadowCastingMode.Off;
             marker.transform.SetParent(root.transform, true);
             marker.tag = "contact";
