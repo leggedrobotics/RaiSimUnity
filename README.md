@@ -50,6 +50,8 @@ The followings are optional dependencies
 
 ### Development
 
+The following sections introduces how to develop RaiSimUnity on Linux (Ubuntu 18.04 LTS). For more details, see [Installation wiki](https://github.com/leggedrobotics/RaiSimUnity/wiki/installation) and [Developing wiki](https://github.com/leggedrobotics/RaiSimUnity/wiki/developing).
+
 #### Getting started
 
 1. Clone this repository with git and [git-lfs](https://git-lfs.github.com/): we use git-lfs for large files such as materials, meshes, texture images etc.
@@ -65,7 +67,7 @@ The followings are optional dependencies
     - You can get Unity Editor for Linux from [Unity Hub for Linux](https://forum.unity.com/threads/unity-hub-v2-0-0-release.677485/?_ga=2.133515342.19804957.1574080929-125858921.1570536365)
     - Once you open the project, [UnityMeshImporter - com.donghok.meshimporter](https://github.com/eastskykang/UnityMeshImporter) is imported automatically.  
 4. Write or edit Unity project with Unity Editor and your code editor 
-    - We strongly recommend to use JetBrain's Rider IDE and Unity Rider Editor package >= 1.1.2 for programming or debugging. See [Wiki doc](https://github.com/leggedrobotics/raisimUnity/wiki/Unity-with-Rider) for more details.
+    - We strongly recommend to use JetBrain's Rider IDE and Unity Rider Editor package >= 1.1.2 for programming or debugging. See [this](https://github.com/leggedrobotics/RaiSimUnity/wiki/developing#rider-ide-optional) for more details.
 
 #### Contribution guideline
 
@@ -81,4 +83,4 @@ Material material = Resources.Load<Material>(yourMaterialName);
 yourGameObject.GetComponentInChildren<Renderer>().material = material;
 ```
 
-If you want to create your own material, see [Wiki doc](https://github.com/leggedrobotics/raisimUnity/wiki/Creating-a-material-from-texture-files).
+If you want to create your own material, see [Wiki doc](https://github.com/leggedrobotics/RaiSimUnity/wiki/creating-unity-materials).
