@@ -8,6 +8,12 @@ This log file is following the guideline of [keep a changelog](https://keepachan
 ### Added
 - Added body frame markers (r/g/b arrow). Frame markers are scaled by UI sliders.
 
+### Changed
+- Configuration number for visuals. If configuration number does not match, reinitialize visuals. This only works with RaiSim commit >= 0455fb54e54c3d3fa471ef40e67b97a228b31d35 
+
+### Fixed 
+- We do not need configuration number for contact update. Line for getting configuration number is removed. This only works with RaiSim commit >= 0455fb54e54c3d3fa471ef40e67b97a228b31d35
+
 ## [0.2.1] - 2019-11-22
 
 ### Added
