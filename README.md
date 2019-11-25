@@ -8,7 +8,7 @@ The project was tested on Ubuntu 18.04 LST.
 
 ## How to 
 
-### Using raisimUnity
+### Using RaiSimUnity
 For beginners, we recommand downloading compiled app image from the [release tab](https://github.com/leggedrobotics/RaiSimUnity/releases). Then you don't have to compile the app yourself.
 
 ### Dependencies
