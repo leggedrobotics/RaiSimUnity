@@ -199,13 +199,13 @@ namespace raisimUnity
 
         void Update()
         {
-            // broken connection: clear
+            // Broken connection: clear
             if( !_tcpHelper.CheckConnection() )
             {
                 CloseConnection();
             }
 
-            // data available: handle communication
+            // Data available: handle communication
             if (_tcpHelper.DataAvailable)
             {
                 try
@@ -217,6 +217,15 @@ namespace raisimUnity
                         //**********************************************************************************************
                         case ClientStatus.Idle:
                         {
+                            // Server hibernating
+                            ClearScene();
+
+                            ServerStatus state = _tcpHelper.GetData<ServerStatus>();
+                            if (state == ServerStatus.StatusRendering)
+                            {
+                                // Go to InitializeObjectsStart
+                                _clientStatus = ClientStatus.InitializeObjectsStart;
+                            }
                             break;
                         }
                         //**********************************************************************************************
@@ -240,6 +249,11 @@ namespace raisimUnity
                             ServerStatus state = _tcpHelper.GetData<ServerStatus>();
                             if (state == ServerStatus.StatusTerminating)
                                 throw new RsuInitSceneException("Server is terminating");
+                            else if (state == ServerStatus.StatusHibernating)
+                            {
+                                _clientStatus = ClientStatus.Idle;
+                                return;
+                            }
 
                             ServerMessageType messageType = _tcpHelper.GetData<ServerMessageType>();
                             if (messageType != ServerMessageType.Initialization)
@@ -294,6 +308,11 @@ namespace raisimUnity
                             ServerStatus state = _tcpHelper.GetData<ServerStatus>();
                             if (state == ServerStatus.StatusTerminating)
                                 throw new RsuInitVisualsException("Server is terminating");
+                            else if (state == ServerStatus.StatusHibernating)
+                            {
+                                _clientStatus = ClientStatus.Idle;
+                                return;
+                            }
 
                             ServerMessageType messageType = _tcpHelper.GetData<ServerMessageType>();
                             if (messageType != ServerMessageType.VisualInitialization)
@@ -369,6 +388,11 @@ namespace raisimUnity
                             ServerStatus state = _tcpHelper.GetData<ServerStatus>();
                             if (state == ServerStatus.StatusTerminating)
                                 throw new RsuInitSceneException("Server is terminating");
+                            else if (state == ServerStatus.StatusHibernating)
+                            {
+                                _clientStatus = ClientStatus.Idle;
+                                return;
+                            }
 
                             ServerMessageType messageType = _tcpHelper.GetData<ServerMessageType>();
                             if (messageType != ServerMessageType.Initialization)
@@ -442,6 +466,11 @@ namespace raisimUnity
                             ServerStatus state = _tcpHelper.GetData<ServerStatus>();
                             if (state == ServerStatus.StatusTerminating)
                                 throw new RsuInitVisualsException("Server is terminating");
+                            else if (state == ServerStatus.StatusHibernating)
+                            {
+                                _clientStatus = ClientStatus.Idle;
+                                return;
+                            }
 
                             ServerMessageType messageType = _tcpHelper.GetData<ServerMessageType>();
                             if (messageType != ServerMessageType.Initialization)
@@ -1001,6 +1030,11 @@ namespace raisimUnity
             ServerStatus state = _tcpHelper.GetData<ServerStatus>();
             if (state == ServerStatus.StatusTerminating)
                 throw new RsuUpdateObjectsPositionException("Server is terminating");
+            else if (state == ServerStatus.StatusHibernating)
+            {
+                _clientStatus = ClientStatus.Idle;
+                return;
+            }
 
             ServerMessageType messageType = _tcpHelper.GetData<ServerMessageType>();
             if (messageType != ServerMessageType.ObjectPositionUpdate)
@@ -1064,6 +1098,11 @@ namespace raisimUnity
             ServerStatus state = _tcpHelper.GetData<ServerStatus>();
             if (state == ServerStatus.StatusTerminating)
                 throw new RsuUpdateVisualsPositionException("Server is terminating");
+            else if (state == ServerStatus.StatusHibernating)
+            {
+                _clientStatus = ClientStatus.Idle;
+                return;
+            }
 
             ServerMessageType messageType = _tcpHelper.GetData<ServerMessageType>();
             if (messageType == ServerMessageType.NoMessage)
@@ -1128,6 +1167,11 @@ namespace raisimUnity
             ServerStatus state = _tcpHelper.GetData<ServerStatus>();
             if (state == ServerStatus.StatusTerminating)
                 throw new RsuUpdateContactsException("Server is terminating");
+            else if (state == ServerStatus.StatusHibernating)
+            {
+                _clientStatus = ClientStatus.Idle;
+                return;
+            }
 
             ServerMessageType messageType = _tcpHelper.GetData<ServerMessageType>();
             if (messageType != ServerMessageType.ContactInfoUpdate)
@@ -1192,6 +1236,11 @@ namespace raisimUnity
             
             if (state == ServerStatus.StatusTerminating)
                 throw new RsuReadXMLException("Server is terminating");
+            else if (state == ServerStatus.StatusHibernating)
+            {
+                _clientStatus = ClientStatus.Idle;
+                return;
+            }
 
             ServerMessageType messageType = _tcpHelper.GetData<ServerMessageType>();
             if (messageType == ServerMessageType.NoMessage) return; // No XML

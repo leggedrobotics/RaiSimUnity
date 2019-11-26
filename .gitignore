@@ -12,9 +12,6 @@ Assets/Plugins/Editor/JetBrains*
 # Visual Studio cache directory
 .vs/
 
-# cmake
-cmake-*/
-
 # The following gitignore lines are from Unity gitignore template by github 
 #
 # Get latest from https://github.com/github/gitignore/blob/master/Unity.gitignore
@@ -64,6 +61,6 @@ sysinfo.txt
 # Crashlytics generated file
 crashlytics-build.properties
 
-# log and screenshots
+# Log and screenshots
 *.mp4
 Screenshot/

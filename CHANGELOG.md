@@ -7,6 +7,7 @@ This log file is following the guideline of [keep a changelog](https://keepachan
 ## [Unreleased]
 ### Added
 - Added body frame markers (r/g/b arrow). Frame markers are scaled by UI sliders.
+- Server hibernating mode added. If the server is hibernating, wait until server awake.
 
 ### Changed
 - Configuration number for visuals. If configuration number does not match, reinitialize visuals. This only works with RaiSim commit >= 0455fb54e54c3d3fa471ef40e67b97a228b31d35 
