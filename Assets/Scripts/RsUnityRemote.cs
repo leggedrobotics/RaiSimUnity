@@ -516,11 +516,11 @@ namespace raisimUnity
                 }
                 catch (Exception e)
                 {
-                    // modal view
+                    // Modal view
                     _errorModalView.Show(true);
                     _errorModalView.SetMessage(e.Message);
 
-                    // close connection
+                    // Close connection
                     _tcpHelper.CloseConnection();
                 }
             }
@@ -528,7 +528,7 @@ namespace raisimUnity
 
         private void ClearScene()
         {
-            // objects
+            // Objects
             foreach (Transform objT in _objectsRoot.transform)
             {
                 Destroy(objT.gameObject);

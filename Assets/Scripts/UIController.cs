@@ -182,14 +182,7 @@ namespace raisimUnity
                 var screenshotButton = GameObject.Find(_ButtonScreenshotName).GetComponent<Button>();
                 screenshotButton.onClick.AddListener(() =>
                 {
-                    string dirName = Path.Combine(Application.dataPath, "../Screenshot");
-                    
-                    if (!File.Exists(dirName))
-                        Directory.CreateDirectory(dirName);
-                    var filename = Path.Combine(
-                        dirName,
-                        "Screenshot " + DateTime.Now.ToString("yyyy-MM-d hh-mm-ss") + ".png");
-                    ScreenCapture.CaptureScreenshot(filename);
+                    _camera.TakeScreenShot();
                 });
                 
                 var recordButton = GameObject.Find(_ButtonRecordName).GetComponent<Button>();

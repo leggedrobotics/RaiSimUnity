@@ -7,7 +7,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
+using raisimUnity;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -39,7 +41,6 @@ public class CameraController : MonoBehaviour
     public bool videoAvailable = false;
 
     // The Encoder Thread
-    private int _saverExitCode = 0;
     private Thread _saverThread;
 
     // Texture Readback Objects
@@ -53,14 +54,18 @@ public class CameraController : MonoBehaviour
 
     // Encoder Thread Shared Resources
     private Queue<byte[]> _frameQueue;
-    private int screenWidth;
-    private int screenHeight;
+    private int _screenWidth;
+    private int _screenHeight;
     private bool terminateThreadWhenDone;
     private bool threadIsProcessing;
     
-    // Video name
-    private string _outputName = "out";
-    private int _outputIdx = 1;
+    // Screenshot related
+    private string _dirPath = "";
+    private string _videoName = "Recording.mp4";    // updated to Recording-<TIME>.mp4
+    
+    // Error modal view
+    private const string _ErrorModalViewName = "_CanvasModalViewError";
+    private ErrorViewController _errorModalView;
     
     public bool ThreadIsProcessing
     {
@@ -71,10 +76,18 @@ public class CameraController : MonoBehaviour
     {
         cam = GetComponent<Camera>();
         
+        // Error modal view
+        _errorModalView = GameObject.Find("_CanvasModalViewError").GetComponent<ErrorViewController>();
+        
         // Check if FFMPEG available
         int ffmpegExitCode = FFMPEGTest();
         if (ffmpegExitCode == 0)
             videoAvailable = true;
+        
+        // Check if video directory is created
+        _dirPath = Path.Combine(Application.dataPath, "../Screenshot");
+        if (!File.Exists(_dirPath))
+            Directory.CreateDirectory(_dirPath);
     }
 
     void Start () 
@@ -83,11 +96,11 @@ public class CameraController : MonoBehaviour
         Application.targetFrameRate = frameRate;
 
         // Prepare textures and initial values
-        screenWidth = cam.pixelWidth;
-        screenHeight = cam.pixelHeight;
+        _screenWidth = cam.pixelWidth;
+        _screenHeight = cam.pixelHeight;
 		
-        _tempRenderTexture = new RenderTexture(screenWidth, screenHeight, 0);
-        _tempTexture2D = new Texture2D(screenWidth, screenHeight, TextureFormat.RGB24, false);
+        _tempRenderTexture = new RenderTexture(_screenWidth, _screenHeight, 0);
+        _tempTexture2D = new Texture2D(_screenWidth, _screenHeight, TextureFormat.RGB24, false);
         _frameQueue = new Queue<byte[]> ();
 
         frameNumber = 0;
@@ -209,21 +222,23 @@ public class CameraController : MonoBehaviour
     
     void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
-        // Check if render target size has changed, if so, terminate
-        if(source.width != screenWidth || source.height != screenHeight)
-        {
-            threadIsProcessing = false;
-            this.enabled = false;
-            throw new UnityException("ScreenRecorder render target size has changed!");
-        }
-
-        // Calculate number of video frames to produce from this game frame
-        // Generate 'padding' frames if desired framerate is higher than actual framerate
-        float thisFrameTime = Time.time;
-        int framesToCapture = ((int)(thisFrameTime / captureFrameTime)) - ((int)(lastFrameTime / captureFrameTime));
-
         if (_isRecording)
         {
+            // Check if render target size has changed, if so, terminate
+            if(source.width != _screenWidth || source.height != _screenHeight)
+            {
+                FinishRecording();
+                
+                // Show error modal view
+                _errorModalView.Show(true);
+                _errorModalView.SetMessage("You cannot change screen size during a recording. Terminated recording. (video is saved)");
+            }
+
+            // Calculate number of video frames to produce from this game frame
+            // Generate 'padding' frames if desired framerate is higher than actual framerate
+            float thisFrameTime = Time.time;
+            int framesToCapture = ((int)(thisFrameTime / captureFrameTime)) - ((int)(lastFrameTime / captureFrameTime));
+
             // Capture the frame
             if (framesToCapture > 0)
             {
@@ -275,6 +290,16 @@ public class CameraController : MonoBehaviour
         original.Apply();
     }
 
+    public void TakeScreenShot()
+    {
+        if (!File.Exists(_dirPath))
+            Directory.CreateDirectory(_dirPath);
+        var filename = Path.Combine(
+            _dirPath,
+            "Screenshot-" + DateTime.Now.ToString("yyyy-MM-dd-hh-mm-ss") + ".png");
+        ScreenCapture.CaptureScreenshot(filename);
+    }
+
     public void StartRecording()
     {
         // Kill thread if it's still alive
@@ -283,9 +308,17 @@ public class CameraController : MonoBehaviour
             _saverThread.Join();
         }
         
+        // Set recording screend width and height
+        _screenWidth = cam.pixelWidth;
+        _screenHeight = cam.pixelHeight;
+		
+        _tempRenderTexture = new RenderTexture(_screenWidth, _screenHeight, 0);
+        _tempTexture2D = new Texture2D(_screenWidth, _screenHeight, TextureFormat.RGB24, false);
+        
+        // Start recording
         if (threadIsProcessing)
         {
-            // TODO exception... something wrong...
+            // TODO error... something wrong...
             print("oops...");
         }
         else
@@ -294,6 +327,8 @@ public class CameraController : MonoBehaviour
             frameNumber = 0;
         
             // Start a new encoder thread
+            _videoName = "Recording-" + DateTime.Now.ToString("yyyy-MM-dd-hh-mm-ss") + ".mp4";
+            
             threadIsProcessing = true;
             _saverThread = new Thread(SaveVideo);
             _saverThread.Start();
@@ -369,7 +404,7 @@ public class CameraController : MonoBehaviour
         print ("SCREENRECORDER IO THREAD STARTED");
 
         // Generate file path
-        string path = _outputName + _outputIdx++.ToString() + ".mp4";
+        string path = Path.Combine(_dirPath, _videoName);
 
         using (var ffmpegProc = new Process())
         {
@@ -398,8 +433,8 @@ public class CameraController : MonoBehaviour
             ffmpegProc.StartInfo.RedirectStandardError = true;
             ffmpegProc.StartInfo.Arguments =
                 "-c \"" +
-                "ffmpeg -r " + frameRate.ToString() + " -f rawvideo -pix_fmt rgb24 -s " + screenWidth.ToString() + "x" +
-                screenHeight.ToString() +
+                "ffmpeg -r " + frameRate.ToString() + " -f rawvideo -pix_fmt rgb24 -s " + _screenWidth.ToString() + "x" +
+                _screenHeight.ToString() +
                 " -i - -threads 0 -preset fast -y " +
                 "-crf 21 " + path + "\"";
         
