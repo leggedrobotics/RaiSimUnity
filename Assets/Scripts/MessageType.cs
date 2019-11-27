@@ -26,6 +26,7 @@ namespace raisimUnity
         RequestConfigXML,
         RequestInitializeVisuals,
         RequestVisualPosition,
+        RequestServerStatus,
     }
 
     enum ServerStatus : int

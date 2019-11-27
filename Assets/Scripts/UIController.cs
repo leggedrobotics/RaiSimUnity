@@ -327,12 +327,19 @@ namespace raisimUnity
 
             if (_remote.TcpConnected)
             {
-                GUILayout.Label("Connected", _style);
+                if (_remote.IsServerHibernating)
+                {
+                    GUILayout.Label("Connected: server is hibernating", _style);
+                }
+                else
+                {
+                    GUILayout.Label("Connected: update", _style);
+                }
                 connectButton.GetComponentInChildren<Text>().text = "Disconnect";
             }
             else
             {
-                GUILayout.Label("Waiting", _style);
+                GUILayout.Label("Waiting for connection", _style);
                 connectButton.GetComponentInChildren<Text>().text = "Connect";
             }
             

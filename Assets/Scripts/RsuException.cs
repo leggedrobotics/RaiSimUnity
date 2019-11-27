@@ -7,13 +7,18 @@ namespace raisimUnity
         }
     }
     
+    public class RsuIdleException: Exception {
+        public RsuIdleException(string message): base("Cannot get server status: " + message) {
+        }
+    }
+    
     public class RsuReadXMLException: Exception {
         public RsuReadXMLException(string message): base("Cannot read XML: " + message) {
         }
     }
     
-    public class RsuInitSceneException: Exception {
-        public RsuInitSceneException(string message): base("Cannot initialize scene: " + message) {
+    public class RsuInitObjectsException: Exception {
+        public RsuInitObjectsException(string message): base("Cannot initialize objects: " + message) {
         }
     }
     

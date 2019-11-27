@@ -16,7 +16,7 @@ namespace raisimUnity
 {
     enum ClientStatus : int
     {
-        Idle = 0,
+        Idle = 0,    // waiting for connection or server is hibernating
         InitializeObjectsStart,      // start 
         InitializingObjects,
         InitializeVisualsStart,      // start
@@ -220,6 +220,10 @@ namespace raisimUnity
                             // Server hibernating
                             ClearScene();
 
+                            _tcpHelper.WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestServerStatus));
+                            if (_tcpHelper.ReadData() <= 0)
+                                throw new RsuIdleException("Cannot read data from TCP");
+                            
                             ServerStatus state = _tcpHelper.GetData<ServerStatus>();
                             if (state == ServerStatus.StatusRendering)
                             {
@@ -244,11 +248,11 @@ namespace raisimUnity
                             // Start initialization
                             _tcpHelper.WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestInitializeObjects));
                             if (_tcpHelper.ReadData() <= 0)
-                                throw new RsuInitSceneException("Cannot read data from TCP");
+                                throw new RsuInitObjectsException("Cannot read data from TCP");
 
                             ServerStatus state = _tcpHelper.GetData<ServerStatus>();
                             if (state == ServerStatus.StatusTerminating)
-                                throw new RsuInitSceneException("Server is terminating");
+                                throw new RsuInitObjectsException("Server is terminating");
                             else if (state == ServerStatus.StatusHibernating)
                             {
                                 _clientStatus = ClientStatus.Idle;
@@ -257,7 +261,7 @@ namespace raisimUnity
 
                             ServerMessageType messageType = _tcpHelper.GetData<ServerMessageType>();
                             if (messageType != ServerMessageType.Initialization)
-                                throw new RsuInitSceneException("Server gives wrong message");
+                                throw new RsuInitObjectsException("Server gives wrong message");
 
                             _objectConfiguration = _tcpHelper.GetData<ulong>();
                             _numWorldObjects = _tcpHelper.GetData<ulong>();
@@ -383,11 +387,11 @@ namespace raisimUnity
                             // Start reinitializing
                             _tcpHelper.WriteData(BitConverter.GetBytes((int) ClientMessageType.RequestInitializeObjects));
                             if (_tcpHelper.ReadData() <= 0)
-                                throw new RsuInitSceneException("Cannot read data from TCP");
+                                throw new RsuInitObjectsException("Cannot read data from TCP");
 
                             ServerStatus state = _tcpHelper.GetData<ServerStatus>();
                             if (state == ServerStatus.StatusTerminating)
-                                throw new RsuInitSceneException("Server is terminating");
+                                throw new RsuInitObjectsException("Server is terminating");
                             else if (state == ServerStatus.StatusHibernating)
                             {
                                 _clientStatus = ClientStatus.Idle;
@@ -396,7 +400,7 @@ namespace raisimUnity
 
                             ServerMessageType messageType = _tcpHelper.GetData<ServerMessageType>();
                             if (messageType != ServerMessageType.Initialization)
-                                throw new RsuInitSceneException("Server gives wrong message");
+                                throw new RsuInitObjectsException("Server gives wrong message");
 
                             _objectConfiguration = _tcpHelper.GetData<ulong>();
                             _numWorldObjects = _tcpHelper.GetData<ulong>();
@@ -626,7 +630,7 @@ namespace raisimUnity
                                 string meshFilePathInResourceDir = _loader.RetrieveMeshPath(urdfDirPathInServer, meshFile);
                                 if (meshFilePathInResourceDir == null)
                                 {
-                                    throw new RsuInitSceneException("Cannot find mesh from resource directories = " + meshFile);
+                                    throw new RsuInitObjectsException("Cannot find mesh from resource directories = " + meshFile);
                                 }
 
                                 try
@@ -636,7 +640,7 @@ namespace raisimUnity
                                 }
                                 catch (Exception e)
                                 {
-                                    throw new RsuInitSceneException("Cannot create mesh: " + e.Message);
+                                    throw new RsuInitObjectsException("Cannot create mesh: " + e.Message);
                                     throw;
                                 }
                             }
@@ -654,14 +658,14 @@ namespace raisimUnity
                                 {
                                     case RsShapeType.RsBoxShape:
                                     {
-                                        if (visParam.Count != 3) throw new RsuInitSceneException("Box Mesh error");
+                                        if (visParam.Count != 3) throw new RsuInitObjectsException("Box Mesh error");
                                         var box = _objectController.CreateBox(objFrame, (float) visParam[0], (float) visParam[1], (float) visParam[2]);
                                         box.tag = tag;
                                     }
                                         break;
                                     case RsShapeType.RsCapsuleShape:
                                     {
-                                        if (visParam.Count != 2) throw new RsuInitSceneException("Capsule Mesh error");
+                                        if (visParam.Count != 2) throw new RsuInitObjectsException("Capsule Mesh error");
                                         var capsule = _objectController.CreateCapsule(objFrame, (float)visParam[0], (float)visParam[1]);
                                         capsule.tag = tag;
                                     }
@@ -673,14 +677,14 @@ namespace raisimUnity
                                         break;
                                     case RsShapeType.RsCylinderShape:
                                     {
-                                        if (visParam.Count != 2) throw new RsuInitSceneException("Cylinder Mesh error");
+                                        if (visParam.Count != 2) throw new RsuInitObjectsException("Cylinder Mesh error");
                                         var cylinder = _objectController.CreateCylinder(objFrame, (float)visParam[0], (float)visParam[1]);
                                         cylinder.tag = tag;
                                     }
                                         break;
                                     case RsShapeType.RsSphereShape:
                                     {
-                                        if (visParam.Count != 1) throw new RsuInitSceneException("Sphere Mesh error");
+                                        if (visParam.Count != 1) throw new RsuInitObjectsException("Sphere Mesh error");
                                         var sphere = _objectController.CreateSphere(objFrame, (float)visParam[0]);
                                         sphere.tag = tag;
                                     }
@@ -908,7 +912,7 @@ namespace raisimUnity
                                 }
                                     break;
                                 default:
-                                    throw new RsuInitSceneException("Not Implemented Appearance Shape");
+                                    throw new RsuInitObjectsException("Not Implemented Appearance Shape");
                             }
                         }
                     }
@@ -1413,6 +1417,14 @@ namespace raisimUnity
         public bool TcpConnected
         {
             get => _tcpHelper.Connected;
+        }
+
+        public bool IsServerHibernating
+        {
+            get
+            {
+                return _clientStatus == ClientStatus.Idle && _tcpHelper.DataAvailable;
+            }
         }
 
         public ResourceLoader ResourceLoader
