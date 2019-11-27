@@ -12,7 +12,8 @@ This log file is following the guideline of [keep a changelog](https://keepachan
 ### Changed
 - Configuration number for visuals. If configuration number does not match, reinitialize visuals. This only works with RaiSim commit >= 0455fb54e54c3d3fa471ef40e67b97a228b31d35 
 - If the screen size is changed while recording, terminate video recording 
-- Video is now saved in Screenshot directory.    
+- Video is now saved in Screenshot directory.
+- Erased redundant default materials in order to reduce git lfs bandwidth.      
 
 ### Fixed 
 - We do not need configuration number for contact update. Line for getting configuration number is removed. This only works with RaiSim commit >= 0455fb54e54c3d3fa471ef40e67b97a228b31d35
