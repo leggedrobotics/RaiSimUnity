@@ -86,4 +86,14 @@ Material material = Resources.Load<Material>(yourMaterialName);
 yourGameObject.GetComponentInChildren<Renderer>().material = material;
 ```
 
+The name of default materials are: 
+- ```Ground1```: default material for height map
+- ```Tiles1```: default material for plane 
+- ```Plastic1```: red plastic
+- ```Plastic2```: green plastic
+- ```Plastic3```: blue plastic
+- ```Metal1```
+
+![Default materials](Images/materials.png)
+
 If you want to create your own material, see [Wiki doc](https://github.com/leggedrobotics/RaiSimUnity/wiki/creating-unity-materials).
