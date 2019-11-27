@@ -25,6 +25,7 @@ create_executable(anymal src/anymal.cpp)
 create_executable(balls src/balls.cpp)
 create_executable(atlas src/atlas.cpp)
 create_executable(heightmap src/heightmap.cpp)
+create_executable(visuals src/visuals.cpp)
 create_executable(xmlworld src/xmlworld.cpp)
 
 # EOF

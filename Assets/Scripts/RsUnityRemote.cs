@@ -473,7 +473,7 @@ namespace raisimUnity
                             }
 
                             ServerMessageType messageType = _tcpHelper.GetData<ServerMessageType>();
-                            if (messageType != ServerMessageType.Initialization)
+                            if (messageType != ServerMessageType.VisualInitialization)
                                 throw new RsuInitVisualsException("Server gives wrong message");
 
                             _visualConfiguration = _tcpHelper.GetData<ulong>();
