@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 This log file is following the guideline of [keep a changelog](https://keepachangelog.com).
 
 ## [Unreleased]
+
+## [0.2.2] - 2019-11-27
+
 ### Added
 - Added body frame markers (r/g/b arrow). Frame markers are scaled by UI sliders.
 - Server hibernating mode added. If the server is hibernating, wait until server awake.
