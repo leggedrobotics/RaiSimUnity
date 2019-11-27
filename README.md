@@ -108,4 +108,4 @@ If you want to create your own material, see [Wiki doc](https://github.com/legge
     - Yes. You can run RaiSim application on your "Server" machine and connect RaiSimUnity to the server by specifying IP address. 
 - Does RaiSimUnity support Mac or Windows?
     - Although we only release Linux builds, you can easily build RaiSimUnity for Mac or Windows. 
-    - However RaiSim does not support Mac or Windows. This means if you want to use RaiSimUnity on Mac or Windows, you need to run your RaiSim application to Linux "Server" (or in docker container) and connect RaiSimUnity to the server. 
+    - However RaiSim does not support Mac or Windows. This means if you want to use RaiSimUnity on Mac or Windows, you need to run your RaiSim application on Linux "Server" machine (or docker container) and connect it with RaiSimUnity. 
