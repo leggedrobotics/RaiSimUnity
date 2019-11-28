@@ -76,7 +76,7 @@ The following sections introduces how to develop RaiSimUnity on Linux (Ubuntu 18
 
 #### Contribution guideline
 
-See wiki for a contribution guideline.
+See a [contribution guideline](CONTRIBUTING.md).
 
 ## Material supports
 
