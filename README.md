@@ -6,12 +6,7 @@ RaiSimUnity is a visualizer for RaiSim based on [Unity](https://unity.com/). It 
 
 The project was tested on Ubuntu 18.04 LST.
 
-## How to 
-
-### Using RaiSimUnity
-For beginners, we recommand downloading a compiled app image from the [release tab](https://github.com/leggedrobotics/RaiSimUnity/releases). Then you don't have to compile the app yourself.
-
-### Dependencies
+## Dependencies
 
 The following Unity plugins are already included in the project.                
 - [SimpleFileBrowser](https://assetstore.unity.com/packages/tools/gui/runtime-file-browser-113006)
@@ -25,6 +20,13 @@ The followings are optional dependencies
         ```sh
         $ sudo apt install ffmpeg
         ``` 
+
+## How to 
+
+### Using RaiSimUnity
+
+For beginners, we recommend downloading a compiled app image from the [release tab](https://github.com/leggedrobotics/RaiSimUnity/releases). 
+This is stand-alone application thus you don't have to mind about dependencies or compiling. (only ffmpeg is required for recording a screen capture video.)
 
 ### Quickstart with RaiSim
 
@@ -97,6 +99,8 @@ The name of default materials are:
 ![Default materials](Images/materials.png)
 
 If you want to create your own material, see [Wiki doc](https://github.com/leggedrobotics/RaiSimUnity/wiki/creating-unity-materials).
+
+Note that material defined in Collada format (.dae) can be automatically imported without pre-created Unity material. 
 
 ## FAQ
 
