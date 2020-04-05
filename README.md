@@ -14,6 +14,8 @@ The following Unity plugins are already included in the project.
 The following Unity packages are imported by Unity Package Manager automatically: see [Packages/manifest.json](Packages/manifest.json) 
 - [UnityMeshImporter](https://github.com/eastskykang/UnityMeshImporter)
 
+- minizip ```sudo apt install minizip```
+
 The followings are optional dependencies
 - [ffmpeg](https://www.ffmpeg.org/) for video recording
     - You can install ffmpeg by 
