@@ -416,7 +416,6 @@ public class CameraController : MonoBehaviour
             return ffmpegProc.ExitCode;
         }
 
-        return -1;
     }
 
     private void SaveVideo()
