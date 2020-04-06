@@ -24,6 +24,8 @@
 
 using System;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
+using System.Text;
 using UnityEngine;
 
 namespace raisimUnity
@@ -163,11 +165,126 @@ namespace raisimUnity
             return 0;
         }
 
-        public T GetData<T>()
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ServerStatus GetDataServerStatus()
         {
-            return BitIO.GetData<T>(ref _buffer, ref _bufferOffset);
+            return (ServerStatus)(GetDataInt());
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ServerMessageType GetDataServerMessageType()
+        {
+            return (ServerMessageType)(GetDataInt());
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public RsObejctType GetDataRsObejctType()
+        {
+            return (RsObejctType)(GetDataInt());
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public RsShapeType GetDataRsShapeType()
+        {
+            return (RsShapeType)(GetDataInt());
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public double GetDataDouble()
+        {
+            var data = BitConverter.ToDouble(_buffer, _bufferOffset).As<double>();
+            _bufferOffset = _bufferOffset + sizeof(double);
+            return data;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public float GetDataFloat()
+        {
+            var data = BitConverter.ToSingle(_buffer, _bufferOffset).As<float>();
+            _bufferOffset = _bufferOffset + sizeof(float);
+            return data;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ulong GetDataUlong()
+        {
+            var data = BitConverter.ToUInt64(_buffer, _bufferOffset).As<ulong>();
+            _bufferOffset = _bufferOffset + sizeof(ulong);
+            return data;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public long GetDataLong()
+        {
+            var data = BitConverter.ToInt64(_buffer, _bufferOffset).As<long>();
+            _bufferOffset = _bufferOffset + sizeof(long);
+            return data;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public uint GetDataUint()
+        {
+            var data = BitConverter.ToUInt32(_buffer, _bufferOffset).As<uint>();
+            _bufferOffset = _bufferOffset + sizeof(uint);
+            return data;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public int GetDataInt()
+        {
+            var data = BitConverter.ToInt32(_buffer, _bufferOffset).As<int>();
+            _bufferOffset = _bufferOffset + sizeof(int);
+            return data;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public ushort GetDataUshort()
+        {
+            var data = BitConverter.ToUInt16(_buffer, _bufferOffset).As<ushort>();
+            _bufferOffset = _bufferOffset + sizeof(ushort);
+            return data;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public short GetDataShort()
+        {
+            var data = BitConverter.ToInt16(_buffer, _bufferOffset).As<short>();
+            _bufferOffset = _bufferOffset + sizeof(short);
+            return data;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public byte GetDataByte()
+        {
+            var data = _buffer[_bufferOffset].As<byte>();
+            _bufferOffset = _bufferOffset + sizeof(byte);
+            return data;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public sbyte GetDataSbyte()
+        {
+            var data = ((sbyte)_buffer[_bufferOffset]).As<sbyte>();
+            _bufferOffset = _bufferOffset + sizeof(sbyte);
+            return data;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public string GetDataString()
+        {
+            ulong size = GetDataUlong();
+            var data = Encoding.UTF8.GetString(_buffer, _bufferOffset, (int)size).As<string>();
+            _bufferOffset = _bufferOffset + (int)size;
+            return data;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool GetDataBool()
+        {
+            var data = BitConverter.ToBoolean(_buffer, _bufferOffset).As<bool>();
+            _bufferOffset = _bufferOffset + sizeof(bool);
+            return data;
+        }
 
         //**************************************************************************************************************
         //  Getter and Setters 

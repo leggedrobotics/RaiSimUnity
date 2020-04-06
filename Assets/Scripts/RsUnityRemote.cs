@@ -48,8 +48,8 @@ namespace raisimUnity
         ReinitializeVisualsStart,    // start  
         ReinitializingVisuals,
     }
-    
-    enum RsObejctType : int
+
+    public enum RsObejctType : int
     {
         RsSphereObject = 0, 
         RsBoxObject,
@@ -63,7 +63,7 @@ namespace raisimUnity
         RsArticulatedSystemObject,
     }
 
-    enum RsShapeType : int
+    public enum RsShapeType : int
     {
         RsBoxShape = 0, 
         RsCylinderShape,
@@ -244,7 +244,7 @@ namespace raisimUnity
                             if (_tcpHelper.ReadData() <= 0)
                                 throw new RsuIdleException("Cannot read data from TCP");
                             
-                            ServerStatus state = _tcpHelper.GetData<ServerStatus>();
+                            ServerStatus state = _tcpHelper.GetDataServerStatus();
                             if (state == ServerStatus.StatusRendering)
                             {
                                 // Go to InitializeObjectsStart
@@ -270,7 +270,7 @@ namespace raisimUnity
                             if (_tcpHelper.ReadData() <= 0)
                                 throw new RsuInitObjectsException("Cannot read data from TCP");
 
-                            ServerStatus state = _tcpHelper.GetData<ServerStatus>();
+                            ServerStatus state = _tcpHelper.GetDataServerStatus();
                             if (state == ServerStatus.StatusTerminating)
                                 throw new RsuInitObjectsException("Server is terminating");
                             else if (state == ServerStatus.StatusHibernating)
@@ -279,12 +279,12 @@ namespace raisimUnity
                                 return;
                             }
 
-                            ServerMessageType messageType = _tcpHelper.GetData<ServerMessageType>();
+                            ServerMessageType messageType = _tcpHelper.GetDataServerMessageType();
                             if (messageType != ServerMessageType.Initialization)
                                 throw new RsuInitObjectsException("Server gives wrong message");
 
-                            _objectConfiguration = _tcpHelper.GetData<ulong>();
-                            _numWorldObjects = _tcpHelper.GetData<ulong>();
+                            _objectConfiguration = _tcpHelper.GetDataUlong();
+                            _numWorldObjects = _tcpHelper.GetDataUlong();
                             _numInitializedObjects = 0;
                             _clientStatus = ClientStatus.InitializingObjects;
                             break;
@@ -329,7 +329,7 @@ namespace raisimUnity
                             if (_tcpHelper.ReadData() <= 0)
                                 throw new RsuInitVisualsException("Cannot read data from TCP");
 
-                            ServerStatus state = _tcpHelper.GetData<ServerStatus>();
+                            ServerStatus state = _tcpHelper.GetDataServerStatus();
                             if (state == ServerStatus.StatusTerminating)
                                 throw new RsuInitVisualsException("Server is terminating");
                             else if (state == ServerStatus.StatusHibernating)
@@ -338,12 +338,12 @@ namespace raisimUnity
                                 return;
                             }
 
-                            ServerMessageType messageType = _tcpHelper.GetData<ServerMessageType>();
+                            ServerMessageType messageType = _tcpHelper.GetDataServerMessageType();
                             if (messageType != ServerMessageType.VisualInitialization)
                                 throw new RsuInitVisualsException("Server gives wrong message");
 
-                            _visualConfiguration = _tcpHelper.GetData<ulong>();
-                            _numWorldVisuals = _tcpHelper.GetData<ulong>();
+                            _visualConfiguration = _tcpHelper.GetDataUlong();
+                            _numWorldVisuals = _tcpHelper.GetDataUlong();
                             _numInitializedVisuals = 0;
                             _clientStatus = ClientStatus.InitializingVisuals;
                             break;
@@ -409,7 +409,7 @@ namespace raisimUnity
                             if (_tcpHelper.ReadData() <= 0)
                                 throw new RsuInitObjectsException("Cannot read data from TCP");
 
-                            ServerStatus state = _tcpHelper.GetData<ServerStatus>();
+                            ServerStatus state = _tcpHelper.GetDataServerStatus();
                             if (state == ServerStatus.StatusTerminating)
                                 throw new RsuInitObjectsException("Server is terminating");
                             else if (state == ServerStatus.StatusHibernating)
@@ -418,12 +418,12 @@ namespace raisimUnity
                                 return;
                             }
 
-                            ServerMessageType messageType = _tcpHelper.GetData<ServerMessageType>();
+                            ServerMessageType messageType = _tcpHelper.GetDataServerMessageType();
                             if (messageType != ServerMessageType.Initialization)
                                 throw new RsuInitObjectsException("Server gives wrong message");
 
-                            _objectConfiguration = _tcpHelper.GetData<ulong>();
-                            _numWorldObjects = _tcpHelper.GetData<ulong>();
+                            _objectConfiguration = _tcpHelper.GetDataUlong();
+                            _numWorldObjects = _tcpHelper.GetDataUlong();
                             _numInitializedObjects = 0;
                             _clientStatus = ClientStatus.ReinitializingObjects;
                             break;
@@ -487,7 +487,7 @@ namespace raisimUnity
                             if (_tcpHelper.ReadData() <= 0)
                                 throw new RsuInitVisualsException("Cannot read data from TCP");
 
-                            ServerStatus state = _tcpHelper.GetData<ServerStatus>();
+                            ServerStatus state = _tcpHelper.GetDataServerStatus();
                             if (state == ServerStatus.StatusTerminating)
                                 throw new RsuInitVisualsException("Server is terminating");
                             else if (state == ServerStatus.StatusHibernating)
@@ -496,12 +496,12 @@ namespace raisimUnity
                                 return;
                             }
 
-                            ServerMessageType messageType = _tcpHelper.GetData<ServerMessageType>();
+                            ServerMessageType messageType = _tcpHelper.GetDataServerMessageType();
                             if (messageType != ServerMessageType.VisualInitialization)
                                 throw new RsuInitVisualsException("Server gives wrong message");
 
-                            _visualConfiguration = _tcpHelper.GetData<ulong>();
-                            _numWorldVisuals = _tcpHelper.GetData<ulong>();
+                            _visualConfiguration = _tcpHelper.GetDataUlong();
+                            _numWorldVisuals = _tcpHelper.GetDataUlong();
                             _numInitializedVisuals = 0;
                             _clientStatus = ClientStatus.ReinitializingVisuals;
                             break;
@@ -606,28 +606,28 @@ namespace raisimUnity
         {
             while (_numInitializedObjects < _numWorldObjects)
             {
-                ulong objectIndex = _tcpHelper.GetData<ulong>();
-                RsObejctType objectType = _tcpHelper.GetData<RsObejctType>();
+                ulong objectIndex = _tcpHelper.GetDataUlong();
+                RsObejctType objectType = _tcpHelper.GetDataRsObejctType();
                 
                 // get name and find corresponding appearance from XML
-                string name = _tcpHelper.GetData<string>();
+                string name = _tcpHelper.GetDataString();
                 Appearances? appearances = _xmlReader.FindApperancesFromObjectName(name);
                 
                 if (objectType == RsObejctType.RsArticulatedSystemObject)
                 {
-                    string urdfDirPathInServer = _tcpHelper.GetData<string>(); 
+                    string urdfDirPathInServer = _tcpHelper.GetDataString(); 
 
                     // visItem = 0 (visuals)
                     // visItem = 1 (collisions)
                     for (int visItem = 0; visItem < 2; visItem++)
                     {
-                        ulong numberOfVisObjects = _tcpHelper.GetData<ulong>();
+                        ulong numberOfVisObjects = _tcpHelper.GetDataUlong();
 
                         for (ulong j = 0; j < numberOfVisObjects; j++)
                         {
-                            RsShapeType shapeType = _tcpHelper.GetData<RsShapeType>();
+                            RsShapeType shapeType = _tcpHelper.GetDataRsShapeType();
                                 
-                            ulong group = _tcpHelper.GetData<ulong>();
+                            ulong group = _tcpHelper.GetDataUlong();
 
                             string subName = Path.Combine(objectIndex.ToString(), visItem.ToString(), j.ToString());
                             var objFrame = _objectController.CreateRootObject(_objectsRoot, subName);
@@ -640,12 +640,12 @@ namespace raisimUnity
 
                             if (shapeType == RsShapeType.RsMeshShape)
                             {
-                                string meshFile = _tcpHelper.GetData<string>();
+                                string meshFile = _tcpHelper.GetDataString();
                                 string meshFileExtension = Path.GetExtension(meshFile);
 
-                                double sx = _tcpHelper.GetData<double>();
-                                double sy = _tcpHelper.GetData<double>();
-                                double sz = _tcpHelper.GetData<double>();
+                                double sx = _tcpHelper.GetDataDouble();
+                                double sy = _tcpHelper.GetDataDouble();
+                                double sz = _tcpHelper.GetDataDouble();
 
                                 string meshFilePathInResourceDir = _loader.RetrieveMeshPath(urdfDirPathInServer, meshFile);
                                 if (meshFilePathInResourceDir == null)
@@ -666,12 +666,12 @@ namespace raisimUnity
                             }
                             else
                             {
-                                ulong size = _tcpHelper.GetData<ulong>();
+                                ulong size = _tcpHelper.GetDataUlong();
                                     
                                 var visParam = new List<double>();
                                 for (ulong k = 0; k < size; k++)
                                 {
-                                    double visSize = _tcpHelper.GetData<double>();
+                                    double visSize = _tcpHelper.GetDataDouble();
                                     visParam.Add(visSize);
                                 }
                                 switch (shapeType)
@@ -763,9 +763,9 @@ namespace raisimUnity
                     float sizeX = _tcpHelper.GetData<float>();
                     float sizeY = _tcpHelper.GetData<float>();
                     // num samples
-                    ulong numSampleX = _tcpHelper.GetData<ulong>();
-                    ulong numSampleY = _tcpHelper.GetData<ulong>();
-                    ulong numSample = _tcpHelper.GetData<ulong>();
+                    ulong numSampleX = _tcpHelper.GetDataUlong();
+                    ulong numSampleY = _tcpHelper.GetDataUlong();
+                    ulong numSample = _tcpHelper.GetDataUlong();
                         
                     // height values 
                     float[,] heights = new float[numSampleY, numSampleX];
@@ -862,7 +862,7 @@ namespace raisimUnity
                             break;
                         case RsObejctType.RsMeshObject:
                         {
-                            string meshFile = _tcpHelper.GetData<string>();
+                            string meshFile = _tcpHelper.GetDataString();
                             float scale = _tcpHelper.GetData<float>();
                             
                             string meshFileName = Path.GetFileName(meshFile);       
@@ -959,13 +959,13 @@ namespace raisimUnity
                 RsVisualType objectType = _tcpHelper.GetData<RsVisualType>();
                 
                 // get name and find corresponding appearance from XML
-                string objectName = _tcpHelper.GetData<string>();
+                string objectName = _tcpHelper.GetDataString();
                 
                 float colorR = _tcpHelper.GetData<float>();
                 float colorG = _tcpHelper.GetData<float>();
                 float colorB = _tcpHelper.GetData<float>();
                 float colorA = _tcpHelper.GetData<float>();
-                string materialName = _tcpHelper.GetData<string>();
+                string materialName = _tcpHelper.GetDataString();
                 bool glow = _tcpHelper.GetData<bool>();
                 bool shadow = _tcpHelper.GetData<bool>();
 
@@ -1051,7 +1051,7 @@ namespace raisimUnity
             if (_tcpHelper.ReadData() <= 0)
                 throw new RsuUpdateObjectsPositionException("Cannot read data from TCP");
 
-            ServerStatus state = _tcpHelper.GetData<ServerStatus>();
+            ServerStatus state = _tcpHelper.GetDataServerStatus();
             if (state == ServerStatus.StatusTerminating)
                 throw new RsuUpdateObjectsPositionException("Server is terminating");
             else if (state == ServerStatus.StatusHibernating)
@@ -1060,11 +1060,11 @@ namespace raisimUnity
                 return;
             }
 
-            ServerMessageType messageType = _tcpHelper.GetData<ServerMessageType>();
+            ServerMessageType messageType = _tcpHelper.GetDataServerMessageType();
             if (messageType != ServerMessageType.ObjectPositionUpdate)
                 throw new RsuUpdateObjectsPositionException("Server gives wrong message");
             
-            ulong configurationNumber = _tcpHelper.GetData<ulong>();
+            ulong configurationNumber = _tcpHelper.GetDataUlong();
             if (configurationNumber != _objectConfiguration)
             {
                 // this means the object was added or deleted from server size
@@ -1072,24 +1072,24 @@ namespace raisimUnity
                 return;
             }
 
-            ulong numObjects = _tcpHelper.GetData<ulong>();
+            ulong numObjects = _tcpHelper.GetDataUlong();
 
             for (ulong i = 0; i < numObjects; i++)
             {
-                ulong localIndexSize = _tcpHelper.GetData<ulong>();
+                ulong localIndexSize = _tcpHelper.GetDataUlong();
 
                 for (ulong j = 0; j < localIndexSize; j++)
                 {
-                    string objectName = _tcpHelper.GetData<string>();
+                    string objectName = _tcpHelper.GetDataString();
                     
-                    double posX = _tcpHelper.GetData<double>();
-                    double posY = _tcpHelper.GetData<double>();
-                    double posZ = _tcpHelper.GetData<double>();
+                    double posX = _tcpHelper.GetDataDouble();
+                    double posY = _tcpHelper.GetDataDouble();
+                    double posZ = _tcpHelper.GetDataDouble();
                     
-                    double quatW = _tcpHelper.GetData<double>();
-                    double quatX = _tcpHelper.GetData<double>();
-                    double quatY = _tcpHelper.GetData<double>();
-                    double quatZ = _tcpHelper.GetData<double>();
+                    double quatW = _tcpHelper.GetDataDouble();
+                    double quatX = _tcpHelper.GetDataDouble();
+                    double quatY = _tcpHelper.GetDataDouble();
+                    double quatZ = _tcpHelper.GetDataDouble();
 
                     GameObject localObject = GameObject.Find(objectName);
 
@@ -1119,7 +1119,7 @@ namespace raisimUnity
             if (_tcpHelper.ReadData() <= 0)
                 throw new RsuUpdateVisualsPositionException("Cannot read data from TCP");
 
-            ServerStatus state = _tcpHelper.GetData<ServerStatus>();
+            ServerStatus state = _tcpHelper.GetDataServerStatus();
             if (state == ServerStatus.StatusTerminating)
                 throw new RsuUpdateVisualsPositionException("Server is terminating");
             else if (state == ServerStatus.StatusHibernating)
@@ -1128,7 +1128,7 @@ namespace raisimUnity
                 return;
             }
 
-            ServerMessageType messageType = _tcpHelper.GetData<ServerMessageType>();
+            ServerMessageType messageType = _tcpHelper.GetDataServerMessageType();
             if (messageType == ServerMessageType.NoMessage)
             {
                 throw new RsuUpdateVisualsPositionException("Server gives wrong message");
@@ -1138,7 +1138,7 @@ namespace raisimUnity
                 throw new RsuUpdateVisualsPositionException("Server gives wrong message");
             }
             
-            ulong configurationNumber = _tcpHelper.GetData<ulong>();
+            ulong configurationNumber = _tcpHelper.GetDataUlong();
             if (configurationNumber != _visualConfiguration)
             {
                 // this means the object was added or deleted from server size
@@ -1146,20 +1146,20 @@ namespace raisimUnity
                 return;
             }
             
-            ulong numObjects = _tcpHelper.GetData<ulong>();
+            ulong numObjects = _tcpHelper.GetDataUlong();
 
             for (ulong i = 0; i < numObjects; i++)
             {
-                string visualName = _tcpHelper.GetData<string>();
+                string visualName = _tcpHelper.GetDataString();
                 
-                double posX = _tcpHelper.GetData<double>();
-                double posY = _tcpHelper.GetData<double>();
-                double posZ = _tcpHelper.GetData<double>();
+                double posX = _tcpHelper.GetDataDouble();
+                double posY = _tcpHelper.GetDataDouble();
+                double posZ = _tcpHelper.GetDataDouble();
                     
-                double quatW = _tcpHelper.GetData<double>();
-                double quatX = _tcpHelper.GetData<double>();
-                double quatY = _tcpHelper.GetData<double>();
-                double quatZ = _tcpHelper.GetData<double>();
+                double quatW = _tcpHelper.GetDataDouble();
+                double quatX = _tcpHelper.GetDataDouble();
+                double quatY = _tcpHelper.GetDataDouble();
+                double quatZ = _tcpHelper.GetDataDouble();
 
                 GameObject localObject = GameObject.Find(visualName);
 
@@ -1188,7 +1188,7 @@ namespace raisimUnity
             if (_tcpHelper.ReadData() <= 0)
                 throw new RsuUpdateContactsException("Cannot read data from TCP");
             
-            ServerStatus state = _tcpHelper.GetData<ServerStatus>();
+            ServerStatus state = _tcpHelper.GetDataServerStatus();
             if (state == ServerStatus.StatusTerminating)
                 throw new RsuUpdateContactsException("Server is terminating");
             else if (state == ServerStatus.StatusHibernating)
@@ -1197,13 +1197,13 @@ namespace raisimUnity
                 return;
             }
 
-            ServerMessageType messageType = _tcpHelper.GetData<ServerMessageType>();
+            ServerMessageType messageType = _tcpHelper.GetDataServerMessageType();
             if (messageType != ServerMessageType.ContactInfoUpdate)
             {
                 throw new RsuUpdateContactsException("Server gives wrong message");
             }
             
-            ulong numContacts = _tcpHelper.GetData<ulong>();
+            ulong numContacts = _tcpHelper.GetDataUlong();
 
             // clear contacts 
             ClearContacts();
@@ -1214,13 +1214,13 @@ namespace raisimUnity
 
             for (ulong i = 0; i < numContacts; i++)
             {
-                double posX = _tcpHelper.GetData<double>();
-                double posY = _tcpHelper.GetData<double>();
-                double posZ = _tcpHelper.GetData<double>();
+                double posX = _tcpHelper.GetDataDouble();
+                double posY = _tcpHelper.GetDataDouble();
+                double posZ = _tcpHelper.GetDataDouble();
 
-                double forceX = _tcpHelper.GetData<double>();
-                double forceY = _tcpHelper.GetData<double>();
-                double forceZ = _tcpHelper.GetData<double>();
+                double forceX = _tcpHelper.GetDataDouble();
+                double forceY = _tcpHelper.GetDataDouble();
+                double forceZ = _tcpHelper.GetDataDouble();
                 var force = new Vector3((float) forceX, (float) forceY, (float) forceZ);
                 
                 contactList.Add(new Tuple<Vector3, Vector3>(
@@ -1256,7 +1256,7 @@ namespace raisimUnity
             if (_tcpHelper.ReadData() <= 0)
                 throw new RsuReadXMLException("Cannot read data from TCP");
             
-            ServerStatus state = _tcpHelper.GetData<ServerStatus>();
+            ServerStatus state = _tcpHelper.GetDataServerStatus();
             
             if (state == ServerStatus.StatusTerminating)
                 throw new RsuReadXMLException("Server is terminating");
@@ -1266,7 +1266,7 @@ namespace raisimUnity
                 return;
             }
 
-            ServerMessageType messageType = _tcpHelper.GetData<ServerMessageType>();
+            ServerMessageType messageType = _tcpHelper.GetDataServerMessageType();
             if (messageType == ServerMessageType.NoMessage) return; // No XML
                 
             if (messageType != ServerMessageType.ConfigXml)
@@ -1274,7 +1274,7 @@ namespace raisimUnity
                 throw new RsuReadXMLException("Server gives wrong message");
             }
 
-            string xmlString = _tcpHelper.GetData<string>();
+            string xmlString = _tcpHelper.GetDatastring();
 
             XmlDocument xmlDoc = new XmlDocument();
             if (xmlDoc != null)

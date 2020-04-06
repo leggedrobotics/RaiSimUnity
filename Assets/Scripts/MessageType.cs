@@ -25,7 +25,7 @@
 namespace raisimUnity
 {
     // socket commands from client
-    enum ServerMessageType : int
+    public enum ServerMessageType : int
     {
         Initialization = 0,
         ObjectPositionUpdate,
@@ -53,7 +53,7 @@ namespace raisimUnity
         RequestServerStatus,
     }
 
-    enum ServerStatus : int
+    public enum ServerStatus : int
     {
         StatusRendering = 0,
         StatusHibernating,
