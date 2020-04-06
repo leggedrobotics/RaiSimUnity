@@ -73,7 +73,7 @@ namespace raisimUnity
         RsConeShape,
     }
 
-    enum RsVisualType : int
+    public enum RsVisualType : int
     {
         RsVisualSphere = 0,
         RsVisualBox,
@@ -728,7 +728,7 @@ namespace raisimUnity
                         material = _planeMaterial;
                     }
                     
-                    float height = _tcpHelper.GetData<float>();
+                    float height = _tcpHelper.GetDataFloat();
                     var objFrame = _objectController.CreateRootObject(_objectsRoot, objectIndex.ToString());
                     var plane = _objectController.CreateHalfSpace(objFrame, height);
                     plane.tag = VisualTag.Collision;
@@ -757,11 +757,11 @@ namespace raisimUnity
                     }
                     
                     // center
-                    float centerX = _tcpHelper.GetData<float>();
-                    float centerY = _tcpHelper.GetData<float>();
+                    float centerX = _tcpHelper.GetDataFloat();
+                    float centerY = _tcpHelper.GetDataFloat();
                     // size
-                    float sizeX = _tcpHelper.GetData<float>();
-                    float sizeY = _tcpHelper.GetData<float>();
+                    float sizeX = _tcpHelper.GetDataFloat();
+                    float sizeY = _tcpHelper.GetDataFloat();
                     // num samples
                     ulong numSampleX = _tcpHelper.GetDataUlong();
                     ulong numSampleY = _tcpHelper.GetDataUlong();
@@ -773,7 +773,7 @@ namespace raisimUnity
                     {
                         for (ulong k = 0; k < numSampleX; k++)
                         {
-                            float height = _tcpHelper.GetData<float>();
+                            float height = _tcpHelper.GetDataFloat();
                             heights[j, k] = height;
                         }
                     }
@@ -829,7 +829,7 @@ namespace raisimUnity
                     {
                         case RsObejctType.RsSphereObject :
                         {
-                            float radius = _tcpHelper.GetData<float>();
+                            float radius = _tcpHelper.GetDataFloat();
                             collisionObject =  _objectController.CreateSphere(objFrame, radius);
                             collisionObject.tag = VisualTag.Collision;
                         }
@@ -837,25 +837,25 @@ namespace raisimUnity
 
                         case RsObejctType.RsBoxObject :
                         {
-                            float sx = _tcpHelper.GetData<float>();
-                            float sy = _tcpHelper.GetData<float>();
-                            float sz = _tcpHelper.GetData<float>();
+                            float sx = _tcpHelper.GetDataFloat();
+                            float sy = _tcpHelper.GetDataFloat();
+                            float sz = _tcpHelper.GetDataFloat();
                             collisionObject = _objectController.CreateBox(objFrame, sx, sy, sz);
                             collisionObject.tag = VisualTag.Collision;
                         }
                             break;
                         case RsObejctType.RsCylinderObject:
                         {
-                            float radius = _tcpHelper.GetData<float>();
-                            float height = _tcpHelper.GetData<float>();
+                            float radius = _tcpHelper.GetDataFloat();
+                            float height = _tcpHelper.GetDataFloat();
                             collisionObject = _objectController.CreateCylinder(objFrame, radius, height);
                             collisionObject.tag = VisualTag.Collision;
                         }
                             break;
                         case RsObejctType.RsCapsuleObject:
                         {
-                            float radius = _tcpHelper.GetData<float>();
-                            float height = _tcpHelper.GetData<float>();
+                            float radius = _tcpHelper.GetDataFloat();
+                            float height = _tcpHelper.GetDataFloat();
                             collisionObject = _objectController.CreateCapsule(objFrame, radius, height);
                             collisionObject.tag = VisualTag.Collision;
                         }
@@ -863,7 +863,7 @@ namespace raisimUnity
                         case RsObejctType.RsMeshObject:
                         {
                             string meshFile = _tcpHelper.GetDataString();
-                            float scale = _tcpHelper.GetData<float>();
+                            float scale = _tcpHelper.GetDataFloat();
                             
                             string meshFileName = Path.GetFileName(meshFile);       
                             string meshFileExtension = Path.GetExtension(meshFile);
@@ -956,18 +956,18 @@ namespace raisimUnity
         {
             while (_numInitializedVisuals < _numWorldVisuals)
             {
-                RsVisualType objectType = _tcpHelper.GetData<RsVisualType>();
+                RsVisualType objectType = _tcpHelper.GetDataRsVisualType();
                 
                 // get name and find corresponding appearance from XML
                 string objectName = _tcpHelper.GetDataString();
                 
-                float colorR = _tcpHelper.GetData<float>();
-                float colorG = _tcpHelper.GetData<float>();
-                float colorB = _tcpHelper.GetData<float>();
-                float colorA = _tcpHelper.GetData<float>();
+                float colorR = _tcpHelper.GetDataFloat();
+                float colorG = _tcpHelper.GetDataFloat();
+                float colorB = _tcpHelper.GetDataFloat();
+                float colorA = _tcpHelper.GetDataFloat();
                 string materialName = _tcpHelper.GetDataString();
-                bool glow = _tcpHelper.GetData<bool>();
-                bool shadow = _tcpHelper.GetData<bool>();
+                bool glow = _tcpHelper.GetDataBool();
+                bool shadow = _tcpHelper.GetDataBool();
 
                 var visFrame = _objectController.CreateRootObject(_visualsRoot, objectName);
                 
@@ -977,32 +977,32 @@ namespace raisimUnity
                 {
                     case RsVisualType.RsVisualSphere :
                     {
-                        float radius = _tcpHelper.GetData<float>();
+                        float radius = _tcpHelper.GetDataFloat();
                         visual =  _objectController.CreateSphere(visFrame, radius);
                         visual.tag = VisualTag.Visual;
                     }
                         break;
                     case RsVisualType.RsVisualBox:
                     {
-                        float sx = _tcpHelper.GetData<float>();
-                        float sy = _tcpHelper.GetData<float>();
-                        float sz = _tcpHelper.GetData<float>();
+                        float sx = _tcpHelper.GetDataFloat();
+                        float sy = _tcpHelper.GetDataFloat();
+                        float sz = _tcpHelper.GetDataFloat();
                         visual = _objectController.CreateBox(visFrame, sx, sy, sz);
                         visual.tag = VisualTag.Visual;
                     }
                         break;
                     case RsVisualType.RsVisualCylinder:
                     {
-                        float radius = _tcpHelper.GetData<float>();
-                        float height = _tcpHelper.GetData<float>();
+                        float radius = _tcpHelper.GetDataFloat();
+                        float height = _tcpHelper.GetDataFloat();
                         visual = _objectController.CreateCylinder(visFrame, radius, height);
                         visual.tag = VisualTag.Visual;
                     }
                         break;
                     case RsVisualType.RsVisualCapsule:
                     {
-                        float radius = _tcpHelper.GetData<float>();
-                        float height = _tcpHelper.GetData<float>();
+                        float radius = _tcpHelper.GetDataFloat();
+                        float height = _tcpHelper.GetDataFloat();
                         visual = _objectController.CreateCapsule(visFrame, radius, height);
                         visual.tag = VisualTag.Visual;
                     }
@@ -1274,7 +1274,7 @@ namespace raisimUnity
                 throw new RsuReadXMLException("Server gives wrong message");
             }
 
-            string xmlString = _tcpHelper.GetDatastring();
+            string xmlString = _tcpHelper.GetDataString();
 
             XmlDocument xmlDoc = new XmlDocument();
             if (xmlDoc != null)

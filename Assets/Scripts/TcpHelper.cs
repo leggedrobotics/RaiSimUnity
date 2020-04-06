@@ -172,6 +172,12 @@ namespace raisimUnity
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public RsVisualType GetDataRsVisualType()
+        {
+            return (RsVisualType)(GetDataInt());
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ServerMessageType GetDataServerMessageType()
         {
             return (ServerMessageType)(GetDataInt());
